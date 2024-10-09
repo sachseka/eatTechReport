@@ -1,0 +1,61 @@
+---
+title: "Vergleichsarbeiten 2025 3. Jahrgangsstufe Mathematik"
+subtitle: "Technischer Bericht"
+author: "Kristoph Schumann"
+format: 
+  docx:
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    number-depth: 3
+    reference-doc: TechRep_style.docx
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+<!-- ToDo: Zeilenumbrüche im title -->
+
+```{r}
+#| label: setup
+#| include: false
+
+library(tidyverse)
+
+year <- 2025
+kb1 <- "Größen und Messen"
+kb2 <- "Daten, Häufigkeit und Wahrscheinlichkeit"
+```
+
+{{< pagebreak >}}
+# Allgemeine Informationen
+Der vorliegende Technische Bericht beschreibt das Vorgehen bei der Aufgabenentwicklung und -erprobung, fasst wichtige Ergebnisse der Datenauswertung zusammen und gibt einen Überblick über die Testmodule für die Vergleichsarbeiten in der 3. Jahrgangsstufe im Schuljahr `r year-1`/`r str_sub(year, 3, 4)`. 
+Ferner werden Hinweise zur Datenerhebung und -auswertung von VERA-3 formuliert. 
+Für den Hauptdurchgang werden seit dem Jahr 2020 Testmodule bereitgestellt. 
+Für VERA-3 Mathematik wird ein Basismodul mit einer Bearbeitungszeit von 40 Minuten entwickelt. 
+Das Basismodul enthält Aufgaben zu allen fünf Leitideen. 
+Darüber hinaus werden insgesamt vier Ergänzungsmodule mit einer Bearbeitungszeit von jeweils 20 Minuten bereitgestellt. 
+Anders als das Basismodul enthält ein Ergänzungsmodul ausschließlich Aufgaben zu einer Leitidee und umfasst eine Bearbeitungszeit von 20 Minuten. 
+Für jeden VERA-Durchgang werden jeweils zwei leistungsbezogene Ergänzungsmodule für zwei Leitideen be-reitgestellt; im Schuljahr `r year-1`/`r str_sub(year, 3, 4)` handelt es sich um die Leitideen „`r kb1`“ und „`r kb2`“. 
+
+## Kompetenzstufenmodelle
+Seit Dezember 2008 liegen für das Fach Mathematik in der Primarstufe Kompetenzstufenmodelle vor, die fünf hierarchisch angeordnete Kompetenzstufen umfassen (überarbeitete Fassung auf Grundlage des Ländervergleichs 2011 vom Februar 2013)[^1].
+Die Beschreibungen der Kompetenzstufen beziehen sich sowohl auf ein Globalmodell mathematischer Kompetenz, als auch auf verschiedene inhaltsbezogene Kompetenzen, auch „Leitideen“ genannt. 
+Die Kompetenzstufen reichen von der Beschreibung mathematischer Basiskompetenzen bis zur Identifizierung eines elaborierten und souveränen Umgangs mit mathematischen Anforderungen in der Primarstufe (vgl. Reiss & Winkelmann, 2008; 2009). 
+<!-- ToDo: Literaturverzeichnis und Quellenverweise mit [@Reiss2008] -->
+
+[^1]: Die Bildungsstandards für Mathematik wurden für das Ende der vierten Jahrgangsstufe weiterentwickelt und 2022 von der KMK verabschiedet (KMK, 2022). 
+  Dieser Technische Bericht bezieht sich auf die Bildungsstandards, die 2004 von der KMK beschlossen worden sind, da sich die Normierungsaufgaben für die neuen Bildungsstandards noch in der Entwicklung befinden.
+
+Das Globalmodell ist übergreifend und umfasst alle in den Bildungsstandards ausgewiesenen inhaltlichen Kompetenzbereiche, das heißt die Leitideen „Zahlen und Operationen“, „Raum und Form“, „Muster und Strukturen“, „Größen und Messen“ und „Daten, Häufigkeit, Wahrscheinlichkeit“. 
+Es ermöglicht daher auf breiter Basis die Interpretation der mathematischen Kompetenz von Schüler:innen am Ende der 4. Jahrgangsstufe. 
+
+Die Skala für die 4. Jahrgangsstufe wurde mit einem Mittelwert von $M = 500$ und einer Standardabweichung von $SD = 100$ definiert. 
+Die Breite der Kompetenzstufen beträgt 70 Punkte, die Stufe I ist nach unten, die Stufe V nach oben offen. 
+Bei den Beschreibungen der Stufen werden vorhandene Kompetenzen anstelle von Defiziten betont. 
+Die Kompetenzstufenmodelle bilden die Basis für die Definition von Standards (z. B. Mindeststandards, Regelstandards, vgl. Tabelle 1). 
+<!-- ToDo: (Quer-)Versweise auf Tabellen und Abbildungen -->
+Im Folgenden werden die Kompetenzstufen des Globalmodells tabellarisch dargestellt und anschließend kurz beschrieben.[^2]
+
+[^2]: Für eine ausführlichere Darstellung siehe das Kompetenzstufenmodell für das Fach Mathematik im Globalmodell https://www.iqb.hu-berlin.de/bista/ksm
