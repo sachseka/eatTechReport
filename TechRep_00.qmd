@@ -5,17 +5,18 @@ author: "Kristoph Schumann"
 format: 
   docx:
     toc: true
-    toc-depth: 3
+    toc-depth: 2
     number-sections: true
-    number-depth: 3
+    number-depth: 2
     reference-doc: TechRep_style.docx
 execute:
   echo: false
   warning: false
   message: false
+crossref:
+  fig-prefix: 'Abbildung'
+  tbl-prefix: 'Tabelle'
 ---
-
-<!-- ToDo: Zeilenumbrüche im title -->
 
 ```{r}
 #| label: setup
@@ -27,6 +28,12 @@ year <- 2025
 kb1 <- "Größen und Messen"
 kb2 <- "Daten, Häufigkeit und Wahrscheinlichkeit"
 ```
+
+![Technischer Bericht](Titelbild.jpg){fig-align="center"}\
+<!-- ToDo: Titel formatieren:
+- Zeilenumbrüche im title
+- Bild vor TOC, am besten hinter den subtitle, 
+- Autor unten auf Titelseite -->
 
 {{< pagebreak >}}
 # Allgemeine Informationen
@@ -59,3 +66,97 @@ Die Kompetenzstufenmodelle bilden die Basis für die Definition von Standards (z
 Im Folgenden werden die Kompetenzstufen des Globalmodells tabellarisch dargestellt und anschließend kurz beschrieben.[^2]
 
 [^2]: Für eine ausführlichere Darstellung siehe das Kompetenzstufenmodell für das Fach Mathematik im Globalmodell https://www.iqb.hu-berlin.de/bista/ksm
+
+## Kompetenzstufen im Fach Mathematik
+
+| Stufe | Wertebereich     | Standardbereich       |
+|:-----:|:----------------:|:----------------------|
+| I     | $<390$           | unter Mindeststandard |
+| II    | $390$ bis $<460$ | Mindeststandard       |
+| III   | $460$ bis $<530$ | Regelstandard         |
+| IV    | $530$ bis $<600$ | Regelstandard plus    |
+| V     | $\geq600$        | Optimalstandard       |
+
+: Globales Kompetenzstufenmodell für das Fach Mathematik in der Grundschule (vgl. Reiss & Winkelmann, 2009) {#tbl-kstufen, .striped, tbl-colwidths="[20,40,40]"}
+
+<!-- ToDo: Tabelle formatieren (Seitenbreite, "Tabelle" statt "Table", Hintergrund z. T. schwarz) -->
+
+### Kompetenzstufe I (Punktwerte bis unter 390): technische Grundlagen (Routineprozeduren auf Grundlage einfachen begrifflichen Wissens)
+
+Schüler:innen auf Kompetenzstufe I sind einfache mathematische Begriffe und Prozeduren bekannt und sie können diese in einem innermathematischen Kontext beziehungsweise in einem aus dem Alltag vertrauten oder gut geübten Kontext korrekt reproduzieren. 
+Im Einzelnen werden die Grundaufgaben des kleinen Einspluseins und Einmaleins beherrscht und bei mündlichen, halbschriftlichen und schriftlichen Rechenverfahren genutzt, wenn die Aufgabenstellungen keine besonderen Schwierigkeiten aufweisen. 
+Darüber hinaus werden sie auch in sehr einfachen Sachsituationen korrekt angewendet. 
+Außerdem können Zahlen in Bezug auf ihre Größe verglichen und Zahldarstellungen in Stellentafeln insbesondere im Tausenderraum sicher gelesen werden. 
+Grundlegende Begriffe der ebenen Geometrie (z. B. Kreis, Quadrat, Dreieck) werden bei prototypischen Darstellungen richtig verwendet. 
+Sehr einfache Folgen und Muster können fortgesetzt werden. Gängige Größeneinheiten (z. B. m, km, kg) können gut vertrauten Repräsentanten zugeordnet werden. 
+Auch einfache Größenvergleiche werden geleistet. 
+Einfachen, klar strukturierten Diagrammen, Schaubildern und Tabellen mit Bezug zur Lebenswirklichkeit können unmittelbar ersichtliche Daten entnommen werden. 
+Umgekehrt können einfache Informationen in eine Tabelle eingetragen werden. 
+Es gelingt, sehr einfache und sehr anschauliche Zufallsexperimente in Bezug auf Gewinnchancen zu vergleichen. 
+
+### Kompetenzstufe II (Punktwerte von 390 bis unter 460): einfache Anwendungen von Grundlagenwissen (Routineprozeduren in einem klar strukturierten Kontext)
+Schüler:innen mit Mathematikkompetenzen auf der Kompetenzstufe II können Grundlagenwissen in einfachen, klar strukturierten und bekannten Anwendungen nutzen. 
+So werden Aufgaben zur Addition, Subtraktion und Multiplikation halbschriftlich und schriftlich durchgeführt, wobei auch Überschlagsrechnungen geleistet und Größenordnungen von Ergebnissen korrekt erkannt werden. 
+Außerdem wird die Struktur des Dezimalsystems genutzt, Gesetzmäßigkeiten werden erkannt und bei der Fortsetzung einfacher Zahlenfolgen, beim strukturierten Zählen und systematischen Probieren berücksichtigt. 
+Grundbegriffe der räumlichen Geometrie (z. B. Würfel) werden korrekt verwendet, wenn diese einen Bezug zum Alltag haben. 
+Einfache räumliche Gebilde werden in ihren strukturellen Eigenschaften gesehen und räumliche Beziehungen zur Lösung einfacher Probleme genutzt. 
+Dabei werden einfache Lagebeziehungen auch dann korrekt erkannt, wenn hierfür die Perspektive einer anderen Person einzunehmen ist. 
+Auch komplexere geometrische Muster und Zahlenreihen werden in ihrer Struktur erkannt und fortgesetzt. 
+Es können einfache Sachaufgaben gelöst werden. Aus dem Alltag vertraute proportionale Zuordnungen werden erkannt und angewendet. 
+Bei einfachem Zahlenmaterial wird das Umwandeln von Größen in gegebene Einheiten auch bei gemischten Größenangaben beziehungsweise einfachen Kommazahlen durchgeführt. 
+Klar strukturierten, auch umfangreicheren Diagrammen, Schaubildern und Tabellen können unterschiedliche Daten entnommen werden. 
+Diese müssen aber in der Regel noch explizit gegeben sein. Umgekehrt können einfache Daten nach gewissen Vorgaben dort auch eingetragen werden. 
+Wesentliche Grundbegriffe aus dem Umfeld von Zufall und Wahrscheinlichkeit, wie „sicher“, „unmöglich“ und „wahrscheinlich“, werden korrekt verwendet. 
+Einfache Zufallsexperimente können in Bezug auf Gewinnchancen eingeschätzt werden. 
+
+### Kompetenzstufe III (Punktwerte von 460 bis unter 530): Erkennen und Nutzen von Zusammenhängen in einem vertrauten (mathematischen und sachbezogenen) Kontext
+Schüler:innen, die die Kompetenzstufe III erreichen, können das erlernte Wissen flexibel in unterschiedlichen Problemstellungen innerhalb eines vertrauten Kontextes nutzen. 
+Insbesondere wird mit Zahlen und Operationen im curricularen Umfang sicher umgegangen und Überschlagsrechnungen werden auch bei großen Zahlen sicher durchgeführt. 
+Strukturelle Aspekte werden zumindest bei gut geübten Inhalten gesehen und können kommuniziert werden. 
+Dies gilt auch für Inhalte der Geometrie, wobei etwa zwischen verschiedenen Darstellungsformen einer Figur vermittelt werden kann. 
+Beispielsweise werden beim Umgang mit Netzen ebene und räumliche Informationen aufeinander bezogen. 
+Weiterhin sind Grundlagen geometrischer Abbildungen verfügbar, sodass insbesondere einfache Achsenspiegelungen durchgeführt werden können. 
+Zahlenfolgen, die nach komplexeren Regeln aufgebaut sind, können fortgesetzt und fehlerhafte Zahlen in überschaubaren Zahlenfolgen gegebenenfalls identifiziert werden. 
+Einfache Sachsituationen werden modelliert und die damit verbundenen Problemstellungen gelöst. 
+Proportionale Zuordnungen werden sicher genutzt. 
+Der Umgang mit Größen ist flexibel und berücksichtigt – etwa bei Uhrzeiten – spezielle Eigenschaften der Größenbereiche. 
+Hierbei wird auch die Kommaschreibweise korrekt verwendet. 
+Darüber hinaus können in Größenbereichen den gängigen Einheiten geeignete Repräsentanten zugeordnet werden. Daten und Informationen können in einem bekannten Kontext flexibel dargestellt werden. 
+Dabei gelingt auch der Umgang mit großen Zahlen. Diagrammen können Informationen entnommen werden, die nicht direkt ablesbar sind, sondern erschlossen oder berechnet werden müssen. 
+Der Informationsgehalt einfacher Diagramme kann explizit beurteilt werden. Bei nicht allzu komplexen Zufallsexperimenten werden Gewinnchancen korrekt eingeschätzt und begründet. 
+
+### Kompetenzstufe IV (Punktwerte von 530 bis unter 600): sicheres und flexibles Anwenden von begrifflichem Wissen und Prozeduren im curricularen Umfang
+Schüler:innen auf Kompetenzstufe IV wenden auch in einem wenig vertrauten Kontext mathematisches Wissen sicher an. 
+Sie beschreiben eigene Vorgehensweisen korrekt, verstehen und reflektieren die Lösungswege anderer Kinder und beherrschen das Rechnen im curricularen Umfang in allen Varianten sicher. 
+Zahldarstellungen in Stellenwerttafeln können auch bei sehr großen Zahlen (also im Zahlenraum bis zu einer Million) nach Vorschrift selbstständig manipuliert und systematisch verändert werden. 
+Begriffe der ebenen und räumlichen Geometrie werden flexibel verwendet und geometrische Aussagen können hinterfragt und diskutiert werden. 
+Auch bei komplexen Zahlenmustern wird die dahinterliegende Regel erkannt und das Muster korrekt fortgesetzt. Das Rechnen mit Größen ist sicher und flexibel und umfasst insbesondere auch Näherungs- und Überschlagsrechnungen. 
+Modellierungsaufgaben werden selbst dann gelöst, wenn sie nicht unmittelbar auf einfachen Alltagserfahrungen basieren. 
+Informationen aus unterschiedlichen Quellen können in einen Zusammenhang gestellt und in Modellierungsaufgaben selbstständig verwendet und manipuliert werden. 
+Komplexere Zufallsexperimente werden angemessen beurteilt, mögliche Ergebnisse werden korrekt bestimmt. 
+
+### Kompetenzstufe V (Punktwerte ab 600): Modellierung komplexer Probleme unter selbstständiger Entwicklung geeigneter Strategien
+Schüler:innen auf der höchsten Kompetenzstufe bearbeiten mathematische Problemstellungen in allen Inhaltsbereichen, auch in einem unbekannten Kontext, angemessen, sicher und flexibel. 
+Dabei werden auf hohem Niveau geeignete Strategien angewendet, sinnvolle Bewertungen abgegeben oder Verallgemeinerungen geleistet. 
+Umfangreiches curricular verankertes Wissen wird auch in ungewohnten Situationen flexibel genutzt. 
+Das Vorgehen kann nachvollziehbar kommuniziert und begründet werden. 
+Mathematische Argumentationen werden angemessen bewertet. 
+Komplexe Sachsituationen werden modelliert und bearbeitet, selbst wenn besondere Schwierigkeiten, wie die Verwendung von Tabellen, der Umgang mit zusammengesetzten Größen oder das Rechnen mit Zahlen in Kommaschreibweise, auftreten. 
+Es können auch ungewohnte funktionale Zusammenhänge analysiert und genutzt werden. 
+Die Lösung von Aufgaben gelingt auch dann, wenn sie ein hohes Maß an räumlichem Denken oder entsprechenden analytischen Fähigkeiten voraussetzt. 
+Der Umgang mit Daten ist genauso wie die mathematische Aufbereitung von Zufalls¬experimenten durch selbstständiges Arbeiten geprägt.
+
+{{< pagebreak >}}
+# Informationen zur Pilotierungsstudie `r year-1`
+
+Primäres Ziel der Pilotierung war es, psychometrische Informationen über die entwickelten Aufgaben zu erhalten, um hochwertige Items für die Hauptstudie auswählen zu können. 
+Durch die Einbettung bereits normierter Aufgaben in das Testdesign der Pilotierungsstudie wurde eine Anbindung der neu entwickelten Aufgaben an die Metrik der Bildungsstandards und somit an die oben genannten Kompetenzstufen realisiert.
+
+## Testdesign
+```{r include=FALSE}
+n_afg <- 0 #analysetabelle |> 
+#   count(AufgID) |> 
+#   nrow()
+```
+
+Für den VERA-Durchgang im Schuljahr `r year-1`/`r str_sub(year, 3, 4)` wurden `r n_afg` Aufgaben aller fünf Leitideen pilotiert. 
