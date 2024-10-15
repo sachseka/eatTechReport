@@ -69,15 +69,17 @@ Die Kompetenzstufen reichen von der Beschreibung mathematischer Basiskompetenzen
   Dieser Technische Bericht bezieht sich auf die Bildungsstandards, die 2004 von der KMK beschlossen worden sind, da sich die Normierungsaufgaben für die neuen Bildungsstandards noch in der Entwicklung befinden.
 
 Das Globalmodell ist übergreifend und umfasst alle in den Bildungsstandards ausgewiesenen inhaltlichen Kompetenzbereiche, das heißt die Leitideen „Zahlen und Operationen“, „Raum und Form“, „Muster und Strukturen“, „Größen und Messen“ und „Daten, Häufigkeit, Wahrscheinlichkeit“. 
-Es ermöglicht daher auf breiter Basis die Interpretation der mathematischen Kompetenz von Schüler:innen am Ende der 4. Jahrgangsstufe. 
+Es ermöglicht daher auf breiter Basis die Interpretation der mathematischen Kompetenz von Schülerinnen und Schülern[^2] am Ende der 4. Jahrgangsstufe. 
+
+[^2]: Aufgrund der dynamischen Diskussion zum sprachlichen Umgang mit geschlechtlicher Vielfalt sowie der Po-sitionierung des Rats für deutsche Rechtschreibung und der Schulbehörden einiger Länder gegen Schreibwei-sen mit Wortbinnenzeichen (z. B. Genderstern) verwenden wir Doppelnennungen (z. B. Schülerinnen und Schüler) oder geschlechtsneutrale Formulierungen (z. B. Lehrkräfte). Hiermit sind ausdrücklich Personen aller Geschlechter gemeint.
 
 Die Skala für die 4. Jahrgangsstufe wurde mit einem Mittelwert von $M = 500$ und einer Standardabweichung von $SD = 100$ definiert. 
 Die Breite der Kompetenzstufen beträgt 70 Punkte, die Stufe I ist nach unten, die Stufe V nach oben offen. 
 Bei den Beschreibungen der Stufen werden vorhandene Kompetenzen anstelle von Defiziten betont. 
 Die Kompetenzstufenmodelle bilden die Basis für die Definition von Standards (z. B. Mindeststandards, Regelstandards, vgl. @tbl-kstufen). 
-Im Folgenden werden die Kompetenzstufen des Globalmodells tabellarisch dargestellt und anschließend kurz beschrieben.[^2]
+Im Folgenden werden die Kompetenzstufen des Globalmodells tabellarisch dargestellt und anschließend kurz beschrieben.[^3]
 
-[^2]: Für eine ausführlichere Darstellung siehe das Kompetenzstufenmodell für das Fach Mathematik im Globalmodell https://www.iqb.hu-berlin.de/bista/ksm
+[^3]: Für eine ausführlichere Darstellung siehe das Kompetenzstufenmodell für das Fach Mathematik im Globalmodell https://www.iqb.hu-berlin.de/bista/ksm
 
 ## Kompetenzstufen im Fach Mathematik {#sec-ksgl}
 
@@ -95,7 +97,7 @@ Im Folgenden werden die Kompetenzstufen des Globalmodells tabellarisch dargestel
 
 ### Kompetenzstufe I (Punktwerte bis unter 390): technische Grundlagen (Routineprozeduren auf Grundlage einfachen begrifflichen Wissens)
 
-Schüler:innen auf Kompetenzstufe I sind einfache mathematische Begriffe und Prozeduren bekannt und sie können diese in einem innermathematischen Kontext beziehungsweise in einem aus dem Alltag vertrauten oder gut geübten Kontext korrekt reproduzieren. 
+Schülerinnen und Schüler auf Kompetenzstufe I sind einfache mathematische Begriffe und Prozeduren bekannt und sie können diese in einem innermathematischen Kontext beziehungsweise in einem aus dem Alltag vertrauten oder gut geübten Kontext korrekt reproduzieren. 
 Im Einzelnen werden die Grundaufgaben des kleinen Einspluseins und Einmaleins beherrscht und bei mündlichen, halbschriftlichen und schriftlichen Rechenverfahren genutzt, wenn die Aufgabenstellungen keine besonderen Schwierigkeiten aufweisen. 
 Darüber hinaus werden sie auch in sehr einfachen Sachsituationen korrekt angewendet. 
 Außerdem können Zahlen in Bezug auf ihre Größe verglichen und Zahldarstellungen in Stellentafeln insbesondere im Tausenderraum sicher gelesen werden. 
@@ -107,7 +109,7 @@ Umgekehrt können einfache Informationen in eine Tabelle eingetragen werden.
 Es gelingt, sehr einfache und sehr anschauliche Zufallsexperimente in Bezug auf Gewinnchancen zu vergleichen. 
 
 ### Kompetenzstufe II (Punktwerte von 390 bis unter 460): einfache Anwendungen von Grundlagenwissen (Routineprozeduren in einem klar strukturierten Kontext)
-Schüler:innen mit Mathematikkompetenzen auf der Kompetenzstufe II können Grundlagenwissen in einfachen, klar strukturierten und bekannten Anwendungen nutzen. 
+Schülerinnen und Schüler mit Mathematikkompetenzen auf der Kompetenzstufe II können Grundlagenwissen in einfachen, klar strukturierten und bekannten Anwendungen nutzen. 
 So werden Aufgaben zur Addition, Subtraktion und Multiplikation halbschriftlich und schriftlich durchgeführt, wobei auch Überschlagsrechnungen geleistet und Größenordnungen von Ergebnissen korrekt erkannt werden. 
 Außerdem wird die Struktur des Dezimalsystems genutzt, Gesetzmäßigkeiten werden erkannt und bei der Fortsetzung einfacher Zahlenfolgen, beim strukturierten Zählen und systematischen Probieren berücksichtigt. 
 Grundbegriffe der räumlichen Geometrie (z. B. Würfel) werden korrekt verwendet, wenn diese einen Bezug zum Alltag haben. 
@@ -122,7 +124,7 @@ Wesentliche Grundbegriffe aus dem Umfeld von Zufall und Wahrscheinlichkeit, wie 
 Einfache Zufallsexperimente können in Bezug auf Gewinnchancen eingeschätzt werden. 
 
 ### Kompetenzstufe III (Punktwerte von 460 bis unter 530): Erkennen und Nutzen von Zusammenhängen in einem vertrauten (mathematischen und sachbezogenen) Kontext
-Schüler:innen, die die Kompetenzstufe III erreichen, können das erlernte Wissen flexibel in unterschiedlichen Problemstellungen innerhalb eines vertrauten Kontextes nutzen. 
+Schülerinnen und Schüler, die die Kompetenzstufe III erreichen, können das erlernte Wissen flexibel in unterschiedlichen Problemstellungen innerhalb eines vertrauten Kontextes nutzen. 
 Insbesondere wird mit Zahlen und Operationen im curricularen Umfang sicher umgegangen und Überschlagsrechnungen werden auch bei großen Zahlen sicher durchgeführt. 
 Strukturelle Aspekte werden zumindest bei gut geübten Inhalten gesehen und können kommuniziert werden. 
 Dies gilt auch für Inhalte der Geometrie, wobei etwa zwischen verschiedenen Darstellungsformen einer Figur vermittelt werden kann. 
@@ -138,7 +140,7 @@ Dabei gelingt auch der Umgang mit großen Zahlen. Diagrammen können Information
 Der Informationsgehalt einfacher Diagramme kann explizit beurteilt werden. Bei nicht allzu komplexen Zufallsexperimenten werden Gewinnchancen korrekt eingeschätzt und begründet. 
 
 ### Kompetenzstufe IV (Punktwerte von 530 bis unter 600): sicheres und flexibles Anwenden von begrifflichem Wissen und Prozeduren im curricularen Umfang
-Schüler:innen auf Kompetenzstufe IV wenden auch in einem wenig vertrauten Kontext mathematisches Wissen sicher an. 
+Schülerinnen und Schüler auf Kompetenzstufe IV wenden auch in einem wenig vertrauten Kontext mathematisches Wissen sicher an. 
 Sie beschreiben eigene Vorgehensweisen korrekt, verstehen und reflektieren die Lösungswege anderer Kinder und beherrschen das Rechnen im curricularen Umfang in allen Varianten sicher. 
 Zahldarstellungen in Stellenwerttafeln können auch bei sehr großen Zahlen (also im Zahlenraum bis zu einer Million) nach Vorschrift selbstständig manipuliert und systematisch verändert werden. 
 Begriffe der ebenen und räumlichen Geometrie werden flexibel verwendet und geometrische Aussagen können hinterfragt und diskutiert werden. 
@@ -148,7 +150,7 @@ Informationen aus unterschiedlichen Quellen können in einen Zusammenhang gestel
 Komplexere Zufallsexperimente werden angemessen beurteilt, mögliche Ergebnisse werden korrekt bestimmt. 
 
 ### Kompetenzstufe V (Punktwerte ab 600): Modellierung komplexer Probleme unter selbstständiger Entwicklung geeigneter Strategien
-Schüler:innen auf der höchsten Kompetenzstufe bearbeiten mathematische Problemstellungen in allen Inhaltsbereichen, auch in einem unbekannten Kontext, angemessen, sicher und flexibel. 
+Schülerinnen und Schüler auf der höchsten Kompetenzstufe bearbeiten mathematische Problemstellungen in allen Inhaltsbereichen, auch in einem unbekannten Kontext, angemessen, sicher und flexibel. 
 Dabei werden auf hohem Niveau geeignete Strategien angewendet, sinnvolle Bewertungen abgegeben oder Verallgemeinerungen geleistet. 
 Umfangreiches curricular verankertes Wissen wird auch in ungewohnten Situationen flexibel genutzt. 
 Das Vorgehen kann nachvollziehbar kommuniziert und begründet werden. 
@@ -178,15 +180,15 @@ In einem ersten Schritt wurden die Testaufgaben zu Blöcken von Testaufgaben zus
 Aufgaben, die vornehmlich für den Einsatz im Basismodul vorgesehen waren, wurden zu Blöcken mit einer Bearbeitungszeit von 8 Minuten gruppiert. 
 Diese Blöcke enthielten jeweils Aufgaben zu einer Leitidee. 
 Für die Ergänzungsmodule wurden Blöcke zu den Leitideen „`r kb1`“ und „`r kb2`“ mit unterschiedlicher Schwierigkeit zusammengestellt, die für eine Bearbeitungszeit von 20 Minuten konzipiert waren. 
-In einem zweiten Schritt wurden diese Blöcke verschiedenen Testheften mit einer Bearbeitungszeit von jeweils 60 Minuten zugewiesen, sodass einzelne Schüler:innen nur Teilmengen des gesamten Itempools bearbeiteten. 
+In einem zweiten Schritt wurden diese Blöcke verschiedenen Testheften mit einer Bearbeitungszeit von jeweils 60 Minuten zugewiesen, sodass einzelne Schülerinnen und Schüler nur Teilmengen des gesamten Itempools bearbeiteten. 
 In diesem modularisierten Teildesign kamen insgesamt 24 Testhefte zum Einsatz. 
 Jedes Testheft beinhaltete sechs Blöcke, wobei die ersten fünf Blöcke für den Einsatz im Basismodul und der letzte Block für den Einsatz im Ergänzungsmodul konzipiert waren. 
 
 Dabei wurden 20 Blöcke mit normierten Aufgaben aus dem Aufgabenpool des IQB eingesetzt (Verlinkungsaufgaben), um eine Anbindung an die Metrik der Bildungsstandards zu ermöglichen. 
 Dies ist Voraussetzung, um die Aufgaben auf dem Kompetenzstufenmodell (vgl. @sec-ksgl) einordnen zu können. 
 Die Testhefte waren durch bestimmte, in mehreren Testheften auftretende Aufgaben miteinander verbunden. 
-Die unterschiedlichen Testheftversionen wurden zufällig auf die Schüler:innen gleichmäßig in allen teilnehmenden Bundeländern klassenweise verteilt. 
-In jeder Klasse wurden dabei 12 der 24 Testheftversionen, so nötig mehrfach, zufällig auf die Schüler:innen verteilt. 
+Die unterschiedlichen Testheftversionen wurden zufällig auf die Schülerinnen und Schüler gleichmäßig in allen teilnehmenden Bundesländern klassenweise verteilt. 
+In jeder Klasse wurden dabei 12 der 24 Testheftversionen, so nötig mehrfach, zufällig auf die Schülerinnen und Schüler verteilt. 
 Die Versionen wurden so ausgewählt, dass für jeden Ergänzungsmodulblock eines der beiden Testhefte mit diesem Block eingesetzt wurde. 
 @Tbl-thdesign zeigt das modularisierte Design.
 
