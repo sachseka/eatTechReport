@@ -5,9 +5,9 @@ author: "Kristoph Schumann"
 format: 
   docx:
     toc: true
-    toc-depth: 2
+    toc-depth: 3
     number-sections: true
-    number-depth: 2
+    number-depth: 3
     reference-doc: TechRep_style.docx
 execute:
   echo: false
@@ -30,7 +30,7 @@ library(tidyverse)
 year <- 2025
 kb1 <- "Größen und Messen"
 kb2 <- "Daten, Häufigkeit und Wahrscheinlichkeit"
-
+versanddienst <- "Polyprint GmbH"
 
 ### Dateipfade: ----
 library(here)
@@ -38,8 +38,55 @@ pt_ausw  <- "R:/VERA3/Mathematik/V3_Ma_2025/1_Pilotierung 2024/12_Auswertung"
 
 ### Daten laden: ----
 
+# Rohdatensatz
+load(file.path(pt_ausw, "1_Daten", "V3-MA-2025_Pilot2024_Daten_2024-09-03.Rdata"))
+df_merged <- ls_data_save[[1]]
+df_recoded <- ls_data_save[[2]]
+df_aggregated <- ls_data_save[[3]]
+df_scored <- ls_data_save[[4]]
+df_mcoll <- ls_data_save[[5]]
+remove(ls_data_save)
+df_merged$ADaten_Alter <- as.numeric(df_merged$ADaten_Alter)
+
+# Skalierter Datensatz
+ska <- read_csv2(file.path(pt_ausw, "3_Skalierung", "GL", "GL_persons.csv"))
+ska$idstud <- as.character(ska$idstud)
+
+# Transformierter Datensatz
+tf <- readRDS(file.path(pt_ausw, "4_Ergebnisse", "V3-MA-2025_Pilot2024_transformToBistaResults_2024-09-05.rds"))
+
 # Analysetabelle
 df_para <- readxl::read_excel(file.path(pt_ausw, "4_Ergebnisse", "V3-MA-2025_Pilot2024_Itemparameter_2024-09-05.xlsx"), sheet = "Items")
+
+# realisierte und angefragte Klassen:
+rlauf <- readxl::read_xlsx("R:/VERA3/Mathematik/V3_Ma_2025/1_Pilotierung 2024/10_Durchführung/Rücklauf/MA_VERA-3_Pilo2024_Rücklauf_100%_aus_Scanmanager.xlsx", sheet = 1, range = "A4:G189")
+
+# Übereinstimmung Hauptkodierung
+ueber <- readxl::read_xlsx("R:/VERA3/Mathematik/V3_Ma_2025/1_Pilotierung 2024/04_Kodierung/KA3-Kodierung/6_Hauptkodierung/3_Auswertung/V3-MA-2025_Pilo2024_Hauptkodierung_uebereinstimmung.xlsx", sheet = "Übereinstimmung_gesamt")
+
+### Weitere nötige Dinge: ----
+BuLa <-  tribble(
+  ~BL, ~BuLa,
+  '11', 'Baden-Wuerttemberg',
+  '12', 'Bayern',
+  '13', 'Berlin',
+  '14', 'Brandenburg',
+  '15', 'Bremen',
+  '16', 'Hamburg',
+  '17', 'Hessen',
+  '18', 'Mecklenburg-Vorpommern',
+  '19', 'Niedersachsen',
+  '20', 'Nordrhein-Westfalen',
+  '21', 'Rheinland-Pfalz',
+  '22', 'Saarland',
+  '23', 'Sachsen',
+  '24', 'Sachsen-Anhalt',
+  '25', 'Schleswig-Holstein',
+  '26', 'Thueringen',
+  '71', NA
+)
+
+zahlwort <- c("eins", "zwei", "drei", "vier", "fünf", "sechs", "sieben", "acht", "neun", "zehn", "elf", "zwölf")
 ```
 
 ![Technischer Bericht](Titelbild.jpg){fig-align="center"}\
@@ -95,7 +142,7 @@ Im Folgenden werden die Kompetenzstufen des Globalmodells tabellarisch dargestel
 
 <!-- ToDo: Tabelle formatieren (Hintergrund z. T. schwarz) -->
 
-### Kompetenzstufe I (Punktwerte bis unter 390): technische Grundlagen (Routineprozeduren auf Grundlage einfachen begrifflichen Wissens)
+#### Kompetenzstufe I (Punktwerte bis unter 390): technische Grundlagen (Routineprozeduren auf Grundlage einfachen begrifflichen Wissens)
 
 Schülerinnen und Schüler auf Kompetenzstufe I sind einfache mathematische Begriffe und Prozeduren bekannt und sie können diese in einem innermathematischen Kontext beziehungsweise in einem aus dem Alltag vertrauten oder gut geübten Kontext korrekt reproduzieren. 
 Im Einzelnen werden die Grundaufgaben des kleinen Einspluseins und Einmaleins beherrscht und bei mündlichen, halbschriftlichen und schriftlichen Rechenverfahren genutzt, wenn die Aufgabenstellungen keine besonderen Schwierigkeiten aufweisen. 
@@ -108,7 +155,7 @@ Einfachen, klar strukturierten Diagrammen, Schaubildern und Tabellen mit Bezug z
 Umgekehrt können einfache Informationen in eine Tabelle eingetragen werden. 
 Es gelingt, sehr einfache und sehr anschauliche Zufallsexperimente in Bezug auf Gewinnchancen zu vergleichen. 
 
-### Kompetenzstufe II (Punktwerte von 390 bis unter 460): einfache Anwendungen von Grundlagenwissen (Routineprozeduren in einem klar strukturierten Kontext)
+#### Kompetenzstufe II (Punktwerte von 390 bis unter 460): einfache Anwendungen von Grundlagenwissen (Routineprozeduren in einem klar strukturierten Kontext)
 Schülerinnen und Schüler mit Mathematikkompetenzen auf der Kompetenzstufe II können Grundlagenwissen in einfachen, klar strukturierten und bekannten Anwendungen nutzen. 
 So werden Aufgaben zur Addition, Subtraktion und Multiplikation halbschriftlich und schriftlich durchgeführt, wobei auch Überschlagsrechnungen geleistet und Größenordnungen von Ergebnissen korrekt erkannt werden. 
 Außerdem wird die Struktur des Dezimalsystems genutzt, Gesetzmäßigkeiten werden erkannt und bei der Fortsetzung einfacher Zahlenfolgen, beim strukturierten Zählen und systematischen Probieren berücksichtigt. 
@@ -123,7 +170,7 @@ Diese müssen aber in der Regel noch explizit gegeben sein. Umgekehrt können ei
 Wesentliche Grundbegriffe aus dem Umfeld von Zufall und Wahrscheinlichkeit, wie „sicher“, „unmöglich“ und „wahrscheinlich“, werden korrekt verwendet. 
 Einfache Zufallsexperimente können in Bezug auf Gewinnchancen eingeschätzt werden. 
 
-### Kompetenzstufe III (Punktwerte von 460 bis unter 530): Erkennen und Nutzen von Zusammenhängen in einem vertrauten (mathematischen und sachbezogenen) Kontext
+#### Kompetenzstufe III (Punktwerte von 460 bis unter 530): Erkennen und Nutzen von Zusammenhängen in einem vertrauten (mathematischen und sachbezogenen) Kontext
 Schülerinnen und Schüler, die die Kompetenzstufe III erreichen, können das erlernte Wissen flexibel in unterschiedlichen Problemstellungen innerhalb eines vertrauten Kontextes nutzen. 
 Insbesondere wird mit Zahlen und Operationen im curricularen Umfang sicher umgegangen und Überschlagsrechnungen werden auch bei großen Zahlen sicher durchgeführt. 
 Strukturelle Aspekte werden zumindest bei gut geübten Inhalten gesehen und können kommuniziert werden. 
@@ -139,7 +186,7 @@ Darüber hinaus können in Größenbereichen den gängigen Einheiten geeignete R
 Dabei gelingt auch der Umgang mit großen Zahlen. Diagrammen können Informationen entnommen werden, die nicht direkt ablesbar sind, sondern erschlossen oder berechnet werden müssen. 
 Der Informationsgehalt einfacher Diagramme kann explizit beurteilt werden. Bei nicht allzu komplexen Zufallsexperimenten werden Gewinnchancen korrekt eingeschätzt und begründet. 
 
-### Kompetenzstufe IV (Punktwerte von 530 bis unter 600): sicheres und flexibles Anwenden von begrifflichem Wissen und Prozeduren im curricularen Umfang
+#### Kompetenzstufe IV (Punktwerte von 530 bis unter 600): sicheres und flexibles Anwenden von begrifflichem Wissen und Prozeduren im curricularen Umfang
 Schülerinnen und Schüler auf Kompetenzstufe IV wenden auch in einem wenig vertrauten Kontext mathematisches Wissen sicher an. 
 Sie beschreiben eigene Vorgehensweisen korrekt, verstehen und reflektieren die Lösungswege anderer Kinder und beherrschen das Rechnen im curricularen Umfang in allen Varianten sicher. 
 Zahldarstellungen in Stellenwerttafeln können auch bei sehr großen Zahlen (also im Zahlenraum bis zu einer Million) nach Vorschrift selbstständig manipuliert und systematisch verändert werden. 
@@ -149,7 +196,7 @@ Modellierungsaufgaben werden selbst dann gelöst, wenn sie nicht unmittelbar auf
 Informationen aus unterschiedlichen Quellen können in einen Zusammenhang gestellt und in Modellierungsaufgaben selbstständig verwendet und manipuliert werden. 
 Komplexere Zufallsexperimente werden angemessen beurteilt, mögliche Ergebnisse werden korrekt bestimmt. 
 
-### Kompetenzstufe V (Punktwerte ab 600): Modellierung komplexer Probleme unter selbstständiger Entwicklung geeigneter Strategien
+#### Kompetenzstufe V (Punktwerte ab 600): Modellierung komplexer Probleme unter selbstständiger Entwicklung geeigneter Strategien
 Schülerinnen und Schüler auf der höchsten Kompetenzstufe bearbeiten mathematische Problemstellungen in allen Inhaltsbereichen, auch in einem unbekannten Kontext, angemessen, sicher und flexibel. 
 Dabei werden auf hohem Niveau geeignete Strategien angewendet, sinnvolle Bewertungen abgegeben oder Verallgemeinerungen geleistet. 
 Umfangreiches curricular verankertes Wissen wird auch in ungewohnten Situationen flexibel genutzt. 
@@ -168,6 +215,7 @@ Durch die Einbettung bereits normierter Aufgaben in das Testdesign der Pilotieru
 
 ## Testdesign
 ```{r include=FALSE}
+#| label: n_afg
 n_afg <- df_para |> 
   filter(str_detect(Modul, "Link", negate = T)) |> 
   count(AufgID) |>
@@ -200,4 +248,162 @@ Die Versionen wurden so ausgewählt, dass für jeden Ergänzungsmodulblock eines
 : Modularisiertes Testdesigns der Pilotierungsstudie `r year-1` {#tbl-thdesign}
 
 ## Stichprobe
-Die insgesamt realisierte Stichprobe umfasste in der Pilotierungsstudie 
+```{r include=FALSE}
+#| label: txt_Stichprobe
+
+rlauf_SOLL <- rlauf |> 
+  group_by(`BL-ID`) |>
+  summarise(Klassen_angefragt = n()) |> 
+  left_join(BuLa, by = c("BL-ID"="BL"))  |> 
+  select(BuLa, Klassen_angefragt)
+
+rlauf_IST <- rlauf |> 
+  group_by(`BL-ID`) |>
+  filter(IST > 0) |> 
+  summarise(Klassen_realisiert = n()) |> 
+  left_join(BuLa, by = c("BL-ID"="BL")) |> 
+  select(BuLa, Klassen_realisiert)
+
+# Anteil veränderte Bedingungen:
+freqBed <- df_merged |> 
+  semi_join(ska, by = "idstud") |> # nur IDs, die in Skalierung dabei waren
+  count(ADaten_BedingVeraendert) |> 
+  mutate(freq = round(n/sum(n)*100, 1),
+         lbl = case_when(ADaten_BedingVeraendert == "1" ~ "veränderte Bedingungen",
+                         ADaten_BedingVeraendert == "0" ~ "normale Bedingungen"))
+
+meanAlter <- df_merged |> 
+  semi_join(ska, by = "idstud") |> # nur IDs, die in Skalierung dabei waren
+  select(ADaten_Alter) |>  
+  filter(ADaten_Alter < 90) |> 
+  summarise(mean = mean(ADaten_Alter), sd = sd(ADaten_Alter)) |> 
+  round(1)
+
+freqGen <- df_merged |> 
+  semi_join(ska, by = "idstud") |> # nur IDs, die in Skalierung dabei waren
+  mutate(ADaten_Geschlecht = if_else(ADaten_Geschlecht %in% c("1", "2", "3"), ADaten_Geschlecht, "4")) |> 
+  #filter(ADaten_Geschlecht <= 5) |> 
+  count(ADaten_Geschlecht) |> 
+  mutate(freq = round(n/sum(n)*100, 2),
+         lbl = case_when(ADaten_Geschlecht == "1" ~ "m",
+                         ADaten_Geschlecht == "2" ~ "w",
+                         ADaten_Geschlecht == "3" ~ "d",
+                         ADaten_Geschlecht == "4" ~ "kA")) 
+
+freqSprache <- df_merged |> 
+  semi_join(ska, by = "idstud") |> # nur IDs, die in Skalierung dabei waren
+  mutate(ADaten_Sprache = if_else(ADaten_Sprache %in% c("1", "2", "3"), ADaten_Sprache, "4")) |> 
+  #filter(ADaten_Sprache <= 5) |> 
+  count(ADaten_Sprache)|> 
+  mutate(freq = round(n/sum(n)*100, 1),
+         lbl = case_when(ADaten_Sprache == "1" ~ "D",
+                         ADaten_Sprache == "2" ~ "DuA",
+                         ADaten_Sprache == "3" ~ "A",
+                         ADaten_Sprache == "4" ~ "kA")) 
+
+nAntw <- tf$itempars |> 
+  pull(Nvalid) |> 
+  summary()
+```
+
+```{r include=FALSE}
+#| label: Tab_BuLa
+
+Tab_BuLa <- df_merged |> 
+  semi_join(ska, by = "idstud") |> 
+  mutate(idclass = str_sub(idstud, 1, 8),
+         BL = str_sub(idstud, 1, 2)) |> 
+  left_join(BuLa, by = "BL") |> 
+  select(idstud, idclass, BuLa, starts_with("ADaten"))
+
+#Hotfix in 2024:
+Tab_BuLa[Tab_BuLa$idclass %in% c("21013001", "22013101"), c("BuLa")] <- "Niedersachsen"
+
+Tab_BuLa1 <- Tab_BuLa |> 
+  group_by(BuLa) |>
+  summarise(Anzahl_SuS = n()) |>
+  left_join(rlauf_IST, by = "BuLa") |> 
+  left_join(rlauf_SOLL, by = "BuLa") |> 
+  relocate(Klassen_realisiert, Klassen_angefragt, .after = BuLa) |> 
+  mutate(Anteil_SuS = Anzahl_SuS/sum(Anzahl_SuS)*100) |>  (\(d)
+    bind_rows(d, summarise(d, 
+                           across(where(is.numeric), sum),
+                           across(where(is.character), ~"Gesamt")))
+  )() |> 
+  mutate(Anteil_SuS = round(Anteil_SuS, 2))
+
+Tab_BuLa2 <- Tab_BuLa |> 
+  filter(ADaten_Sprache <=5) |> 
+  group_by(BuLa) |> 
+  count(ADaten_Sprache) |> 
+  arrange(BuLa, desc(ADaten_Sprache)) |> 
+  mutate(freq = round(n/sum(n)*100, 2),
+         lbl = case_when(ADaten_Sprache == "1" ~ "immer Deutsch",
+                         ADaten_Sprache == "2" ~ "Deutsch und eine andere Sprache",
+                         ADaten_Sprache == "3" ~ "meistens eine andere Sprache")) |> 
+  select(BuLa, freq, lbl) |> 
+  pivot_wider(names_from = "lbl",
+              values_from = freq) |> 
+  mutate(sum_check = `immer Deutsch` + `Deutsch und eine andere Sprache` + `meistens eine andere Sprache`)
+
+Tab_BuLa_Out <- Tab_BuLa1 |> 
+  full_join(Tab_BuLa2[, 1:3], by = "BuLa") |>
+  transmute(Land = BuLa,
+            `Anzahl realisiert` = Klassen_realisiert,
+            `Anzahl angefragt` = Klassen_angefragt,
+            Anzahl = Anzahl_SuS,
+            `Anteil der Pilotierungsstichprobe` = str_c(Anteil_SuS, " %"),
+            `Anteil der Kinder, die zu Hause meistens eine andere Sprache als Deutsch sprechen` = str_c(`meistens eine andere Sprache`, " %"),
+            `Anteil der Kinder, die zu Hause meistens Deutsch und eine andere Sprache sprechen` = str_c(`Deutsch und eine andere Sprache`, " %"))
+  
+Tab_BuLa_Out[nrow(Tab_BuLa_Out),]$`Anteil der Kinder, die zu Hause meistens eine andere Sprache als Deutsch sprechen` <- freqSprache |> 
+  mutate(freq = str_c(freq, " %")) |> 
+  filter(lbl == "A") |> 
+  pull(freq)
+
+Tab_BuLa_Out[nrow(Tab_BuLa_Out),]$`Anteil der Kinder, die zu Hause meistens Deutsch und eine andere Sprache sprechen` <- freqSprache |> 
+  mutate(freq = str_c(freq, " %")) |> 
+  filter(lbl == "DuA") |> 
+  pull(freq)
+```
+
+Die insgesamt realisierte Stichprobe umfasste in der Pilotierungsstudie `r year-1` im Fach Mathematik `r nrow(filter(rlauf, IST > 0))` Klassen der dritten Jahrgangsstufe aus `r zahlwort[nrow(rlauf_SOLL)]` deutschen Ländern (vgl. @tbl-bula; angeforderte Stichprobe: `r nrow(filter(rlauf))` Klassen). 
+Insgesamt nahmen `r nrow(ska)` Schülerinnen und Schüler an der Untersuchung teil. 
+Davon nahmen laut Angaben der Lehrkräfte `r freqBed[freqBed$ADaten_BedingVeraendert == 1, "freq"]` % der Schülerinnen und Schüler unter veränderten Testbedingungen teil, weil sie beispielsweise aufgrund eines bestimmten Förderschwerpunktes oder noch unzureichender Deutschkenntnisse eine reduzierte Aufgabenmenge bearbeitet haben oder die Bearbeitungszeit erhöht wurde. Aufgrund der geringen Anzahl wurden diese Fälle regulär in die Auswertung einbezogen. 
+Der Altersdurchschnitt betrug `r meanAlter$mean` Jahre (_SD_ = `r meanAlter$sd` Jahre), 
+`r freqGen[freqGen$lbl == "w", "freq"]` % der Jugendlichen waren weiblich, `r freqGen[freqGen$lbl == "m", "freq"]` % männlich, `r freqGen[freqGen$lbl == "d", "freq"]` % divers^[Diese Kategorie wurde im Fragebogen als „anders“ bezeichnet und wie folgt erläutert: „Mit anders meinen wir, dass du Mädchen und Junge bist oder keins von beidem.“.] und `r freqGen[freqGen$lbl == "kA", "freq"]` % ohne gültige Angabe. 
+In der Stichprobe gaben `r freqSprache[freqSprache$lbl == "A", "freq"]` % der getesteten Schülerinnen und Schüler an, zu Hause meistens eine andere Sprache als Deutsch zu sprechen, `r freqSprache[freqSprache$lbl == "DuA", "freq"]` % gaben an, Deutsch und eine andere Sprache zu sprechen,  `r freqSprache[freqSprache$lbl == "D", "freq"]` % gaben an, immer Deutsch zu sprechen und `r freqSprache[freqSprache$lbl == "kA", "freq"]` % hatten keine gültige Angabe.
+@tbl-bula gibt eine Übersicht über den Umfang der Klassen- und Schülerstichproben sowie den Anteil der Kinder mit teilweise anderer Familiensprache nach Bundesländern. Die Schulen wurden jeweils von den Ländern benannt, wobei die Anzahl der Klassen pro Land in Anlehnung an den Königsteiner Schlüssel festgelegt wurde. 
+Durch das oben beschriebene Testdesign lagen für die im Jahr `r year-1` pilotierten Aufgaben pro Item `r nAntw["Min."][[1]]` bis `r nAntw["Max."][[1]]` Antworten von Schülerinnen und Schüler (_Median_ = `r nAntw["Median"][[1]]`) vor.
+
+```{r}
+#| label: tbl-bula
+#| tbl-cap: "Zusammensetzung der Pilotierungsstichprobe nach Land"
+#| tbl-colwidths: [25,10,10,10,15,15,15]
+#| classes: plain
+
+knitr::kable(Tab_BuLa_Out, align = 'lrrrr')
+```
+<!-- ToDo: Tabelle formatieren (Tabellenkopf (ggf. zweizeilig mit Zellen über 2 Spalten); horizontale Linien; Hintergrund z. T. schwarz; Jahreszahl in Caption; erste Spalte links alignen) -->
+
+## Durchführung
+Die Pilotierung der entwickelten Testaufgaben erfolgte zwischen Mai und Juni `r year-1`. 
+Das Erhebungsdesign, die Erstellung der Testhefte und die Datenauswertung oblagen dem IQB. 
+Die logistische Durchführung der Testung wurde mit den jeweiligen Ländern abgestimmt und durch diese unterstützt. 
+Insbesondere wurden die beteiligten Schulen sowie die Testleitungen, bei denen es sich überwiegend um Lehrkräfte handelte, von den Ländern benannt. 
+Die Testleitungen waren auch für den Rückversand der Testunterlagen verantwortlich. 
+Die vom IQB erstellten und durch die Firma `r versanddienst` gedruckten Testunterlagen wurden nach Absprache mit den Ländern direkt an die Schulen, an die jeweiligen Testleitungen oder an die zuständigen Landesinstitute bzw. -behörden verschickt. 
+Der Versand der Testhefte und die Rücklaufkontrolle wurden ebenfalls durch die Firma `r versanddienst` realisiert.
+
+## Auswertung
+### Datenerfassung und Kodierung
+Die Testunterlagen wurden durch die Firma `r versanddienst` zunächst eingescannt. 
+Für geschlossene Items (Multiple-Choice, Richtig-Falsch) erfolgte eine automatisierte Datenerfassung durch eine spezielle Scannersoftware. 
+Halboffene Items, bei denen bereits eine kurze Einweisung eine hinreichend zuverlässige Kodierung garantiert, wurden durch geschulte Mitarbeitende der Firma `r versanddienst` kodiert und zusammen mit den geschlossenen Items an das IQB übermittelt. 
+Offene Items wurden anhand der eingescannten Testunterlagen von geschulten Kodierende bewertet. 
+An drei aufeinanderfolgenden Terminen wurden zudem Schulungen durch die fachdidaktischen Kooperationspartner des Projekts durchgeführt. 
+Die Schulungen dienten einerseits dazu, eine maximale Beurteilungsübereinstimmung zu erzielen und andererseits dazu, die Auswertungsanleitungen weiter zu verbessern. 
+Um die Reliabilität der Urteile zu prüfen, wurden pro Item 20% der Antworten von Schülerinnen und Schülern doppelt, das heißt von zwei verschiedenen Kodierenden, bewertet. 
+<!-- Überarbeiten! -->
+Bis auf .. Ausnahmen (Kappa .. bzw. ..) wiesen alle Items, die in Haupttestmodule aufgenommen wurden, eine gute Beurteilerübereinstimmung auf. 
+Die prozentuale Übereinstimmung zwischen den Kodierenden betrug im Mittel (_Median_) `r round(100*median(ueber$meanagree))` % bei einem Kappa von `r round(median(ueber$meankappa), 2)`.
