@@ -1,0 +1,201 @@
+---
+title: "Vergleichsarbeiten 2025 3. Jahrgangsstufe Mathematik"
+subtitle: "Technischer Bericht"
+author: "Kristoph Schumann"
+format: 
+  docx:
+    toc: true
+    toc-depth: 2
+    number-sections: true
+    number-depth: 2
+    reference-doc: TechRep_style.docx
+execute:
+  echo: false
+  warning: false
+  message: false
+crossref:
+  fig-prefix: 'Abb.'
+  fig-title: 'Abbildung'
+  tbl-prefix: 'Tab.'
+  tbl-title: 'Tabelle'
+  sec-prefix: 'Abschnitt'
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+library(tidyverse)
+
+year <- 2025
+kb1 <- "Größen und Messen"
+kb2 <- "Daten, Häufigkeit und Wahrscheinlichkeit"
+
+
+### Dateipfade: ----
+library(here)
+pt_ausw  <- "R:/VERA3/Mathematik/V3_Ma_2025/1_Pilotierung 2024/12_Auswertung"
+
+### Daten laden: ----
+
+# Analysetabelle
+df_para <- readxl::read_excel(file.path(pt_ausw, "4_Ergebnisse", "V3-MA-2025_Pilot2024_Itemparameter_2024-09-05.xlsx"), sheet = "Items")
+```
+
+![Technischer Bericht](Titelbild.jpg){fig-align="center"}\
+<!-- ToDo: Titel formatieren:
+- Zeilenumbrüche im title
+- Bild vor TOC, am besten hinter den subtitle, 
+- Autor unten auf Titelseite -->
+
+{{< pagebreak >}}
+# Allgemeine Informationen {#sec-allginf}
+Der vorliegende Technische Bericht beschreibt das Vorgehen bei der Aufgabenentwicklung und -erprobung, fasst wichtige Ergebnisse der Datenauswertung zusammen und gibt einen Überblick über die Testmodule für die Vergleichsarbeiten in der 3. Jahrgangsstufe im Schuljahr `r year-1`/`r str_sub(year, 3, 4)`. 
+Ferner werden Hinweise zur Datenerhebung und -auswertung von VERA-3 formuliert. 
+Für den Hauptdurchgang werden seit dem Jahr 2020 Testmodule bereitgestellt. 
+Für VERA-3 Mathematik wird ein Basismodul mit einer Bearbeitungszeit von 40 Minuten entwickelt. 
+Das Basismodul enthält Aufgaben zu allen fünf Leitideen. 
+Darüber hinaus werden insgesamt vier Ergänzungsmodule mit einer Bearbeitungszeit von jeweils 20 Minuten bereitgestellt. 
+Anders als das Basismodul enthält ein Ergänzungsmodul ausschließlich Aufgaben zu einer Leitidee und umfasst eine Bearbeitungszeit von 20 Minuten. 
+Für jeden VERA-Durchgang werden jeweils zwei leistungsbezogene Ergänzungsmodule für zwei Leitideen be-reitgestellt; im Schuljahr `r year-1`/`r str_sub(year, 3, 4)` handelt es sich um die Leitideen „`r kb1`“ und „`r kb2`“. 
+
+## Kompetenzstufenmodelle
+Seit Dezember 2008 liegen für das Fach Mathematik in der Primarstufe Kompetenzstufenmodelle vor, die fünf hierarchisch angeordnete Kompetenzstufen umfassen (überarbeitete Fassung auf Grundlage des Ländervergleichs 2011 vom Februar 2013)[^1].
+Die Beschreibungen der Kompetenzstufen beziehen sich sowohl auf ein Globalmodell mathematischer Kompetenz, als auch auf verschiedene inhaltsbezogene Kompetenzen, auch „Leitideen“ genannt. 
+Die Kompetenzstufen reichen von der Beschreibung mathematischer Basiskompetenzen bis zur Identifizierung eines elaborierten und souveränen Umgangs mit mathematischen Anforderungen in der Primarstufe (vgl. Reiss & Winkelmann, 2008; 2009). 
+<!-- ToDo: Literaturverzeichnis und Quellenverweise mit [@Reiss2008] -->
+
+[^1]: Die Bildungsstandards für Mathematik wurden für das Ende der vierten Jahrgangsstufe weiterentwickelt und 2022 von der KMK verabschiedet (KMK, 2022). 
+  Dieser Technische Bericht bezieht sich auf die Bildungsstandards, die 2004 von der KMK beschlossen worden sind, da sich die Normierungsaufgaben für die neuen Bildungsstandards noch in der Entwicklung befinden.
+
+Das Globalmodell ist übergreifend und umfasst alle in den Bildungsstandards ausgewiesenen inhaltlichen Kompetenzbereiche, das heißt die Leitideen „Zahlen und Operationen“, „Raum und Form“, „Muster und Strukturen“, „Größen und Messen“ und „Daten, Häufigkeit, Wahrscheinlichkeit“. 
+Es ermöglicht daher auf breiter Basis die Interpretation der mathematischen Kompetenz von Schüler:innen am Ende der 4. Jahrgangsstufe. 
+
+Die Skala für die 4. Jahrgangsstufe wurde mit einem Mittelwert von $M = 500$ und einer Standardabweichung von $SD = 100$ definiert. 
+Die Breite der Kompetenzstufen beträgt 70 Punkte, die Stufe I ist nach unten, die Stufe V nach oben offen. 
+Bei den Beschreibungen der Stufen werden vorhandene Kompetenzen anstelle von Defiziten betont. 
+Die Kompetenzstufenmodelle bilden die Basis für die Definition von Standards (z. B. Mindeststandards, Regelstandards, vgl. @tbl-kstufen). 
+Im Folgenden werden die Kompetenzstufen des Globalmodells tabellarisch dargestellt und anschließend kurz beschrieben.[^2]
+
+[^2]: Für eine ausführlichere Darstellung siehe das Kompetenzstufenmodell für das Fach Mathematik im Globalmodell https://www.iqb.hu-berlin.de/bista/ksm
+
+## Kompetenzstufen im Fach Mathematik {#sec-ksgl}
+
+| Stufe | Wertebereich     | Standardbereich       |
+|:-----:|:----------------:|:----------------------|
+| I     | $<390$           | unter Mindeststandard |
+| II    | $390$ bis $<460$ | Mindeststandard       |
+| III   | $460$ bis $<530$ | Regelstandard         |
+| IV    | $530$ bis $<600$ | Regelstandard plus    |
+| V     | $\geq600$        | Optimalstandard       |
+
+: Globales Kompetenzstufenmodell für das Fach Mathematik in der Grundschule (vgl. Reiss & Winkelmann, 2009) {#tbl-kstufen .striped tbl-colwidths="[20,40,40]"}
+
+<!-- ToDo: Tabelle formatieren (Hintergrund z. T. schwarz) -->
+
+### Kompetenzstufe I (Punktwerte bis unter 390): technische Grundlagen (Routineprozeduren auf Grundlage einfachen begrifflichen Wissens)
+
+Schüler:innen auf Kompetenzstufe I sind einfache mathematische Begriffe und Prozeduren bekannt und sie können diese in einem innermathematischen Kontext beziehungsweise in einem aus dem Alltag vertrauten oder gut geübten Kontext korrekt reproduzieren. 
+Im Einzelnen werden die Grundaufgaben des kleinen Einspluseins und Einmaleins beherrscht und bei mündlichen, halbschriftlichen und schriftlichen Rechenverfahren genutzt, wenn die Aufgabenstellungen keine besonderen Schwierigkeiten aufweisen. 
+Darüber hinaus werden sie auch in sehr einfachen Sachsituationen korrekt angewendet. 
+Außerdem können Zahlen in Bezug auf ihre Größe verglichen und Zahldarstellungen in Stellentafeln insbesondere im Tausenderraum sicher gelesen werden. 
+Grundlegende Begriffe der ebenen Geometrie (z. B. Kreis, Quadrat, Dreieck) werden bei prototypischen Darstellungen richtig verwendet. 
+Sehr einfache Folgen und Muster können fortgesetzt werden. Gängige Größeneinheiten (z. B. m, km, kg) können gut vertrauten Repräsentanten zugeordnet werden. 
+Auch einfache Größenvergleiche werden geleistet. 
+Einfachen, klar strukturierten Diagrammen, Schaubildern und Tabellen mit Bezug zur Lebenswirklichkeit können unmittelbar ersichtliche Daten entnommen werden. 
+Umgekehrt können einfache Informationen in eine Tabelle eingetragen werden. 
+Es gelingt, sehr einfache und sehr anschauliche Zufallsexperimente in Bezug auf Gewinnchancen zu vergleichen. 
+
+### Kompetenzstufe II (Punktwerte von 390 bis unter 460): einfache Anwendungen von Grundlagenwissen (Routineprozeduren in einem klar strukturierten Kontext)
+Schüler:innen mit Mathematikkompetenzen auf der Kompetenzstufe II können Grundlagenwissen in einfachen, klar strukturierten und bekannten Anwendungen nutzen. 
+So werden Aufgaben zur Addition, Subtraktion und Multiplikation halbschriftlich und schriftlich durchgeführt, wobei auch Überschlagsrechnungen geleistet und Größenordnungen von Ergebnissen korrekt erkannt werden. 
+Außerdem wird die Struktur des Dezimalsystems genutzt, Gesetzmäßigkeiten werden erkannt und bei der Fortsetzung einfacher Zahlenfolgen, beim strukturierten Zählen und systematischen Probieren berücksichtigt. 
+Grundbegriffe der räumlichen Geometrie (z. B. Würfel) werden korrekt verwendet, wenn diese einen Bezug zum Alltag haben. 
+Einfache räumliche Gebilde werden in ihren strukturellen Eigenschaften gesehen und räumliche Beziehungen zur Lösung einfacher Probleme genutzt. 
+Dabei werden einfache Lagebeziehungen auch dann korrekt erkannt, wenn hierfür die Perspektive einer anderen Person einzunehmen ist. 
+Auch komplexere geometrische Muster und Zahlenreihen werden in ihrer Struktur erkannt und fortgesetzt. 
+Es können einfache Sachaufgaben gelöst werden. Aus dem Alltag vertraute proportionale Zuordnungen werden erkannt und angewendet. 
+Bei einfachem Zahlenmaterial wird das Umwandeln von Größen in gegebene Einheiten auch bei gemischten Größenangaben beziehungsweise einfachen Kommazahlen durchgeführt. 
+Klar strukturierten, auch umfangreicheren Diagrammen, Schaubildern und Tabellen können unterschiedliche Daten entnommen werden. 
+Diese müssen aber in der Regel noch explizit gegeben sein. Umgekehrt können einfache Daten nach gewissen Vorgaben dort auch eingetragen werden. 
+Wesentliche Grundbegriffe aus dem Umfeld von Zufall und Wahrscheinlichkeit, wie „sicher“, „unmöglich“ und „wahrscheinlich“, werden korrekt verwendet. 
+Einfache Zufallsexperimente können in Bezug auf Gewinnchancen eingeschätzt werden. 
+
+### Kompetenzstufe III (Punktwerte von 460 bis unter 530): Erkennen und Nutzen von Zusammenhängen in einem vertrauten (mathematischen und sachbezogenen) Kontext
+Schüler:innen, die die Kompetenzstufe III erreichen, können das erlernte Wissen flexibel in unterschiedlichen Problemstellungen innerhalb eines vertrauten Kontextes nutzen. 
+Insbesondere wird mit Zahlen und Operationen im curricularen Umfang sicher umgegangen und Überschlagsrechnungen werden auch bei großen Zahlen sicher durchgeführt. 
+Strukturelle Aspekte werden zumindest bei gut geübten Inhalten gesehen und können kommuniziert werden. 
+Dies gilt auch für Inhalte der Geometrie, wobei etwa zwischen verschiedenen Darstellungsformen einer Figur vermittelt werden kann. 
+Beispielsweise werden beim Umgang mit Netzen ebene und räumliche Informationen aufeinander bezogen. 
+Weiterhin sind Grundlagen geometrischer Abbildungen verfügbar, sodass insbesondere einfache Achsenspiegelungen durchgeführt werden können. 
+Zahlenfolgen, die nach komplexeren Regeln aufgebaut sind, können fortgesetzt und fehlerhafte Zahlen in überschaubaren Zahlenfolgen gegebenenfalls identifiziert werden. 
+Einfache Sachsituationen werden modelliert und die damit verbundenen Problemstellungen gelöst. 
+Proportionale Zuordnungen werden sicher genutzt. 
+Der Umgang mit Größen ist flexibel und berücksichtigt – etwa bei Uhrzeiten – spezielle Eigenschaften der Größenbereiche. 
+Hierbei wird auch die Kommaschreibweise korrekt verwendet. 
+Darüber hinaus können in Größenbereichen den gängigen Einheiten geeignete Repräsentanten zugeordnet werden. Daten und Informationen können in einem bekannten Kontext flexibel dargestellt werden. 
+Dabei gelingt auch der Umgang mit großen Zahlen. Diagrammen können Informationen entnommen werden, die nicht direkt ablesbar sind, sondern erschlossen oder berechnet werden müssen. 
+Der Informationsgehalt einfacher Diagramme kann explizit beurteilt werden. Bei nicht allzu komplexen Zufallsexperimenten werden Gewinnchancen korrekt eingeschätzt und begründet. 
+
+### Kompetenzstufe IV (Punktwerte von 530 bis unter 600): sicheres und flexibles Anwenden von begrifflichem Wissen und Prozeduren im curricularen Umfang
+Schüler:innen auf Kompetenzstufe IV wenden auch in einem wenig vertrauten Kontext mathematisches Wissen sicher an. 
+Sie beschreiben eigene Vorgehensweisen korrekt, verstehen und reflektieren die Lösungswege anderer Kinder und beherrschen das Rechnen im curricularen Umfang in allen Varianten sicher. 
+Zahldarstellungen in Stellenwerttafeln können auch bei sehr großen Zahlen (also im Zahlenraum bis zu einer Million) nach Vorschrift selbstständig manipuliert und systematisch verändert werden. 
+Begriffe der ebenen und räumlichen Geometrie werden flexibel verwendet und geometrische Aussagen können hinterfragt und diskutiert werden. 
+Auch bei komplexen Zahlenmustern wird die dahinterliegende Regel erkannt und das Muster korrekt fortgesetzt. Das Rechnen mit Größen ist sicher und flexibel und umfasst insbesondere auch Näherungs- und Überschlagsrechnungen. 
+Modellierungsaufgaben werden selbst dann gelöst, wenn sie nicht unmittelbar auf einfachen Alltagserfahrungen basieren. 
+Informationen aus unterschiedlichen Quellen können in einen Zusammenhang gestellt und in Modellierungsaufgaben selbstständig verwendet und manipuliert werden. 
+Komplexere Zufallsexperimente werden angemessen beurteilt, mögliche Ergebnisse werden korrekt bestimmt. 
+
+### Kompetenzstufe V (Punktwerte ab 600): Modellierung komplexer Probleme unter selbstständiger Entwicklung geeigneter Strategien
+Schüler:innen auf der höchsten Kompetenzstufe bearbeiten mathematische Problemstellungen in allen Inhaltsbereichen, auch in einem unbekannten Kontext, angemessen, sicher und flexibel. 
+Dabei werden auf hohem Niveau geeignete Strategien angewendet, sinnvolle Bewertungen abgegeben oder Verallgemeinerungen geleistet. 
+Umfangreiches curricular verankertes Wissen wird auch in ungewohnten Situationen flexibel genutzt. 
+Das Vorgehen kann nachvollziehbar kommuniziert und begründet werden. 
+Mathematische Argumentationen werden angemessen bewertet. 
+Komplexe Sachsituationen werden modelliert und bearbeitet, selbst wenn besondere Schwierigkeiten, wie die Verwendung von Tabellen, der Umgang mit zusammengesetzten Größen oder das Rechnen mit Zahlen in Kommaschreibweise, auftreten. 
+Es können auch ungewohnte funktionale Zusammenhänge analysiert und genutzt werden. 
+Die Lösung von Aufgaben gelingt auch dann, wenn sie ein hohes Maß an räumlichem Denken oder entsprechenden analytischen Fähigkeiten voraussetzt. 
+Der Umgang mit Daten ist genauso wie die mathematische Aufbereitung von Zufalls¬experimenten durch selbstständiges Arbeiten geprägt.
+
+{{< pagebreak >}}
+# Informationen zur Pilotierungsstudie `r year-1`
+
+Primäres Ziel der Pilotierung war es, psychometrische Informationen über die entwickelten Aufgaben zu erhalten, um hochwertige Items für die Hauptstudie auswählen zu können. 
+Durch die Einbettung bereits normierter Aufgaben in das Testdesign der Pilotierungsstudie wurde eine Anbindung der neu entwickelten Aufgaben an die Metrik der Bildungsstandards und somit an die oben genannten Kompetenzstufen realisiert.
+
+## Testdesign
+```{r include=FALSE}
+n_afg <- df_para |> 
+  filter(str_detect(Modul, "Link", negate = T)) |> 
+  count(AufgID) |>
+  nrow()
+```
+
+Für den VERA-Durchgang im Schuljahr `r year-1`/`r str_sub(year, 3, 4)` wurden `r n_afg` Aufgaben aller fünf Leitideen pilotiert. 
+
+In einem ersten Schritt wurden die Testaufgaben zu Blöcken von Testaufgaben zusammengefasst, wobei für das spätere Basismodul und für die Ergänzungsmodule separate Blöcke erstellt wurden. 
+Aufgaben, die vornehmlich für den Einsatz im Basismodul vorgesehen waren, wurden zu Blöcken mit einer Bearbeitungszeit von 8 Minuten gruppiert. 
+Diese Blöcke enthielten jeweils Aufgaben zu einer Leitidee. 
+Für die Ergänzungsmodule wurden Blöcke zu den Leitideen „`r kb1`“ und „`r kb2`“ mit unterschiedlicher Schwierigkeit zusammengestellt, die für eine Bearbeitungszeit von 20 Minuten konzipiert waren. 
+In einem zweiten Schritt wurden diese Blöcke verschiedenen Testheften mit einer Bearbeitungszeit von jeweils 60 Minuten zugewiesen, sodass einzelne Schüler:innen nur Teilmengen des gesamten Itempools bearbeiteten. 
+In diesem modularisierten Teildesign kamen insgesamt 24 Testhefte zum Einsatz. 
+Jedes Testheft beinhaltete sechs Blöcke, wobei die ersten fünf Blöcke für den Einsatz im Basismodul und der letzte Block für den Einsatz im Ergänzungsmodul konzipiert waren. 
+
+Dabei wurden 20 Blöcke mit normierten Aufgaben aus dem Aufgabenpool des IQB eingesetzt (Verlinkungsaufgaben), um eine Anbindung an die Metrik der Bildungsstandards zu ermöglichen. 
+Dies ist Voraussetzung, um die Aufgaben auf dem Kompetenzstufenmodell (vgl. @sec-ksgl) einordnen zu können. 
+Die Testhefte waren durch bestimmte, in mehreren Testheften auftretende Aufgaben miteinander verbunden. 
+Die unterschiedlichen Testheftversionen wurden zufällig auf die Schüler:innen gleichmäßig in allen teilnehmenden Bundeländern klassenweise verteilt. 
+In jeder Klasse wurden dabei 12 der 24 Testheftversionen, so nötig mehrfach, zufällig auf die Schüler:innen verteilt. 
+Die Versionen wurden so ausgewählt, dass für jeden Ergänzungsmodulblock eines der beiden Testhefte mit diesem Block eingesetzt wurde. 
+@Tbl-thdesign zeigt das modularisierte Design.
+
+
+| tbc |
+|-----|
+| tbc |
+
+: Modularisiertes Testdesigns der Pilotierungsstudie `r year-1` {#tbl-thdesign}
+
+## Stichprobe
+Die insgesamt realisierte Stichprobe umfasste in der Pilotierungsstudie 
