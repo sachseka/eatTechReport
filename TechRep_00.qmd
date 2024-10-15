@@ -14,8 +14,10 @@ execute:
   warning: false
   message: false
 crossref:
-  fig-prefix: 'Abbildung'
-  tbl-prefix: 'Tabelle'
+  fig-prefix: 'Abb.'
+  fig-title: 'Abbildung'
+  tbl-prefix: 'Tab.'
+  tbl-title: 'Tabelle'
 ---
 
 ```{r}
@@ -61,8 +63,7 @@ Es ermöglicht daher auf breiter Basis die Interpretation der mathematischen Kom
 Die Skala für die 4. Jahrgangsstufe wurde mit einem Mittelwert von $M = 500$ und einer Standardabweichung von $SD = 100$ definiert. 
 Die Breite der Kompetenzstufen beträgt 70 Punkte, die Stufe I ist nach unten, die Stufe V nach oben offen. 
 Bei den Beschreibungen der Stufen werden vorhandene Kompetenzen anstelle von Defiziten betont. 
-Die Kompetenzstufenmodelle bilden die Basis für die Definition von Standards (z. B. Mindeststandards, Regelstandards, vgl. Tabelle 1). 
-<!-- ToDo: (Quer-)Versweise auf Tabellen und Abbildungen -->
+Die Kompetenzstufenmodelle bilden die Basis für die Definition von Standards (z. B. Mindeststandards, Regelstandards, vgl. @tbl-kstufen). 
 Im Folgenden werden die Kompetenzstufen des Globalmodells tabellarisch dargestellt und anschließend kurz beschrieben.[^2]
 
 [^2]: Für eine ausführlichere Darstellung siehe das Kompetenzstufenmodell für das Fach Mathematik im Globalmodell https://www.iqb.hu-berlin.de/bista/ksm
@@ -77,7 +78,7 @@ Im Folgenden werden die Kompetenzstufen des Globalmodells tabellarisch dargestel
 | IV    | $530$ bis $<600$ | Regelstandard plus    |
 | V     | $\geq600$        | Optimalstandard       |
 
-: Globales Kompetenzstufenmodell für das Fach Mathematik in der Grundschule (vgl. Reiss & Winkelmann, 2009) {#tbl-kstufen, .striped, tbl-colwidths="[20,40,40]"}
+: Globales Kompetenzstufenmodell für das Fach Mathematik in der Grundschule (vgl. Reiss & Winkelmann, 2009) {#tbl-kstufen .striped tbl-colwidths="[20,40,40]"}
 
 <!-- ToDo: Tabelle formatieren (Seitenbreite, "Tabelle" statt "Table", Hintergrund z. T. schwarz) -->
 
