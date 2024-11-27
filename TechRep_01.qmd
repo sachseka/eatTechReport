@@ -19,6 +19,10 @@ crossref:
   tbl-prefix: 'Tab.'
   tbl-title: 'Tabelle'
   sec-prefix: 'Abschnitt'
+bibliography: 
+  - grateful-refs.bib
+  - references.bib
+csl: deutsche-gesellschaft-fur-psychologie.csl
 ---
 
 ```{r}
@@ -26,6 +30,12 @@ crossref:
 #| include: false
 
 library(tidyverse)
+library(glue)
+library(grateful)
+
+library(eatPrep)
+library(eatModel)
+library(TAM)
 
 year <- 2025
 kb1 <- "Größen und Messen"
@@ -35,6 +45,7 @@ versanddienst <- "Polyprint GmbH"
 ### Dateipfade: ----
 library(here)
 pt_ausw  <- "R:/VERA3/Mathematik/V3_Ma_2025/1_Pilotierung 2024/12_Auswertung"
+pt_ikw <- "R:/VERA3/Mathematik/V3_Ma_2025/2_Hauptstudie 2025/06_Itemkennwertetabelle/1 Vorababgabe"
 
 ### Daten laden: ----
 
@@ -52,11 +63,53 @@ df_merged$ADaten_Alter <- as.numeric(df_merged$ADaten_Alter)
 ska <- read_csv2(file.path(pt_ausw, "3_Skalierung", "GL", "GL_persons.csv"))
 ska$idstud <- as.character(ska$idstud)
 
-# Transformierter Datensatz
-tf <- readRDS(file.path(pt_ausw, "4_Ergebnisse", "V3-MA-2025_Pilot2024_transformToBistaResults_2024-09-05.rds"))
+# Transformierte(r/) Datens(a/ä)tz(/e)
+tf24 <- readRDS(file.path(pt_ausw, 
+                          "4_Ergebnisse", "V3-MA-2025_Pilot2024_transformToBistaResults_2024-09-05.rds"))
+tf24a <- readRDS(file.path(pt_ausw, 
+                          "4_Ergebnisse", "V3-MA-2025_Pilot2024_transformToBistaResults_KA3a_2024-09-05.rds"))
+tf23 <- readRDS(file.path("R:/VERA3/Mathematik/V3_Ma_2024/01_Pilotierung_2023/11_Auswertung", 
+                          "4_Ergebnisse", "V3-MA-2024_Pilot2023_transformToBistaResults_2023-08-31.rds"))
+
 
 # Analysetabelle
 df_para <- readxl::read_excel(file.path(pt_ausw, "4_Ergebnisse", "V3-MA-2025_Pilot2024_Itemparameter_2024-09-05.xlsx"), sheet = "Items")
+
+# Itemkennwertetabelle
+df_IKWT <- read.csv2(file.path(pt_ikw, "Itemparameter VERA3-Mathematik-2025 Ma Modularisierung.csv"),
+                     stringsAsFactors = FALSE, encoding = "latin1") |> 
+  filter(!is.na(iqbitem_id))
+
+# Haupttestauswahl:
+df_HT <- df_IKWT |> 
+  mutate(sel = case_when(str_detect(iqbmodul_id, "BM$") & 
+                         model == "global" ~ TRUE,
+                         model != "global" ~ TRUE,
+                         TRUE ~ FALSE)) |> 
+  filter(sel) |> # für BM nur global, für EM nur domainspezifische Werte
+  select(iqbitem_id, model, domain, iqbmodul_id, itemnr_mod)
+
+#UOS nimmt zur Itemauswahl (wie auch schon in HT22, ht24) nur die KS von GL.
+#Also zur Konsistenz hier auch:
+df_its_HT <- df_HT |>
+  transmute(iqbitem_id, domain=model, lbl = str_sub(iqbmodul_id, 10)) |>
+  arrange(domain != "global", domain, lbl, iqbitem_id) |> 
+  left_join(rename(filter(rbind(tf24$itemparsVera[1:8], tf23$itemparsVera[1:8]), domain == "GL"), model=domain), by = "iqbitem_id")
+
+# In diesem Jahr gibt es noch Items aus dem KA3a-Modell:
+df_tmp <- df_its_HT[is.na(df_its_HT$lh), c("iqbitem_id", "domain", "lbl")] |> 
+  left_join(rename(filter(tf24a$itemparsVera[1:8], domain == "GL"), model=domain), by = "iqbitem_id")
+df_its_HT <- df_its_HT |> 
+  filter(!is.na(df_its_HT$lh)) |> 
+  rbind(df_tmp) |>
+  arrange(domain != "global", domain, lbl, iqbitem_id) 
+
+df_afg_HT <- df_IKWT |> 
+  select(name, iqbitem_id) |> 
+  left_join(select(df_HT, iqbitem_id, iqbmodul_id), by = "iqbitem_id") |> 
+  select(-iqbitem_id) |> 
+  unique() |> 
+  arrange(str_sub(iqbmodul_id, -2) != "BM", iqbmodul_id)
 
 # realisierte und angefragte Klassen:
 rlauf <- readxl::read_xlsx("R:/VERA3/Mathematik/V3_Ma_2025/1_Pilotierung 2024/10_Durchführung/Rücklauf/MA_VERA-3_Pilo2024_Rücklauf_100%_aus_Scanmanager.xlsx", sheet = 1, range = "A4:G189")
@@ -109,8 +162,7 @@ Für jeden VERA-Durchgang werden jeweils zwei leistungsbezogene Ergänzungsmodul
 ## Kompetenzstufenmodelle
 Seit Dezember 2008 liegen für das Fach Mathematik in der Primarstufe Kompetenzstufenmodelle vor, die fünf hierarchisch angeordnete Kompetenzstufen umfassen (überarbeitete Fassung auf Grundlage des Ländervergleichs 2011 vom Februar 2013)[^1].
 Die Beschreibungen der Kompetenzstufen beziehen sich sowohl auf ein Globalmodell mathematischer Kompetenz, als auch auf verschiedene inhaltsbezogene Kompetenzen, auch „Leitideen“ genannt. 
-Die Kompetenzstufen reichen von der Beschreibung mathematischer Basiskompetenzen bis zur Identifizierung eines elaborierten und souveränen Umgangs mit mathematischen Anforderungen in der Primarstufe (vgl. Reiss & Winkelmann, 2008; 2009). 
-<!-- ToDo: Literaturverzeichnis und Quellenverweise mit [@Reiss2008] -->
+Die Kompetenzstufen reichen von der Beschreibung mathematischer Basiskompetenzen bis zur Identifizierung eines elaborierten und souveränen Umgangs mit mathematischen Anforderungen in der Primarstufe [vgl. @Reiss.2008; @Reiss.2009]. 
 
 [^1]: Die Bildungsstandards für Mathematik wurden für das Ende der vierten Jahrgangsstufe weiterentwickelt und 2022 von der KMK verabschiedet (KMK, 2022). 
   Dieser Technische Bericht bezieht sich auf die Bildungsstandards, die 2004 von der KMK beschlossen worden sind, da sich die Normierungsaufgaben für die neuen Bildungsstandards noch in der Entwicklung befinden.
@@ -138,7 +190,7 @@ Im Folgenden werden die Kompetenzstufen des Globalmodells tabellarisch dargestel
 | IV    | $530$ bis $<600$ | Regelstandard plus    |
 | V     | $\geq600$        | Optimalstandard       |
 
-: Globales Kompetenzstufenmodell für das Fach Mathematik in der Grundschule (vgl. Reiss & Winkelmann, 2009) {#tbl-kstufen .striped tbl-colwidths="[20,40,40]"}
+: Globales Kompetenzstufenmodell für das Fach Mathematik in der Grundschule [vgl. @Reiss.2009] {#tbl-kstufen .striped tbl-colwidths="[20,40,40]"}
 
 <!-- ToDo: Tabelle formatieren (Hintergrund z. T. schwarz) -->
 
@@ -301,7 +353,7 @@ freqSprache <- df_merged |>
                          ADaten_Sprache == "3" ~ "A",
                          ADaten_Sprache == "4" ~ "kA")) 
 
-nAntw <- tf$itempars |> 
+nAntw <- tf24$itempars |> 
   pull(Nvalid) |> 
   summary()
 ```
@@ -397,13 +449,64 @@ Der Versand der Testhefte und die Rücklaufkontrolle wurden ebenfalls durch die 
 
 ## Auswertung
 ### Datenerfassung und Kodierung
+```{r echo=FALSE}
+df_Kappakrit <- ueber |> 
+  mutate(iqbitem_id = str_sub(Variable, 1, -2)) |> 
+  semi_join(df_HT, by = "iqbitem_id") |> 
+  filter(round(meankappa,2) < 0.8) |> 
+  arrange(desc(meankappa))
+```
+
 Die Testunterlagen wurden durch die Firma `r versanddienst` zunächst eingescannt. 
 Für geschlossene Items (Multiple-Choice, Richtig-Falsch) erfolgte eine automatisierte Datenerfassung durch eine spezielle Scannersoftware. 
 Halboffene Items, bei denen bereits eine kurze Einweisung eine hinreichend zuverlässige Kodierung garantiert, wurden durch geschulte Mitarbeitende der Firma `r versanddienst` kodiert und zusammen mit den geschlossenen Items an das IQB übermittelt. 
 Offene Items wurden anhand der eingescannten Testunterlagen von geschulten Kodierende bewertet. 
 An drei aufeinanderfolgenden Terminen wurden zudem Schulungen durch die fachdidaktischen Kooperationspartner des Projekts durchgeführt. 
-Die Schulungen dienten einerseits dazu, eine maximale Beurteilungsübereinstimmung zu erzielen und andererseits dazu, die Auswertungsanleitungen weiter zu verbessern. 
+Die Schulungen dienten einerseits dazu, eine maximale Interrater-Reliabilität zu erzielen und andererseits dazu, die Auswertungsanleitungen weiter zu verbessern. 
 Um die Reliabilität der Urteile zu prüfen, wurden pro Item 20% der Antworten von Schülerinnen und Schülern doppelt, das heißt von zwei verschiedenen Kodierenden, bewertet. 
-<!-- Überarbeiten! -->
-Bis auf .. Ausnahmen (Kappa .. bzw. ..) wiesen alle Items, die in Haupttestmodule aufgenommen wurden, eine gute Beurteilerübereinstimmung auf. 
-Die prozentuale Übereinstimmung zwischen den Kodierenden betrug im Mittel (_Median_) `r round(100*median(ueber$meanagree))` % bei einem Kappa von `r round(median(ueber$meankappa), 2)`.
+```{r}
+#| output: asis
+
+cat(sep = "\n", 
+    str_c(ifelse(nrow(df_Kappakrit) > 0,
+       str_c("Bis auf ", zahlwort[nrow(df_Kappakrit)], " Ausnahmen (Kappa[^5] ", 
+             glue_collapse(round(df_Kappakrit$meankappa, 2), sep = ", ", last = " und "), 
+             ") wiesen a"),
+       "A"),
+       "lle Items, die in Haupttestmodule aufgenommen wurden, " ,
+       ifelse(nrow(df_Kappakrit) > 0,"", "wiesen "),
+      "eine gute Interrater-Reliabilität auf."),
+    str_c("Die prozentuale Übereinstimmung zwischen den Kodierenden betrug im Mittel (_Median_) ",
+          round(100*median(ueber$meanagree)),
+          "% bei einem Kappa", 
+          ifelse(nrow(df_Kappakrit) > 0,"", "[^5]"), " von ",
+          round(median(ueber$meankappa), 2), "."),
+    "\n[^5]: vgl. @Cohen.1960")
+```
+<!-- ToDo: Cohen zitieren -->
+
+Wie schon in der Pilotierung 2023 wurde auch dieses Jahr wieder ein Teil der Variablen nicht durch den Dienstleister `r versanddienst`, sondern im eigenen Team am IQB kodiert, der erfahrungsgemäß in der Komplexität zwischen Items liegt, bei denen bereits eine kurze Einweisung eine hinreichend zuverlässige Kodierung garantiert, und Items, die mehrfach geschult werden müssen.
+
+### Datenauswertung 
+<!-- ToDo: R-Pakete eatPrep und TAM zitieren, jedes Jahr die aktuelle Version -->
+Die Auswertung der Testdaten erfolgte mit Methoden der klassischen und probabilistischen Testtheorie mit den Statistik-Programmen SPSS und R. 
+In einem ersten Schritt wurden unter Verwendung des R-Pakets eatPrep [@eatPrep] die Rohdaten der geschlosse-nen Items mit Hilfe der in einer Datenbank hinterlegten Richtig- und Falschoptionen rekodiert und mit den bereits kodierten halboffenen und offenen Items zusammengeführt. 
+Für Mehrfach-Ankreuz-Aufgaben, die aus zwei bis maximal vier Teilfragen bestehen, bei denen „ja“ oder „nein“ bzw. „trifft zu“ oder „trifft nicht zu“ anzukreuzen ist, wurde nur dann ein Punkt vergeben, wenn alle Teilfragen richtig beantwortet wurden. Dies ist dadurch begründet, dass die Ratewahrscheinlichkeit für eine Frage mit zwei Antwortalternativen („ja“/„nein“) 50% beträgt und eine Zusammenfassung mehrerer Fragen dieses Typs die Ratewahrscheinlichkeit deutlich reduziert. Die genauen Aggregationsvorschriften gehen aus den separat übermittelten Auswertungsanleitungen hervor.
+
+Im zweiten Schritt erfolgte die Skalierung der Leistungsdaten auf der Basis von Item-Response-Modellen mit Hilfe des R-Pakets TAM [@TAM_4.2-21]. 
+In ersten Kalibrierungsläufen wurden zunächst mit Hilfe des eindimensionalen Raschmodells die Itemparameter aller Items frei geschätzt, wobei neben den für VERA vorgesehenen Items auch die normierten Items aus dem IQB-Aufgabenpool einbezogen wurden. 
+Diese Analysen wurden sowohl für das Globalmodell als auch für die leitideenspezifischen Modelle durchgeführt. Es galten dabei folgende Maßgaben:
+
+- Fehlende Werte aufgrund von Nicht-Bearbeitungen wurden als Falschantworten gewertet.
+- Ungültige Antworten wurden als Falschantworten gewertet.
+- Der Mittelwert der Personenfähigkeit wurde auf den Wert null fixiert.[^6]
+
+[^6]: Die Verortung der Skala ist im Raschmodell ein freier Parameter und muss deshalb fixiert werden. Üblich ist das Fixieren der mittleren Personenfähigkeit oder der mittleren Itemschwierigkeit auf den Wert null.
+
+Im nächsten Schritt wurden die aus dem IQB-Ländervergleich 2011 bekannten Parameter des Globalmodells der verwendeten Items aus dem IQB-Pool benutzt, um über ein Linking-verfahren [Mean-Mean-Linking; @Loyd.1980] die Schwierigkeitsparameter (Logits) der für die Vergleichsarbeiten vorgesehenen Items auf der Metrik der Bildungsstandards angeben zu können. Abschließend erfolgte eine Transformation der Itemparameter von der Lo-git-Skala auf die Bildungsstandardmetrik mit dem Mittelwert $M = 500$, der Standardabweichung $SD = 100$ und der Lösungswahrscheinlichkeit  $p = 0.625$ (anstatt $p = 0.50$) gemäß folgender Formel:
+
+{{< pagebreak >}}
+# Literatur
+```{r echo=FALSE, include=FALSE}
+cite_packages(output = "file", out.dir = ".", pkgs = c("base", "eatPrep", "eatModel", "TAM"))
+```
