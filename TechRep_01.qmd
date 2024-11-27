@@ -13,12 +13,14 @@ execute:
   echo: false
   warning: false
   message: false
+fig-cap-location: top
 crossref:
   fig-prefix: 'Abb.'
   fig-title: 'Abbildung'
   tbl-prefix: 'Tab.'
   tbl-title: 'Tabelle'
   sec-prefix: 'Abschnitt'
+  chapters: true
 bibliography: 
   - grateful-refs.bib
   - references.bib
@@ -39,7 +41,9 @@ library(TAM)
 
 year <- 2025
 kb1 <- "Größen und Messen"
+kb1_short <- "GM"
 kb2 <- "Daten, Häufigkeit und Wahrscheinlichkeit"
+kb2_short <- "DH"
 versanddienst <- "Polyprint GmbH"
 
 ### Dateipfade: ----
@@ -71,6 +75,9 @@ tf24a <- readRDS(file.path(pt_ausw,
 tf23 <- readRDS(file.path("R:/VERA3/Mathematik/V3_Ma_2024/01_Pilotierung_2023/11_Auswertung", 
                           "4_Ergebnisse", "V3-MA-2024_Pilot2023_transformToBistaResults_2023-08-31.rds"))
 
+tf24$itemparsVera[tf24$itemparsVera$domain=="DHW", "domain"] <- "DH"
+tf24a$itemparsVera[tf24a$itemparsVera$domain=="DHW", "domain"] <- "DH"
+tf23$itemparsVera[tf23$itemparsVera$domain=="DHW", "domain"] <- "DH"
 
 # Analysetabelle
 df_para <- readxl::read_excel(file.path(pt_ausw, "4_Ergebnisse", "V3-MA-2025_Pilot2024_Itemparameter_2024-09-05.xlsx"), sheet = "Items")
@@ -257,7 +264,7 @@ Mathematische Argumentationen werden angemessen bewertet.
 Komplexe Sachsituationen werden modelliert und bearbeitet, selbst wenn besondere Schwierigkeiten, wie die Verwendung von Tabellen, der Umgang mit zusammengesetzten Größen oder das Rechnen mit Zahlen in Kommaschreibweise, auftreten. 
 Es können auch ungewohnte funktionale Zusammenhänge analysiert und genutzt werden. 
 Die Lösung von Aufgaben gelingt auch dann, wenn sie ein hohes Maß an räumlichem Denken oder entsprechenden analytischen Fähigkeiten voraussetzt. 
-Der Umgang mit Daten ist genauso wie die mathematische Aufbereitung von Zufalls¬experimenten durch selbstständiges Arbeiten geprägt.
+Der Umgang mit Daten ist genauso wie die mathematische Aufbereitung von Zufallsexperimenten durch selbstständiges Arbeiten geprägt.
 
 {{< pagebreak >}}
 # Informationen zur Pilotierungsstudie `r year-1`
@@ -483,14 +490,13 @@ cat(sep = "\n",
           round(median(ueber$meankappa), 2), "."),
     "\n[^5]: vgl. @Cohen.1960")
 ```
-<!-- ToDo: Cohen zitieren -->
 
 Wie schon in der Pilotierung 2023 wurde auch dieses Jahr wieder ein Teil der Variablen nicht durch den Dienstleister `r versanddienst`, sondern im eigenen Team am IQB kodiert, der erfahrungsgemäß in der Komplexität zwischen Items liegt, bei denen bereits eine kurze Einweisung eine hinreichend zuverlässige Kodierung garantiert, und Items, die mehrfach geschult werden müssen.
 
 ### Datenauswertung 
 <!-- ToDo: R-Pakete eatPrep und TAM zitieren, jedes Jahr die aktuelle Version -->
 Die Auswertung der Testdaten erfolgte mit Methoden der klassischen und probabilistischen Testtheorie mit den Statistik-Programmen SPSS und R. 
-In einem ersten Schritt wurden unter Verwendung des R-Pakets eatPrep [@eatPrep] die Rohdaten der geschlosse-nen Items mit Hilfe der in einer Datenbank hinterlegten Richtig- und Falschoptionen rekodiert und mit den bereits kodierten halboffenen und offenen Items zusammengeführt. 
+In einem ersten Schritt wurden unter Verwendung des R-Pakets eatPrep [@eatPrep] die Rohdaten der geschlossenen Items mit Hilfe der in einer Datenbank hinterlegten Richtig- und Falschoptionen rekodiert und mit den bereits kodierten halboffenen und offenen Items zusammengeführt. 
 Für Mehrfach-Ankreuz-Aufgaben, die aus zwei bis maximal vier Teilfragen bestehen, bei denen „ja“ oder „nein“ bzw. „trifft zu“ oder „trifft nicht zu“ anzukreuzen ist, wurde nur dann ein Punkt vergeben, wenn alle Teilfragen richtig beantwortet wurden. Dies ist dadurch begründet, dass die Ratewahrscheinlichkeit für eine Frage mit zwei Antwortalternativen („ja“/„nein“) 50% beträgt und eine Zusammenfassung mehrerer Fragen dieses Typs die Ratewahrscheinlichkeit deutlich reduziert. Die genauen Aggregationsvorschriften gehen aus den separat übermittelten Auswertungsanleitungen hervor.
 
 Im zweiten Schritt erfolgte die Skalierung der Leistungsdaten auf der Basis von Item-Response-Modellen mit Hilfe des R-Pakets TAM [@TAM_4.2-21]. 
@@ -503,7 +509,117 @@ Diese Analysen wurden sowohl für das Globalmodell als auch für die leitideensp
 
 [^6]: Die Verortung der Skala ist im Raschmodell ein freier Parameter und muss deshalb fixiert werden. Üblich ist das Fixieren der mittleren Personenfähigkeit oder der mittleren Itemschwierigkeit auf den Wert null.
 
-Im nächsten Schritt wurden die aus dem IQB-Ländervergleich 2011 bekannten Parameter des Globalmodells der verwendeten Items aus dem IQB-Pool benutzt, um über ein Linking-verfahren [Mean-Mean-Linking; @Loyd.1980] die Schwierigkeitsparameter (Logits) der für die Vergleichsarbeiten vorgesehenen Items auf der Metrik der Bildungsstandards angeben zu können. Abschließend erfolgte eine Transformation der Itemparameter von der Lo-git-Skala auf die Bildungsstandardmetrik mit dem Mittelwert $M = 500$, der Standardabweichung $SD = 100$ und der Lösungswahrscheinlichkeit  $p = 0.625$ (anstatt $p = 0.50$) gemäß folgender Formel:
+Im nächsten Schritt wurden die aus dem IQB-Ländervergleich 2011 bekannten Parameter des Globalmodells der verwendeten Items aus dem IQB-Pool benutzt, um über ein Linkingverfahren [Mean-Mean-Linking\; @Loyd.1980] die Schwierigkeitsparameter (Logits) der für die Vergleichsarbeiten vorgesehenen Items auf der Metrik der Bildungsstandards angeben zu können. 
+Abschließend erfolgte eine Transformation der Itemparameter von der Logit-Skala auf die Bildungsstandardmetrik mit dem Mittelwert $M = 500$, der Standardabweichung $SD = 100$ und der Lösungswahrscheinlichkeit[^7]  $p = 0.625$ (anstatt $p = 0.50$) gemäß folgender Formel:
+
+
+$$
+\begin{aligned}
+Metrik_{\text{BISTA}} & = 500 + \frac{100}{SD_{\text{ref}}}\cdot \left( Logit + \log \left( \frac{p}{1-p} \right) - M_{\text{ref}} \right)\\
+& = 500 +  \frac{100}{1.097} \cdot \left( Logit + 0.51 - 0.086 \right)
+\end{aligned}
+$$
+
+[^7]: Dies ist die Wahrscheinlichkeit, dass eine Person mit einer gegebenen Fähigkeit ein Item mit korrespondierender Schwierigkeit korrekt beantwortet. In der natürlichen Skala des Raschmodells beträgt diese Wahrscheinlichkeit stets $0.5$. Eine andere Lösungswahrscheinlichkeit $p$ erhält man durch eine konstante Verschiebung der Itemschwierigkeiten um $\log\left(\frac{p}{1-p}\right)$.
+
+Zur Erläuterung: $0.51$ ist die Verschiebungskonstante, um eine Lösungswahrscheinlichkeit von $p = 0.625$ zu erhalten; $0.086$ ist der Mittelwert und $1.097$ die Standardabweichung der Referenzpopulation aus der 4. Jahrgangsstufe. 
+
+Diese Werte beziehen sich seit der VERA-Hauptstudie 2013 auf den IQB-Ländervergleich in der Primarstufe aus dem Jahr 2011. Daher lassen sich die VERA-Ergebnisse vor dem Jahr 2013 nicht in Bezug zu aktuellen Ergebnissen setzen. 
+
+```{r echo=FALSE}
+df_tmp <- tf24$itemparsVera |> 
+  select(iqbitem_id, domain, kstufe) |> 
+  pivot_wider(id_cols = "iqbitem_id",
+              names_from = "domain",
+              values_from = "kstufe")
+
+df_tmp[, "kb1"] <- df_tmp[, kb1_short]
+df_tmp[, "kb2"] <- df_tmp[, kb2_short]
+df_tmp[, kb1_short] <- NULL
+df_tmp[, kb2_short] <- NULL
+
+
+df_KSdiff <- df_tmp |> 
+  filter(!is.na(kb1) | !is.na(kb2)) |> 
+  mutate(diff_GLkb1 = GL - kb1,
+         diff_GLkb2 = GL - kb2) |> 
+  mutate(diff_GL = case_when(!is.na(diff_GLkb1) ~ abs(diff_GLkb1),
+                             !is.na(diff_GLkb2) ~ abs(diff_GLkb2),
+                             TRUE ~ NA)) |> 
+  count(diff_GL)
+
+tmp_zw <- c()
+tmp_zw[1] <- "gleich"
+tmp_zw[2] <- "eine Kompetenzstufe"
+tmp_zw[3:13] <- str_c(zahlwort[2:12], " Kompetenzstufen")
+
+st_KSdiff <- ifelse(max(df_KSdiff$diff_GL)==0, "", str_c(" (",
+  glue_collapse(str_c("in ", df_KSdiff$n, " Item", ifelse(df_KSdiff$n>1,"s", ""), " ",
+                      tmp_zw[df_KSdiff$diff_GL+1]), 
+                sep = ", ", last = " und "),
+   " Abweichung)"
+  ))
+```
+
+Analoge Transformationen wurden für die Berechnung der Itemschwierigkeiten auf den leit-ideenspezifischen Modellen vorgenommen. Die dafür zu verwendenden Mittelwerte und Standardabweichungen der 4. Jahrgangsstufe im IQB-Ländervergleich Primarstufe aus dem Jahr 2011 sind im @sec-hinwaus dargestellt.[^8]
+
+[^8]: Die Itemparameter und Zuordnungen zu den Kompetenzstufen, basierend auf dem Globalmodell, unterscheiden sich `r ifelse(max(df_KSdiff$diff_GL)==0, "nicht", "nur geringfügig")` von denen, welche auf Grundlage der leitideenspezifischen Modelle ermittelt wurden`r st_KSdiff`.
+
+### Aufgabenauswahl
+
+Die Auswertung der Pilotierungsdaten auf der Basis von Item-Response-Modellen diente der Itemauswahl aufgrund von psychometrischen Qualitätskriterien und der Bestimmung der Schwierigkeitswerte der Aufgaben auf der Metrik der Bildungsstandards. 
+Im Folgenden wird das Vorgehen genauer beschrieben und es werden empirische Ergebnisse zur Qualität der Tests dargestellt.
+
+Bei der Auswahl der Aufgaben wurden verschiedene Kriterien berücksichtigt. 
+Das in TAM bestimmte Maß des Infit (auch Weighted Fit/MNSQ) diente als Gütekriterium für die Passung der einzelnen Items zum Raschmodell. In Zweifelsfällen wurde zusätzlich eine grafische Überprüfung des Itemfits herangezogen. Darüber hinaus wurde auf der Basis der klassischen Testtheorie die Trennschärfe der Items berechnet. Diese entspricht der punktbiserialen Korrelation der Itemwerte mit den Gesamttestrohwerten (d. h. den Gesamttestwerten ohne das entsprechende Item). Im Einzelnen wurden folgende Schwellen verwendet:
+
+- Die Trennschärfe der Items sollte größer als $0.25$ sein, jedoch nicht unter $0.15$ fallen. 
+-	Der Infit sollte nicht größer als $1.10$ ausfallen, wobei in Ausnahmefällen Werte bis $1.15$ toleriert wurden. Eine Untergrenze wurde nicht definiert, da Items mit einem Infit kleiner als $1.00$ zwar keine optimale Passung zum Raschmodell aufweisen, aber trennschärfer als modellkonform sind, was eine positive Eigenschaft darstellt.
+
+Anhand dieser Schwellen wurde über den Ausschluss von einzelnen Items oder ganzen Aufgaben entschieden. 
+Auf diese Weise entstand ein Pool von psychometrisch gut geeigneten Items. 
+Die finale Entscheidung über die Aufnahme der Aufgaben in die VERA-3-Testmodule erfolgte durch Mitglieder der Aufgabenentwicklungs- und der Bewertungsgruppe. 
+Diese begutachteten den vom IQB zusammengestellten Pool psychometrisch geeigneter Aufgaben und wählten unter Berücksichtigung der Aufgabenschwierigkeiten die im VERA-Durchgang `r year` zu verwendenden Aufgaben aus. 
+Dabei spielten auch fachdidaktische Kriterien eine Rolle. 
+So sollten die Aufgaben beispielsweise zentrale Aspekte der in diesem Durchgang zu überprüfenden inhaltlichen Kompetenzen (Leitideen) abdecken. 
+
+```{r echo=FALSE}
+df_tmp <- tf24$itemparsVera |> 
+  group_by(domain) |> 
+  summarise(n=n()) |> 
+  pivot_wider(names_from = domain, values_from = n) 
+
+df_tmp[, "kb1"] <- df_tmp[, kb1_short]
+df_tmp[, "kb2"] <- df_tmp[, kb2_short]
+df_tmp[, kb1_short] <- NULL
+df_tmp[, kb2_short] <- NULL
+
+n_its <- mutate(df_tmp, BM = GL - kb1 - kb2)
+
+df_tmp <- mutate(df_HT, model = case_when(str_to_upper(model)==kb1_short ~ "kb1",
+                                          str_to_upper(model)==kb2_short ~ "kb2",
+                                          str_to_upper(model)=="GLOBAL" ~ "BM",
+                                          TRUE ~ model))
+
+n_its_ht <- df_tmp |> 
+  group_by(model) |>
+  summarise(n=n()) |> 
+  ungroup()
+
+n_its_ht <- n_its_ht |> 
+  add_row(model = "GL", n = sum(n_its_ht$n)) |> 
+  pivot_wider(names_from = model, values_from = n) |> 
+  relocate("GL", "kb1", "kb2", "BM")
+```
+
+Von den insgesamt `r n_its$GL[1]` im Jahr `r year-1` pilotierten Items (Basismodul: `r n_its$BM[1]`, Ergänzungsmodul „`r kb1`“: `r n_its$kb1[1]`, Ergänzungsmodul „`r kb2`“: `r n_its$kb2[1]`) wurden `r n_its_ht$GL[1]` (Basismodul: `r n_its_ht$BM[1]`, Ergänzungsmodul „`r kb1`“: `r n_its_ht$kb1[1]`, Ergänzungsmodul „`r kb2`“: `r n_its_ht$kb2[1]`) in die finalen Testmodule aufgenommen.
+
+# Hinweise zur Auswertung der VERA-Hauptstudie `r year`
+## Testmodule der VERA-Hauptstudie `r year`
+
+
+
+## Hinweise zur Auswertung {#sec-hinwaus}
 
 {{< pagebreak >}}
 # Literatur
