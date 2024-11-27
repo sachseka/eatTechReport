@@ -1,5 +1,8 @@
 ---
-title: "Vergleichsarbeiten 2025 3. Jahrgangsstufe Mathematik"
+title: |
+    | Vergleichsarbeiten 2025 
+    | 3. Jahrgangsstufe 
+    | Mathematik
 subtitle: "Technischer Bericht"
 author: "Kristoph Schumann"
 format: 
@@ -435,15 +438,17 @@ In der Stichprobe gaben `r freqSprache[freqSprache$lbl == "A", "freq"]` % der ge
 @tbl-bula gibt eine Übersicht über den Umfang der Klassen- und Schülerstichproben sowie den Anteil der Kinder mit teilweise anderer Familiensprache nach Bundesländern. Die Schulen wurden jeweils von den Ländern benannt, wobei die Anzahl der Klassen pro Land in Anlehnung an den Königsteiner Schlüssel festgelegt wurde. 
 Durch das oben beschriebene Testdesign lagen für die im Jahr `r year-1` pilotierten Aufgaben pro Item `r nAntw["Min."][[1]]` bis `r nAntw["Max."][[1]]` Antworten von Schülerinnen und Schüler (_Median_ = `r nAntw["Median"][[1]]`) vor.
 
+::: {#tbl-bula}
 ```{r}
-#| label: tbl-bula
-#| tbl-cap: "Zusammensetzung der Pilotierungsstichprobe nach Land"
 #| tbl-colwidths: [25,10,10,10,15,15,15]
 #| classes: plain
 
-knitr::kable(Tab_BuLa_Out, align = 'lrrrr')
+knitr::kable(Tab_BuLa_Out, align = 'lrrrrrr')
 ```
+
+Zusammensetzung der Pilotierungsstichprobe `r year-1` nach Land
 <!-- ToDo: Tabelle formatieren (Tabellenkopf (ggf. zweizeilig mit Zellen über 2 Spalten); horizontale Linien; Hintergrund z. T. schwarz; Jahreszahl in Caption; erste Spalte links alignen) -->
+:::
 
 ## Durchführung
 Die Pilotierung der entwickelten Testaufgaben erfolgte zwischen Mai und Juni `r year-1`. 
@@ -457,6 +462,8 @@ Der Versand der Testhefte und die Rücklaufkontrolle wurden ebenfalls durch die 
 ## Auswertung
 ### Datenerfassung und Kodierung
 ```{r echo=FALSE}
+#| label: df_Kappakrit
+
 df_Kappakrit <- ueber |> 
   mutate(iqbitem_id = str_sub(Variable, 1, -2)) |> 
   semi_join(df_HT, by = "iqbitem_id") |> 
@@ -507,6 +514,7 @@ Diese Analysen wurden sowohl für das Globalmodell als auch für die leitideensp
 - Ungültige Antworten wurden als Falschantworten gewertet.
 - Der Mittelwert der Personenfähigkeit wurde auf den Wert null fixiert.[^6]
 
+
 [^6]: Die Verortung der Skala ist im Raschmodell ein freier Parameter und muss deshalb fixiert werden. Üblich ist das Fixieren der mittleren Personenfähigkeit oder der mittleren Itemschwierigkeit auf den Wert null.
 
 Im nächsten Schritt wurden die aus dem IQB-Ländervergleich 2011 bekannten Parameter des Globalmodells der verwendeten Items aus dem IQB-Pool benutzt, um über ein Linkingverfahren [Mean-Mean-Linking\; @Loyd.1980] die Schwierigkeitsparameter (Logits) der für die Vergleichsarbeiten vorgesehenen Items auf der Metrik der Bildungsstandards angeben zu können. 
@@ -527,6 +535,8 @@ Zur Erläuterung: $0.51$ ist die Verschiebungskonstante, um eine Lösungswahrsch
 Diese Werte beziehen sich seit der VERA-Hauptstudie 2013 auf den IQB-Ländervergleich in der Primarstufe aus dem Jahr 2011. Daher lassen sich die VERA-Ergebnisse vor dem Jahr 2013 nicht in Bezug zu aktuellen Ergebnissen setzen. 
 
 ```{r echo=FALSE}
+#| label: st_KSdiff
+
 df_tmp <- tf24$itemparsVera |> 
   select(iqbitem_id, domain, kstufe) |> 
   pivot_wider(id_cols = "iqbitem_id",
@@ -576,6 +586,7 @@ Das in TAM bestimmte Maß des Infit (auch Weighted Fit/MNSQ) diente als Gütekri
 - Die Trennschärfe der Items sollte größer als $0.25$ sein, jedoch nicht unter $0.15$ fallen. 
 -	Der Infit sollte nicht größer als $1.10$ ausfallen, wobei in Ausnahmefällen Werte bis $1.15$ toleriert wurden. Eine Untergrenze wurde nicht definiert, da Items mit einem Infit kleiner als $1.00$ zwar keine optimale Passung zum Raschmodell aufweisen, aber trennschärfer als modellkonform sind, was eine positive Eigenschaft darstellt.
 
+
 Anhand dieser Schwellen wurde über den Ausschluss von einzelnen Items oder ganzen Aufgaben entschieden. 
 Auf diese Weise entstand ein Pool von psychometrisch gut geeigneten Items. 
 Die finale Entscheidung über die Aufnahme der Aufgaben in die VERA-3-Testmodule erfolgte durch Mitglieder der Aufgabenentwicklungs- und der Bewertungsgruppe. 
@@ -584,6 +595,8 @@ Dabei spielten auch fachdidaktische Kriterien eine Rolle.
 So sollten die Aufgaben beispielsweise zentrale Aspekte der in diesem Durchgang zu überprüfenden inhaltlichen Kompetenzen (Leitideen) abdecken. 
 
 ```{r echo=FALSE}
+#| label: n_its
+
 df_tmp <- tf24$itemparsVera |> 
   group_by(domain) |> 
   summarise(n=n()) |> 
@@ -614,10 +627,161 @@ n_its_ht <- n_its_ht |>
 
 Von den insgesamt `r n_its$GL[1]` im Jahr `r year-1` pilotierten Items (Basismodul: `r n_its$BM[1]`, Ergänzungsmodul „`r kb1`“: `r n_its$kb1[1]`, Ergänzungsmodul „`r kb2`“: `r n_its$kb2[1]`) wurden `r n_its_ht$GL[1]` (Basismodul: `r n_its_ht$BM[1]`, Ergänzungsmodul „`r kb1`“: `r n_its_ht$kb1[1]`, Ergänzungsmodul „`r kb2`“: `r n_its_ht$kb2[1]`) in die finalen Testmodule aufgenommen.
 
+{{< pagebreak >}}
 # Hinweise zur Auswertung der VERA-Hauptstudie `r year`
 ## Testmodule der VERA-Hauptstudie `r year`
 
+```{r include=FALSE}
+#| label: Tab_logits
+Tab_logits <- df_its_HT |> 
+  group_by(lbl) |> 
+  summarise(lh = str_c(round(100 * mean(lh), 0), " %"),
+            logit = as.character(round(mean(logit),2))) |> 
+  tibble::rownames_to_column() |>  
+  pivot_longer(-rowname) |> 
+  pivot_wider(names_from=rowname, values_from=value) 
 
+colnames(Tab_logits) <- Tab_logits[1, ]
+
+Tab_logits$lbl <- c("lbl", "Lösungshäufigkeit", "Schwierigkeit in Logits")
+
+
+Tab_logits_out <- filter(Tab_logits, lbl != "lbl") |> 
+  relocate(`GL-BM`, starts_with(kb1_short), .after = lbl)
+
+colnames(Tab_logits_out)[1] <- " "
+```
+
+```{r include=FALSE}
+#| label: n_afg_ht
+#| 
+n_afg_ht <- df_afg_HT |> 
+  transmute(domain = str_sub(iqbmodul_id, 10, 11)) |>
+  mutate(domain = case_when(domain == "GL" ~ "BM",
+                            TRUE ~ domain)) |> 
+  group_by(domain) |>
+  summarise(n=n()) |> 
+  pivot_wider(names_from = domain, values_from = n)
+```
+
+Durch das oben beschriebene Vorgehen der Aufgabenauswahl entstand ein Pool von psychometrisch geeigneten Items, aus denen im nächsten Schritt die finalen Testmodule zusammengestellt wurden. 
+Dabei erfolgte die Auswahl der Aufgaben unter gleichzeitiger Berücksichtigung fachdidaktischer und psychometrischer Gesichtspunkte. 
+Für VERA-3 `r year` umfasst das Testmaterial insgesamt fünf Testmodule, davon ein Basismodul mit Aufgaben zu allen Leitideen (GL-BM) und je zwei Ergänzungsmodule (EM) in zwei Schwierigkeitsausprägungen (A, B) für die Leitideen „`r kb1`“ (`r kb1_short`) sowie „`r kb2`“ (`r kb2_short`). 
+Dabei sind die Module mit der Bezeichnung „A“ (`r kb1_short`-EM-A, `r kb2_short`-EM-A) für leistungsschwächere bis durchschnittliche Lerngruppen konzipiert, um Leistungen im unteren bis mittleren Kompetenzbereich zu erfassen. Diese Module beinhalten primär Aufgaben, die insbesondere die Kompetenzstufen I, II und III abdecken, sowie vereinzelt Aufgaben auf den Kompetenz-stufen IV und V. 
+Die Module mit der Bezeichnung „B“ (`r kb1_short`-EM-B, `r kb2_short`-EM-B) sind für durchschnittliche bis leistungsstärkere Lerngruppen konzipiert und differenzieren Leistungen im mittleren bis oberen Kompetenzbereich. Diese Module beinhalten primär Aufgaben, die insbesondere die Kompetenzstufen III, IV und V abdecken, sowie vereinzelt Aufgaben auf den Kompetenzstufen I und II. 
+
+Angaben zur Schwierigkeit der einzelnen Items können den zusätzlich separat übergebenen Itemkennwertetabellen entnommen werden. 
+Die Abbildungen @fig-KSBM\-[-@fig-KSkb2] zeigen, wie sich die Mathematikitems in den VERA-3-Testmodulen für die Vergleichsarbeiten `r year` auf die Kompetenzstufen verteilen. Zusätzlich werden in @tbl-logits die durchschnittlichen Lösungshäufigkeiten und Schwierigkeiten der Items in den Testmodulen angegeben.
+
+::: {#tbl-logits}
+```{r echo=FALSE}
+#| tbl-colwidths: [25,15,15,15,15,15]
+#| classes: plain
+#| 
+knitr::kable(Tab_logits_out, align = 'lccccc')
+```
+_Anmerkungen._ GL-BM = Globalmodell Basismodul, RF-EM-A = „Raum und Form“ Ergänzungsmodul A, RF-EM-B = „Raum und Form“ Ergänzungsmodul B, MS-EM-A = „Muster und Strukturen“ Ergän-zungsmodul A, MS-EM-B = „Muster und Strukturen“ Ergänzungsmodul B. Die Angaben zu den Lö-sungshäufigkeiten beziehen sich auf die Gesamtpopulation.
+
+Durchschnittliche Lösungshäufigkeiten und arithmetische Mittel der Logits in den 
+VERA-3-Testmodulen `r year` im Fach Mathematik
+:::
+
+<!-- ToDo: Caption und Anmerkungen kleiner machen; Anmerkungen links ausrichten -->
+
+```{r echo=FALSE}
+tmp_ymax <- df_its_HT |>  
+  count(kstufe, lbl) |> 
+  pull(n) |> 
+  max()
+
+tmp_ymax <- tmp_ymax + 1
+```
+
+{{< pagebreak >}}
+
+::: {#fig-KSBM}
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=6.3, fig.asp=.50}
+filter(df_its_HT, domain == "global") |> 
+  mutate(kstufe = as.character(as.roman(kstufe))) |> 
+  ggplot(aes(x=kstufe, fill = lbl)) +
+  geom_bar(width = 0.35) + 
+  scale_fill_grey() +
+  scale_y_continuous(breaks = 0:tmp_ymax, limits = c(0, tmp_ymax), expand = c(0,0)) +
+  labs(x = "Kompetenzstufe",
+       y = "Anzahl Items") +
+  theme_minimal() + # alternativ: theme_excel_new()
+  theme(legend.title = element_blank(),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        text = element_text(size = 10,  family = "sans"),
+        axis.title = element_text(face = "bold"),
+        axis.line = element_line(colour = "darkgrey"),
+        plot.background = element_rect(colour = "darkgrey", fill = NA, size = 1))
+```
+_Anmerkung._ GL-BM = Globalmodell Basismodul.
+
+Verteilung der Items auf die Stufen des Kompetenzstufenmodells des VERA-3-Basismoduls `r year-1`
+:::
+::: {#fig-KSkb1}
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=6.3, fig.asp=.50}
+filter(df_its_HT, domain == str_to_lower(kb1_short)) |> 
+  mutate(kstufe = as.character(as.roman(kstufe))) |> 
+  ggplot(aes(x=kstufe, fill = lbl)) +
+  geom_bar(width = 0.35, position = position_dodge2(width = 0.9, padding = 0, preserve = "single")) + 
+  scale_fill_grey() +
+  scale_y_continuous(breaks = 0:tmp_ymax, limits = c(0, tmp_ymax), expand = c(0,0)) +
+  labs(x = "Kompetenzstufe",
+       y = "Anzahl Items") +
+  theme_minimal() + # alternativ: theme_excel_new()
+  theme(legend.title = element_blank(),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        text = element_text(size = 10,  family = "sans"),
+        axis.title = element_text(face = "bold"),
+        axis.line = element_line(colour = "darkgrey"),
+        plot.background = element_rect(colour = "darkgrey", fill = NA, size = 1))
+```
+_Anmerkung._ `r kb1_short`-EM-A = „`r kb1`“ Ergänzungsmodul A, `r kb1_short`-EM-B = „`r kb1`“ Ergänzungsmodul B.
+
+Verteilung der Items auf die Stufen des Kompetenzstufenmodells in den VERA-3-Ergänzungsmodulen `r year-1` zur Leitidee „`r kb1`“ 
+:::
+::: {#fig-KSkb2}
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=6.3, fig.asp=.50}
+filter(df_its_HT, domain == str_to_lower(kb2_short)) |> 
+  mutate(kstufe = as.character(as.roman(kstufe))) |> 
+  ggplot(aes(x=kstufe, fill = lbl)) +
+  geom_bar(width = 0.35, position = position_dodge2(width = 0.9, padding = 0, preserve = "single")) + 
+  scale_fill_grey() +
+  scale_y_continuous(breaks = 0:tmp_ymax, limits = c(0, tmp_ymax), expand = c(0,0)) +
+  labs(x = "Kompetenzstufe",
+       y = "Anzahl Items") +
+  theme_minimal() + # alternativ: theme_excel_new()
+  theme(legend.title = element_blank(),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        text = element_text(size = 10,  family = "sans"),
+        axis.title = element_text(face = "bold"),
+        axis.line = element_line(colour = "darkgrey"),
+        plot.background = element_rect(colour = "darkgrey", fill = NA, size = 1))
+```
+_Anmerkung._ `r kb2_short`-EM-A = „`r kb2`“ Ergänzungsmodul A, `r kb2_short`-EM-B = „`r kb2`“ Ergänzungsmodul B.
+
+Verteilung der Items auf die Stufen des Kompetenzstufenmodells in den VERA-3-Ergänzungsmodulen `r year-1` zur Leitidee „`r kb2`“ 
+:::
+
+<!-- ToDo: Caption und Anmerkungen kleiner machen; Anmerkungen links ausrichten -->
+
+Insgesamt wurden für das Basismodul `r n_afg_ht[, "BM"][[1]]` Aufgaben, für die Ergänzungsmodule zur Leitidee „`r kb1`“ `r n_afg_ht[, kb1_short][[1]]` Aufgaben und für die Ergänzungsmodule zur Leitidee „`r kb2`“ `r n_afg_ht[, kb2_short][[1]]` Aufgaben für die Erstellung des Testmaterials für VERA 3 `r year` herangezogen.
+Die in den einzelnen Testmodulen enthaltenen Aufgaben können @tbl-afgs entnommen werden.
+
+| tbc |
+|-----|
+| tbc |
+
+: Aufgaben im VERA-3-`r year-1`  Basismodul und in den Ergänzungsmodulen {#tbl-afgs}
 
 ## Hinweise zur Auswertung {#sec-hinwaus}
 
