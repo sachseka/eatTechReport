@@ -85,6 +85,9 @@ tf23$itemparsVera[tf23$itemparsVera$domain=="DHW", "domain"] <- "DH"
 # Analysetabelle
 df_para <- readxl::read_excel(file.path(pt_ausw, "4_Ergebnisse", "V3-MA-2025_Pilot2024_Itemparameter_2024-09-05.xlsx"), sheet = "Items")
 
+# Inputliste:
+ls_input <- readDaemonXlsx(file.path(pt_ausw, "2_Inputliste", "V3-MA-2025-Pilot24_Inputliste_aus_R_240903.xlsx"))
+
 # Itemkennwertetabelle
 df_IKWT <- read.csv2(file.path(pt_ikw, "Itemparameter VERA3-Mathematik-2025 Ma Modularisierung.csv"),
                      stringsAsFactors = FALSE, encoding = "latin1") |> 
@@ -130,7 +133,7 @@ ueber <- readxl::read_xlsx("R:/VERA3/Mathematik/V3_Ma_2025/1_Pilotierung 2024/04
 ### Weitere nötige Dinge: ----
 BuLa <-  tribble(
   ~BL, ~BuLa,
-  '11', 'Baden-Wuerttemberg',
+  '11', 'Baden-Württemberg',
   '12', 'Bayern',
   '13', 'Berlin',
   '14', 'Brandenburg',
@@ -145,7 +148,7 @@ BuLa <-  tribble(
   '23', 'Sachsen',
   '24', 'Sachsen-Anhalt',
   '25', 'Schleswig-Holstein',
-  '26', 'Thueringen',
+  '26', 'Thüringen',
   '71', NA
 )
 
@@ -284,6 +287,50 @@ n_afg <- df_para |>
   nrow()
 ```
 
+```{r}
+#| label: Tab_TestDes
+
+Tab_TestDes <- ls_input$booklets |> 
+  select(-block1) |> 
+  mutate(across(everything(), ~ str_replace_all(.x, "_Stopp", ""))) |> 
+  mutate(across(everything(), ~ ifelse(str_detect(.x, "Link"), str_c("*", .x, "*"), .x))) |> 
+  mutate(Pause = "") |> 
+  relocate(Pause, .after = block6)
+
+
+Tab_TestDes <-  rbind(Tab_TestDes,
+        data.frame(booklet = "",
+                   block2 = "",
+                   block3 = "",
+                   block4 = "*Basismodule*",
+                   block5 = "",
+                   block6 = "",
+                   Pause = "",
+                   block7 = "*Ergänzungsmodule*"),
+        data.frame(booklet = "",
+                   block2 = "",
+                   block3 = "40 min",
+                   block4 = "",
+                   block5 = "",
+                   block6 = "",
+                   Pause = "*Pause*",
+                   block7 = "20 min"))
+
+str_Tab_TestDes <- c(knitr::kable(Tab_TestDes, col.names = c("", "ZO", "GM", "DH", "MS", "RF", "", str_c(kb1_short, "/", kb2_short))))
+
+# str_Tab_TestDes <- c(str_Tab_TestDes[1],
+#                      str_Tab_TestDes[2],
+#                      str_Tab_TestDes[3:8],
+#                      str_Tab_TestDes[2],
+#                      str_Tab_TestDes[9:14],
+#                      str_Tab_TestDes[2],
+#                      str_Tab_TestDes[15:20],
+#                      str_Tab_TestDes[2],
+#                      str_Tab_TestDes[21:26],
+#                      str_Tab_TestDes[2],
+#                      str_Tab_TestDes[27:28])
+```
+
 Für den VERA-Durchgang im Schuljahr `r year-1`/`r str_sub(year, 3, 4)` wurden `r n_afg` Aufgaben aller fünf Leitideen pilotiert. 
 
 In einem ersten Schritt wurden die Testaufgaben zu Blöcken von Testaufgaben zusammengefasst, wobei für das spätere Basismodul und für die Ergänzungsmodule separate Blöcke erstellt wurden. 
@@ -302,12 +349,25 @@ In jeder Klasse wurden dabei 12 der 24 Testheftversionen, so nötig mehrfach, zu
 Die Versionen wurden so ausgewählt, dass für jeden Ergänzungsmodulblock eines der beiden Testhefte mit diesem Block eingesetzt wurde. 
 @Tbl-thdesign zeigt das modularisierte Design.
 
+::: {#tbl-thdesign}
+```{r}
+#| tbl-colwidths: [8, 13, 13, 16, 13, 13, 9, 15]
+#| classes: plain
+#| output: asis
 
-| tbc |
-|-----|
-| tbc |
+cat(str_Tab_TestDes, sep = "\n")
+```
 
-: Modularisiertes Testdesigns der Pilotierungsstudie `r year-1` {#tbl-thdesign}
+_Anmerkungen._ TH01 bis TH24 = Testheft 1 bis 24; 
+
+ZO = „Zahlen und Operationen“; GM = „Größen und Messen“; DH = „Daten, Häufigkeit und Wahrscheinlichkeit“; MS = „Muster und Strukturen“; RF = „Raum und Form“; Link = Blöcke mit Verlinkungsaufgaben 
+
+
+Modularisiertes Testdesigns der Pilotierungsstudie `r year-1`
+<!-- ToDo: Tabelle formatieren (Tabellenkopf (ggf. zweizeilig); horizontale Linien; Hintergrund) -->
+:::
+
+
 
 ## Stichprobe
 ```{r include=FALSE}
@@ -443,11 +503,11 @@ Durch das oben beschriebene Testdesign lagen für die im Jahr `r year-1` pilotie
 #| tbl-colwidths: [25,10,10,10,15,15,15]
 #| classes: plain
 
-knitr::kable(Tab_BuLa_Out, align = 'lrrrrrr')
+knitr::kable(Tab_BuLa_Out, "pipe", align = 'lrrrrrr')
 ```
 
 Zusammensetzung der Pilotierungsstichprobe `r year-1` nach Land
-<!-- ToDo: Tabelle formatieren (Tabellenkopf (ggf. zweizeilig mit Zellen über 2 Spalten); horizontale Linien; Hintergrund z. T. schwarz; Jahreszahl in Caption; erste Spalte links alignen) -->
+<!-- ToDo: Tabelle formatieren (Tabellenkopf (ggf. zweizeilig mit Zellen über 2 Spalten); horizontale Linien; Hintergrund z. T. dunkler; erste Spalte links alignen) -->
 :::
 
 ## Durchführung
@@ -594,6 +654,12 @@ Diese begutachteten den vom IQB zusammengestellten Pool psychometrisch geeignete
 Dabei spielten auch fachdidaktische Kriterien eine Rolle. 
 So sollten die Aufgaben beispielsweise zentrale Aspekte der in diesem Durchgang zu überprüfenden inhaltlichen Kompetenzen (Leitideen) abdecken. 
 
+! In diesem Jahr wurden darüber hinaus für die Auswahl im Basismodul erstmalig auch auf psychometrisch gut geeignete Items zurückgegriffen, die im Jahr 2023 pilotiert wurden. 
+Das Pilotierungsjahr einzelner Aufgaben kann der Itemkennwertetabelle entnommen werden.
+Dabei wurde sich dafür entschieden, bei diesen Aufgaben die Verlässlichkeit der Lösungshäufigkeit (ebenfalls in der Itemkennwertetabelle) auf „gering“ zu setzen, da die Pilotierung diese Aufgaben in anderen Ländern stattfand als bei den restlichen.
+
+<!-- ToDo: Eingerahmtes Ausrufezeichen an den Rand -->
+
 ```{r echo=FALSE}
 #| label: n_its
 
@@ -680,7 +746,7 @@ Die Abbildungen @fig-KSBM\-[-@fig-KSkb2] zeigen, wie sich die Mathematikitems in
 #| 
 knitr::kable(Tab_logits_out, align = 'lccccc')
 ```
-_Anmerkungen._ GL-BM = Globalmodell Basismodul, RF-EM-A = „Raum und Form“ Ergänzungsmodul A, RF-EM-B = „Raum und Form“ Ergänzungsmodul B, MS-EM-A = „Muster und Strukturen“ Ergän-zungsmodul A, MS-EM-B = „Muster und Strukturen“ Ergänzungsmodul B. Die Angaben zu den Lö-sungshäufigkeiten beziehen sich auf die Gesamtpopulation.
+_Anmerkungen._ GL-BM = Globalmodell Basismodul, `r kb1_short`-EM-A = „`r kb1`“ Ergänzungsmodul A, `r kb1_short`-EM-B = „`r kb1`“ Ergänzungsmodul B, `r kb2_short`-EM-A = „`r kb2`“ Ergänzungsmodul A, `r kb2_short`-EM-B = „`r kb2`“ Ergänzungsmodul B. Die Angaben zu den Lösungshäufigkeiten beziehen sich auf die Gesamtpopulation.
 
 Durchschnittliche Lösungshäufigkeiten und arithmetische Mittel der Logits in den 
 VERA-3-Testmodulen `r year` im Fach Mathematik
@@ -774,19 +840,92 @@ Verteilung der Items auf die Stufen des Kompetenzstufenmodells in den VERA-3-Erg
 
 <!-- ToDo: Caption und Anmerkungen kleiner machen; Anmerkungen links ausrichten -->
 
+```{r echo=FALSE}
+#| label: Tab_HT_Afg
+
+Tab_HT_Afg <- df_IKWT |> 
+  select(name, itemnr_mod, iqbitem_id) |>
+  mutate(itemnr_mod = round(as.numeric(itemnr_mod))) |> 
+  left_join(select(df_HT, iqbitem_id, iqbmodul_id), by = "iqbitem_id") |> 
+  select(-iqbitem_id) |> 
+  unique() |> 
+  arrange(str_sub(iqbmodul_id, -2) != "BM", iqbmodul_id) |> 
+  mutate(iqbmodul_id = str_sub(iqbmodul_id, 10)) |> 
+  pivot_wider(names_from = iqbmodul_id, values_from = name) |>
+  mutate(across(-itemnr_mod, ~ if_else(is.na(.x), "", .x))) |> 
+  relocate(!!str_c(kb1_short, "-EM-A"), !!str_c(kb1_short, "-EM-B"), .after = "GL-BM") |> 
+  arrange(itemnr_mod)
+```   
+
+
 Insgesamt wurden für das Basismodul `r n_afg_ht[, "BM"][[1]]` Aufgaben, für die Ergänzungsmodule zur Leitidee „`r kb1`“ `r n_afg_ht[, kb1_short][[1]]` Aufgaben und für die Ergänzungsmodule zur Leitidee „`r kb2`“ `r n_afg_ht[, kb2_short][[1]]` Aufgaben für die Erstellung des Testmaterials für VERA 3 `r year` herangezogen.
 Die in den einzelnen Testmodulen enthaltenen Aufgaben können @tbl-afgs entnommen werden.
+{{< pagebreak >}}
 
-| tbc |
-|-----|
-| tbc |
+::: {#tbl-afgs}
+```{r echo=FALSE}
+#| tbl-colwidths: [5,19,19,19,19,19]
+#| classes: plain
 
-: Aufgaben im VERA-3-`r year-1`  Basismodul und in den Ergänzungsmodulen {#tbl-afgs}
+knitr::kable(Tab_HT_Afg, col.names = c("", colnames(Tab_HT_Afg)[-1]), format.args = list(na.encode = FALSE))
+```
+_Anmerkungen._ GL-BM = Globalmodell Basismodul, `r kb1_short`-EM-A = „`r kb1`“ Ergänzungsmodul A, `r kb1_short`-EM-B = „`r kb1`“ Ergänzungsmodul B, `r kb2_short`-EM-A = „`r kb2`“ Ergänzungsmodul A, `r kb2_short`-EM-B = „`r kb2`“ Ergänzungsmodul B. Die Reihenfolge der Aufgaben in der Tabelle entspricht der Bearbeitungsreihenfolge in den Modulen.
 
+Aufgaben im VERA-3-`r year-1`  Basismodul und in den Ergänzungsmodulen
+:::
+
+{{< pagebreak >}}
 ## Hinweise zur Auswertung {#sec-hinwaus}
+
+Die aus der Pilotierung gewonnenen Itemparameter wurden bereits in Form von Itemkennwertetabellen übergeben. 
+Neben den Logits für das Globalmodell ist für die Items zusätzlich der Punktwert auf der jeweiligen Bildungsstandardmetrik angegeben. 
+Diese hat in den getesteten Leitideen in der Population der deutschen Viertklässlerinnen und Viertklässler einen Mittelwert von $500$ und eine Standardabweichung von $100$. 
+Für zentrale Skalierungen in den Ländern wird empfohlen, wie folgt vorzugehen: 
+
+Um die Fähigkeiten der Schülerinnen und Schüler auf der Skala der Bildungsstandards für die 4. Jahrgangsstufe abzubilden, können die zur Verfügung gestellten Itemschwierigkeiten auf der Logit-Skala als fixierte Ankerparameter verwendet werden. 
+Es ist zu berücksichtigen, dass in der verwendeten Software keine Restriktionen auf die Mittelwerte der Personen- oder Itemparameter gelegt werden dürfen. Auf diese Weise erhält man Personenfähigkeiten auf der Logit-Skala der Bildungsstandards. Um diese auf die Bildungsstandard-Metrik zu überführen, muss für jedes Modell die folgende Transformation durchgeführt werden:
+
+$$
+Metrik_{\text{BISTA}} = 500 + \frac{100}{SD_{\text{ref}}}\cdot \left( Logit - M_{\text{ref}} \right)
+$$
+
+Hierbei sind für $M_{\text{ref}}$ und $SD_{\text{ref}}$ folgende Werte einzusetzen, die sich auf den Mittelwert und die Standardabweichung der Logits der Referenzpopulation der 4. Jahrgangsstufe im IQB-Ländervergleich Primarstufe aus dem Jahr 2011 beziehen:
+
+|                     |     Globalmodell    |
+|---------------------|---------------------|
+| $M_{\text{ref}}$    | $0.086$             |
+| $SD_{\text{ref}}$   | $1.097$             |
+
+
+Für die Schätzung der Personenfähigkeit aufgrund der Leistungen in VERA-3 bieten sich folgende alternative Vorgehensweisen an: 
+Zum einen können die in den Ländern erhobenen Leistungsdaten unter Fixierung der Itemparameter auf die in der Pilotierung erhaltenen Parameter skaliert und die so geschätzten Personenparameter wie oben angegeben transformiert werden, sodass eine Anbindung an das jeweilige Kompetenzstufenmodell gewährleistet ist. 
+Die unterschiedlich schweren Kombinationen von Testmodulen können dabei entweder gemeinsam oder getrennt skaliert werden. 
+Zum anderen kann eine teilweise oder vollständige Neuskalierung der Daten in den einzelnen Ländern vorgenommen werden (Fixierung von Itemparametern wird aufgehoben). 
+Grundsätzlich ist zu empfehlen, die Itemparameter in einem ersten Schritt zunächst frei zu schätzen, um differenzielles Itemfunktionieren (DIF) prüfen zu können. 
+Eine getrennte Skalierung der verschiedenen Modulkombinationen kann darüber hinaus sinnvoll sein, um zu überprüfen, inwiefern die Itemparameter einer bestimmten Modulkombination nach Elimination der Mittelwertsunterschiede mit den Itemparametern einer anderen Modulkombination oder mit den vom IQB gelieferten Itemparametern übereinstimmen. 
+
+Es gilt zu beachten:
+
+- Eine Fixierung der Itemparameter kann zu fehlerhaften Ergebnissen führen, falls nach der Übergabe der Testmodule an die Länder (substanzielle) inhaltliche oder formale Änderungen an den in VERA-3 eingesetzten Items bzw. den zugehörigen Auswer-tungsanleitungen vorgenommen wurden.
+- Falls mehrere Modulkombinationen gleichzeitig skaliert werden, muss in der Skalierung mitunter eine Berücksichtigung dieser Schwierigkeits- bzw. Leistungsgruppierung erfolgen. 
+In Softwareprogrammen wie BILOG-MG oder ConQuest, die auf der Schätzmethode Marginal Maximum Likelihood (MML) beruhen, sind die Versionen der Modulkombinationen in einem Hintergrundmodell als Dummy-Variablen zu spezifizieren, da sonst die Unterschiede zwischen den Schwierigkeitsniveaus unterschätzt werden. 
+In Softwareprogrammen wie Winsteps oder eRm, die auf den Schätzmethoden Joint Maximum Likelihood (JML) oder Conditional Maximum Likelihood (CML) beruhen, ist keine Spezifikation der Versionen der Modulkombinationen als Gruppen notwendig (und auch nicht möglich).
+
+## Allgemeine Empfehlungen für die Rückmeldung an die Schulen
+
+Für die Rückmeldung der Leistungsstände der Schülerinnen und Schüler an die Schulen werden die folgenden Empfehlungen ausgesprochen:
+
+Die Rückmeldung der Leistungsstände der Schülerinnen und Schüler kann prinzipiell sowohl auf Schul- und Klassenebene als auch auf Individualebene erfolgen. 
+Aufgrund der limitierten Testzeit kann nur eine begrenzte Anzahl von Aufgaben und Items jedes inhaltlichen Kompetenzbereichs eingesetzt werden. 
+Dies wiederum hat zur Folge, dass die erhaltenen Schätzungen der Personenfähigkeiten auf Individualebene relativ ungenau sind. 
+Die Zuverlässigkeit bzw. Reliabilität der Messung und der damit verbundenen Diagnose ist beschränkt und weist ein breites Vertrauensintervall auf. 
+Dies bedeutet, dass die erhaltene Punktschätzung der Personenfähigkeit nicht der tatsächlichen Fähigkeit der Schülerin bzw. des Schülers entsprechen muss, sondern die tatsächliche Fähigkeit etwas oberhalb oder unterhalb des erhaltenen Punktwertes liegen kann. 
+Sollte eine Rückmeldung auf Individualebene gewählt werden, empfehlen wir daher, die erhaltenen Schätzungen der Kompetenzstände nur als einen möglichen Indikator der Fähigkeit bzw. des Leistungsstandes der Schülerinnen und Schüler zu interpretieren. 
+In jedem Fall sollten weitere Informationen, wie beispielsweise mündliche Leistungsüberprüfungen, Klassenarbeiten, Unterrichtsgespräche etc., hinzugezogen werden, um zu einem zutreffenden Urteil im Hinblick auf den jeweiligen Leistungsstand einzelner Schülerinnen und Schüler gelangen zu können. 
+Hinsichtlich der Nutzung von VERA-Ergebnissen für Benotungen oder Schul-laufbahnempfehlungen wird auf die Vereinbarung zur Weiterentwicklung von VERA (Beschluss der Kultusministerkonferenz vom 08.03.2012) verwiesen.
 
 {{< pagebreak >}}
 # Literatur
-```{r echo=FALSE, include=FALSE}
+```{r include=FALSE}
 cite_packages(output = "file", out.dir = ".", pkgs = c("base", "eatPrep", "eatModel", "TAM"))
 ```
