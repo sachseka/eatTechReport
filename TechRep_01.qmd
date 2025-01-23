@@ -52,7 +52,7 @@ versanddienst <- "Polyprint GmbH"
 ### Dateipfade: ----
 library(here)
 pt_ausw  <- "R:/VERA3/Mathematik/V3_Ma_2025/1_Pilotierung 2024/12_Auswertung"
-pt_ikw <- "R:/VERA3/Mathematik/V3_Ma_2025/2_Hauptstudie 2025/06_Itemkennwertetabelle/1 Vorababgabe"
+pt_ikw <- "R:/VERA3/Mathematik/V3_Ma_2025/2_Hauptstudie 2025/06_Itemkennwertetabelle/2 Finalabgabe"
 
 ### Daten laden: ----
 
@@ -102,14 +102,15 @@ df_HT <- df_IKWT |>
   filter(sel) |> # für BM nur global, für EM nur domainspezifische Werte
   select(iqbitem_id, model, domain, iqbmodul_id, itemnr_mod)
 
-#UOS nimmt zur Itemauswahl (wie auch schon in HT22, ht24) nur die KS von GL.
+#UOS nimmt zur Itemauswahl (wie auch schon in HT22, HT23) nur die KS von GL.
 #Also zur Konsistenz hier auch:
+#(Dazu beachten, dass wir sowohl Itemparameter aus Pilo24 als auch Pilo23 (im BM) benutzt haben, also beide laden müssen)
 df_its_HT <- df_HT |>
   transmute(iqbitem_id, domain=model, lbl = str_sub(iqbmodul_id, 10)) |>
   arrange(domain != "global", domain, lbl, iqbitem_id) |> 
   left_join(rename(filter(rbind(tf24$itemparsVera[1:8], tf23$itemparsVera[1:8]), domain == "GL"), model=domain), by = "iqbitem_id")
 
-# In diesem Jahr gibt es noch Items aus dem KA3a-Modell:
+# In diesem Jahr gibt es noch Items aus dem KA3a-Modell, fülle mit diesen Parametern bisher leere Items auf:
 df_tmp <- df_its_HT[is.na(df_its_HT$lh), c("iqbitem_id", "domain", "lbl")] |> 
   left_join(rename(filter(tf24a$itemparsVera[1:8], domain == "GL"), model=domain), by = "iqbitem_id")
 df_its_HT <- df_its_HT |> 
