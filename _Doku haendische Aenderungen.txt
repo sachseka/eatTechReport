@@ -1,0 +1,24 @@
+KKS, 23.01.2025:
+
+Nach der automatisierten Erstellung von TechRep_01.docx sind folgende händische Änderungen nötig:
+
+1. Titelseite reinkopieren (z. B. aus V3-2024_MA-TechReport_2024-03-07.docx)
+2. "Table of Contents" zu "Inhaltsverzeichnis" ändern
+3. Layout -> "Silbentrennung" -> "automatisch" aktivieren
+4. Layout Tab. 1.1 (am einfachsten reinkopieren, z. B. aus V3-2024_MA-TechReport_2024-03-07.docx)
+5. Layout Tab. 2.1, z. B. so:
+  a) Tabelle im Soll-Layout aus altem TechReport reinkopieren (zwischen Tabellenüberschrift und Tabelle)
+  b) neue Daten aus der (unteren) Tabelle in Layout-Tabelle (oben) einfügen mit (Strg) + M bzw. "Tabelle zusammenführen"
+  c) Kontrollieren ob Daten übereinstimmen und dann (untere) unformartierte Tabelle löschen
+  d) Überschrift und "Anmerkungen" unter der Tabelle in die Formatvorlage "Compact" ändern (die gleiche, die auch der Inhalt der Tabellen nutzt)
+6. Layout Tab. 2.2 (siehe Tab 2.1)
+7. Layout Tab 3.1: hier muss nur Überschrift und Anmerkungen in "Compact" geändert werden
+8. Abb. 3.1, Abb. 3.2 und Abb. 3.3: hier muss nur Überschrift und Anmerkungen in "Compact" geändert werden
+9. Layout Tab. 3.2 (siehe Tab 2.1)
+10. kleine Tabelle in 3.2 mit M_ref und SD_ref mittig setzen
+11. allgemeine Punkte zum Layout überprüfen / angleichen:
+  - bei allen Aufzählungen / Spiegelpunkten die Schriftgröße auf 11 erhöhen und einen Zeilenumbruch nach der letzten Zeile einfügen
+  - wo nötig die Kästchen mit "!" am Rand ergänzen
+  - ggf. Seritenumbrüche anpassen, sodass ein Kapitel nicht auf der letzten Zeile einer Seite unten beginnt
+  - Fußzeile mit mittiger Seitenzahl
+12. Seitenzahlen im Inhaltsverzeichnis aktualisieren (nicht vergessen :)
