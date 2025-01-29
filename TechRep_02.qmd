@@ -1,0 +1,958 @@
+---
+title: |
+    | Vergleichsarbeiten 2025 
+    | 3. Jahrgangsstufe 
+    | Mathematik
+subtitle: "Technischer Bericht"
+author: "Kristoph Schumann"
+format: 
+  docx:
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    number-depth: 3
+    reference-doc: TechRep_style.docx
+execute:
+  echo: false
+  warning: false
+  message: false
+fig-cap-location: top
+crossref:
+  fig-prefix: 'Abbildung'
+  fig-title: 'Abbildung'
+  tbl-prefix: 'Tabelle'
+  tbl-title: 'Tabelle'
+  sec-prefix: 'Abschnitt'
+  chapters: true
+bibliography: 
+  - grateful-refs.bib
+  - references.bib
+csl: deutsche-gesellschaft-fur-psychologie.csl
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+library(tidyverse)
+library(glue)
+library(grateful)
+
+library(eatPrep)
+library(eatModel)
+library(TAM)
+
+year <- 2025
+kb1 <- "Größen und Messen"
+kb1_short <- "GM"
+kb2 <- "Daten, Häufigkeit und Wahrscheinlichkeit"
+kb2_short <- "DH"
+versanddienst <- "Polyprint GmbH"
+
+### Dateipfade: ----
+library(here)
+pt_ausw  <- "R:/VERA3/Mathematik/V3_Ma_2025/1_Pilotierung 2024/12_Auswertung"
+pt_ikw <- "R:/VERA3/Mathematik/V3_Ma_2025/2_Hauptstudie 2025/06_Itemkennwertetabelle/2 Finalabgabe"
+
+### Daten laden: ----
+
+# Rohdatensatz
+load(file.path(pt_ausw, "1_Daten", "V3-MA-2025_Pilot2024_Daten_2024-09-03.Rdata"))
+df_merged <- ls_data_save[[1]]
+df_recoded <- ls_data_save[[2]]
+df_aggregated <- ls_data_save[[3]]
+df_scored <- ls_data_save[[4]]
+df_mcoll <- ls_data_save[[5]]
+remove(ls_data_save)
+df_merged$ADaten_Alter <- as.numeric(df_merged$ADaten_Alter)
+
+# Skalierter Datensatz
+ska <- read_csv2(file.path(pt_ausw, "3_Skalierung", "GL", "GL_persons.csv"))
+ska$idstud <- as.character(ska$idstud)
+
+# Transformierte(r/) Datens(a/ä)tz(/e)
+tf24 <- readRDS(file.path(pt_ausw, 
+                          "4_Ergebnisse", "V3-MA-2025_Pilot2024_transformToBistaResults_2024-09-05.rds"))
+tf24a <- readRDS(file.path(pt_ausw, 
+                          "4_Ergebnisse", "V3-MA-2025_Pilot2024_transformToBistaResults_KA3a_2024-09-05.rds"))
+tf23 <- readRDS(file.path("R:/VERA3/Mathematik/V3_Ma_2024/01_Pilotierung_2023/11_Auswertung", 
+                          "4_Ergebnisse", "V3-MA-2024_Pilot2023_transformToBistaResults_2023-08-31.rds"))
+
+tf24$itemparsVera[tf24$itemparsVera$domain=="DHW", "domain"] <- "DH"
+tf24a$itemparsVera[tf24a$itemparsVera$domain=="DHW", "domain"] <- "DH"
+tf23$itemparsVera[tf23$itemparsVera$domain=="DHW", "domain"] <- "DH"
+
+# Analysetabelle
+df_para <- readxl::read_excel(file.path(pt_ausw, "4_Ergebnisse", "V3-MA-2025_Pilot2024_Itemparameter_2024-09-05.xlsx"), sheet = "Items")
+
+its_anker <- df_para |> 
+  filter(str_detect(Modul, "Link")) |> 
+  pull(iqbitem_id) |> 
+  unique()
+
+# Inputliste:
+ls_input <- readDaemonXlsx(file.path(pt_ausw, "2_Inputliste", "V3-MA-2025-Pilot24_Inputliste_aus_R_240903.xlsx"))
+
+# Itemkennwertetabelle
+df_IKWT <- read.csv2(file.path(pt_ikw, "Itemparameter VERA3-Mathematik-2025 Ma Modularisierung.csv"),
+                     stringsAsFactors = FALSE, encoding = "latin1") |> 
+  filter(!is.na(iqbitem_id))
+
+# Haupttestauswahl:
+df_HT <- df_IKWT |> 
+  mutate(sel = case_when(str_detect(iqbmodul_id, "BM$") & 
+                         model == "global" ~ TRUE,
+                         model != "global" ~ TRUE,
+                         TRUE ~ FALSE)) |> 
+  filter(sel) |> # für BM nur global, für EM nur domainspezifische Werte
+  select(iqbitem_id, model, domain, iqbmodul_id, itemnr_mod)
+
+#UOS nimmt zur Itemauswahl (wie auch schon in HT22, HT23) nur die KS von GL.
+#Also zur Konsistenz hier auch:
+#(Dazu beachten, dass wir sowohl Itemparameter aus Pilo24 als auch Pilo23 (im BM) benutzt haben, also beide laden müssen)
+df_its_HT <- df_HT |>
+  transmute(iqbitem_id, domain=model, lbl = str_sub(iqbmodul_id, 10)) |>
+  arrange(domain != "global", domain, lbl, iqbitem_id) |> 
+  left_join(rename(filter(rbind(tf24$itemparsVera[1:8], tf23$itemparsVera[1:8]), domain == "GL"), model=domain), by = "iqbitem_id")
+
+# In diesem Jahr gibt es noch Items aus dem KA3a-Modell, fülle mit diesen Parametern bisher leere Items auf:
+df_tmp <- df_its_HT[is.na(df_its_HT$lh), c("iqbitem_id", "domain", "lbl")] |> 
+  left_join(rename(filter(tf24a$itemparsVera[1:8], domain == "GL"), model=domain), by = "iqbitem_id")
+df_its_HT <- df_its_HT |> 
+  filter(!is.na(df_its_HT$lh)) |> 
+  rbind(df_tmp) |>
+  arrange(domain != "global", domain, lbl, iqbitem_id) 
+
+df_afg_HT <- df_IKWT |> 
+  select(name, iqbitem_id) |> 
+  left_join(select(df_HT, iqbitem_id, iqbmodul_id), by = "iqbitem_id") |> 
+  select(-iqbitem_id) |> 
+  unique() |> 
+  arrange(str_sub(iqbmodul_id, -2) != "BM", iqbmodul_id)
+
+# realisierte und angefragte Klassen:
+rlauf <- readxl::read_xlsx("R:/VERA3/Mathematik/V3_Ma_2025/1_Pilotierung 2024/10_Durchführung/Rücklauf/MA_VERA-3_Pilo2024_Rücklauf_100%_aus_Scanmanager.xlsx", sheet = 1, range = "A4:G189")
+
+# Übereinstimmung Hauptkodierung
+ueber <- readxl::read_xlsx("R:/VERA3/Mathematik/V3_Ma_2025/1_Pilotierung 2024/04_Kodierung/KA3-Kodierung/6_Hauptkodierung/3_Auswertung/V3-MA-2025_Pilo2024_Hauptkodierung_uebereinstimmung.xlsx", sheet = "Übereinstimmung_gesamt")
+
+### Weitere nötige Dinge: ----
+BuLa <-  tribble(
+  ~BL, ~BuLa,
+  '11', 'Baden-Württemberg',
+  '12', 'Bayern',
+  '13', 'Berlin',
+  '14', 'Brandenburg',
+  '15', 'Bremen',
+  '16', 'Hamburg',
+  '17', 'Hessen',
+  '18', 'Mecklenburg-Vorpommern',
+  '19', 'Niedersachsen',
+  '20', 'Nordrhein-Westfalen',
+  '21', 'Rheinland-Pfalz',
+  '22', 'Saarland',
+  '23', 'Sachsen',
+  '24', 'Sachsen-Anhalt',
+  '25', 'Schleswig-Holstein',
+  '26', 'Thüringen',
+  '71', NA
+)
+
+zahlwort <- c("eins", "zwei", "drei", "vier", "fünf", "sechs", "sieben", "acht", "neun", "zehn", "elf", "zwölf")
+```
+
+![Technischer Bericht](Titelbild.jpg){fig-align="center"}\
+<!-- ToDo: Titel formatieren:
+- Zeilenumbrüche im title
+- Bild vor TOC, am besten hinter den subtitle, 
+- Autor unten auf Titelseite -->
+
+{{< pagebreak >}}
+# Allgemeine Informationen {#sec-allginf}
+Der vorliegende Technische Bericht beschreibt das Vorgehen bei der Aufgabenentwicklung und -erprobung, fasst wichtige Ergebnisse der Datenauswertung zusammen und gibt einen Überblick über die Testmodule für die Vergleichsarbeiten in der 3. Jahrgangsstufe im Schuljahr `r year-1`/`r str_sub(year, 3, 4)`. 
+Ferner werden Hinweise zur Datenerhebung und -auswertung von VERA-3 formuliert. 
+Für den Hauptdurchgang werden seit dem Jahr 2020 Testmodule bereitgestellt. 
+Für VERA-3 Mathematik wird ein Basismodul mit einer Bearbeitungszeit von 40 Minuten entwickelt. 
+Das Basismodul enthält Aufgaben zu allen fünf Leitideen. 
+Darüber hinaus werden insgesamt vier Ergänzungsmodule mit einer Bearbeitungszeit von jeweils 20 Minuten bereitgestellt. 
+Anders als das Basismodul enthält ein Ergänzungsmodul ausschließlich Aufgaben zu einer Leitidee und umfasst eine Bearbeitungszeit von 20 Minuten. 
+Für jeden VERA-Durchgang werden jeweils zwei leistungsbezogene Ergänzungsmodule für zwei Leitideen bereitgestellt; im Schuljahr `r year-1`/`r str_sub(year, 3, 4)` handelt es sich um die Leitideen „`r kb1`“ und „`r kb2`“. 
+
+## Kompetenzstufenmodelle
+Seit Dezember 2008 liegen für das Fach Mathematik in der Primarstufe Kompetenzstufenmodelle vor, die fünf hierarchisch angeordnete Kompetenzstufen umfassen (überarbeitete Fassung auf Grundlage des Ländervergleichs 2011 vom Februar 2013)[^1].
+Die Beschreibungen der Kompetenzstufen beziehen sich sowohl auf ein Globalmodell mathematischer Kompetenz, als auch auf verschiedene inhaltsbezogene Kompetenzen, auch „Leitideen“ genannt. 
+Die Kompetenzstufen reichen von der Beschreibung mathematischer Basiskompetenzen bis zur Identifizierung eines elaborierten und souveränen Umgangs mit mathematischen Anforderungen in der Primarstufe [vgl. @Reiss.2008; @Reiss.2009]. 
+
+[^1]: Die Bildungsstandards für Mathematik wurden für das Ende der vierten Jahrgangsstufe weiterentwickelt und 2022 von der KMK verabschiedet (KMK, 2022). 
+  Dieser Technische Bericht bezieht sich auf die Bildungsstandards, die 2004 von der KMK beschlossen worden sind, da sich die Normierungsaufgaben für die neuen Bildungsstandards noch in der Entwicklung befinden.
+
+Das Globalmodell ist übergreifend und umfasst alle in den Bildungsstandards ausgewiesenen inhaltlichen Kompetenzbereiche, das heißt die Leitideen „Zahlen und Operationen“, „Raum und Form“, „Muster und Strukturen“, „Größen und Messen“ und „Daten, Häufigkeit, Wahrscheinlichkeit“. 
+Es ermöglicht daher auf breiter Basis die Interpretation der mathematischen Kompetenz von Schülerinnen und Schülern[^2] am Ende der 4. Jahrgangsstufe. 
+
+[^2]: Aufgrund der dynamischen Diskussion zum sprachlichen Umgang mit geschlechtlicher Vielfalt sowie der Positionierung des Rats für deutsche Rechtschreibung und der Schulbehörden einiger Länder gegen Schreibwei-sen mit Wortbinnenzeichen (z. B. Genderstern) verwenden wir Doppelnennungen (z. B. Schülerinnen und Schüler) oder geschlechtsneutrale Formulierungen (z. B. Lehrkräfte). Hiermit sind ausdrücklich Personen aller Geschlechter gemeint.
+
+Die Skala für die 4. Jahrgangsstufe wurde mit einem Mittelwert von $M = 500$ und einer Standardabweichung von $SD = 100$ definiert. 
+Die Breite der Kompetenzstufen beträgt 70 Punkte, die Stufe I ist nach unten, die Stufe V nach oben offen. 
+Bei den Beschreibungen der Stufen werden vorhandene Kompetenzen anstelle von Defiziten betont. 
+Die Kompetenzstufenmodelle bilden die Basis für die Definition von Standards (z. B. Mindeststandards, Regelstandards, vgl. @tbl-kstufen). 
+Im Folgenden werden die Kompetenzstufen des Globalmodells tabellarisch dargestellt und anschließend kurz beschrieben.[^3]
+
+[^3]: Für eine ausführlichere Darstellung siehe das Kompetenzstufenmodell für das Fach Mathematik im Globalmodell https://www.iqb.hu-berlin.de/bista/ksm
+
+## Kompetenzstufen im Fach Mathematik {#sec-ksgl}
+
+| Stufe | Wertebereich     | Standardbereich       |
+|:-----:|:----------------:|:----------------------|
+| I     | $<390$           | unter Mindeststandard |
+| II    | $390$ bis $<460$ | Mindeststandard       |
+| III   | $460$ bis $<530$ | Regelstandard         |
+| IV    | $530$ bis $<600$ | Regelstandard plus    |
+| V     | $\geq600$        | Optimalstandard       |
+
+: Globales Kompetenzstufenmodell für das Fach Mathematik in der Grundschule [vgl. @Reiss.2009] {#tbl-kstufen .striped tbl-colwidths="[20,40,40]"}
+
+<!-- ToDo: Tabelle formatieren (Hintergrund z. T. schwarz) -->
+
+#### Kompetenzstufe I (Punktwerte bis unter 390): technische Grundlagen (Routineprozeduren auf Grundlage einfachen begrifflichen Wissens)
+
+Schülerinnen und Schüler auf Kompetenzstufe I sind einfache mathematische Begriffe und Prozeduren bekannt und sie können diese in einem innermathematischen Kontext beziehungsweise in einem aus dem Alltag vertrauten oder gut geübten Kontext korrekt reproduzieren. 
+Im Einzelnen werden die Grundaufgaben des kleinen Einspluseins und Einmaleins beherrscht und bei mündlichen, halbschriftlichen und schriftlichen Rechenverfahren genutzt, wenn die Aufgabenstellungen keine besonderen Schwierigkeiten aufweisen. 
+Darüber hinaus werden sie auch in sehr einfachen Sachsituationen korrekt angewendet. 
+Außerdem können Zahlen in Bezug auf ihre Größe verglichen und Zahldarstellungen in Stellentafeln insbesondere im Tausenderraum sicher gelesen werden. 
+Grundlegende Begriffe der ebenen Geometrie (z. B. Kreis, Quadrat, Dreieck) werden bei prototypischen Darstellungen richtig verwendet. 
+Sehr einfache Folgen und Muster können fortgesetzt werden. Gängige Größeneinheiten (z. B. m, km, kg) können gut vertrauten Repräsentanten zugeordnet werden. 
+Auch einfache Größenvergleiche werden geleistet. 
+Einfachen, klar strukturierten Diagrammen, Schaubildern und Tabellen mit Bezug zur Lebenswirklichkeit können unmittelbar ersichtliche Daten entnommen werden. 
+Umgekehrt können einfache Informationen in eine Tabelle eingetragen werden. 
+Es gelingt, sehr einfache und sehr anschauliche Zufallsexperimente in Bezug auf Gewinnchancen zu vergleichen. 
+
+#### Kompetenzstufe II (Punktwerte von 390 bis unter 460): einfache Anwendungen von Grundlagenwissen (Routineprozeduren in einem klar strukturierten Kontext)
+Schülerinnen und Schüler mit Mathematikkompetenzen auf der Kompetenzstufe II können Grundlagenwissen in einfachen, klar strukturierten und bekannten Anwendungen nutzen. 
+So werden Aufgaben zur Addition, Subtraktion und Multiplikation halbschriftlich und schriftlich durchgeführt, wobei auch Überschlagsrechnungen geleistet und Größenordnungen von Ergebnissen korrekt erkannt werden. 
+Außerdem wird die Struktur des Dezimalsystems genutzt, Gesetzmäßigkeiten werden erkannt und bei der Fortsetzung einfacher Zahlenfolgen, beim strukturierten Zählen und systematischen Probieren berücksichtigt. 
+Grundbegriffe der räumlichen Geometrie (z. B. Würfel) werden korrekt verwendet, wenn diese einen Bezug zum Alltag haben. 
+Einfache räumliche Gebilde werden in ihren strukturellen Eigenschaften gesehen und räumliche Beziehungen zur Lösung einfacher Probleme genutzt. 
+Dabei werden einfache Lagebeziehungen auch dann korrekt erkannt, wenn hierfür die Perspektive einer anderen Person einzunehmen ist. 
+Auch komplexere geometrische Muster und Zahlenreihen werden in ihrer Struktur erkannt und fortgesetzt. 
+Es können einfache Sachaufgaben gelöst werden. Aus dem Alltag vertraute proportionale Zuordnungen werden erkannt und angewendet. 
+Bei einfachem Zahlenmaterial wird das Umwandeln von Größen in gegebene Einheiten auch bei gemischten Größenangaben beziehungsweise einfachen Kommazahlen durchgeführt. 
+Klar strukturierten, auch umfangreicheren Diagrammen, Schaubildern und Tabellen können unterschiedliche Daten entnommen werden. 
+Diese müssen aber in der Regel noch explizit gegeben sein. Umgekehrt können einfache Daten nach gewissen Vorgaben dort auch eingetragen werden. 
+Wesentliche Grundbegriffe aus dem Umfeld von Zufall und Wahrscheinlichkeit, wie „sicher“, „unmöglich“ und „wahrscheinlich“, werden korrekt verwendet. 
+Einfache Zufallsexperimente können in Bezug auf Gewinnchancen eingeschätzt werden. 
+
+#### Kompetenzstufe III (Punktwerte von 460 bis unter 530): Erkennen und Nutzen von Zusammenhängen in einem vertrauten (mathematischen und sachbezogenen) Kontext
+Schülerinnen und Schüler, die die Kompetenzstufe III erreichen, können das erlernte Wissen flexibel in unterschiedlichen Problemstellungen innerhalb eines vertrauten Kontextes nutzen. 
+Insbesondere wird mit Zahlen und Operationen im curricularen Umfang sicher umgegangen und Überschlagsrechnungen werden auch bei großen Zahlen sicher durchgeführt. 
+Strukturelle Aspekte werden zumindest bei gut geübten Inhalten gesehen und können kommuniziert werden. 
+Dies gilt auch für Inhalte der Geometrie, wobei etwa zwischen verschiedenen Darstellungsformen einer Figur vermittelt werden kann. 
+Beispielsweise werden beim Umgang mit Netzen ebene und räumliche Informationen aufeinander bezogen. 
+Weiterhin sind Grundlagen geometrischer Abbildungen verfügbar, sodass insbesondere einfache Achsenspiegelungen durchgeführt werden können. 
+Zahlenfolgen, die nach komplexeren Regeln aufgebaut sind, können fortgesetzt und fehlerhafte Zahlen in überschaubaren Zahlenfolgen gegebenenfalls identifiziert werden. 
+Einfache Sachsituationen werden modelliert und die damit verbundenen Problemstellungen gelöst. 
+Proportionale Zuordnungen werden sicher genutzt. 
+Der Umgang mit Größen ist flexibel und berücksichtigt – etwa bei Uhrzeiten – spezielle Eigenschaften der Größenbereiche. 
+Hierbei wird auch die Kommaschreibweise korrekt verwendet. 
+Darüber hinaus können in Größenbereichen den gängigen Einheiten geeignete Repräsentanten zugeordnet werden. Daten und Informationen können in einem bekannten Kontext flexibel dargestellt werden. 
+Dabei gelingt auch der Umgang mit großen Zahlen. Diagrammen können Informationen entnommen werden, die nicht direkt ablesbar sind, sondern erschlossen oder berechnet werden müssen. 
+Der Informationsgehalt einfacher Diagramme kann explizit beurteilt werden. Bei nicht allzu komplexen Zufallsexperimenten werden Gewinnchancen korrekt eingeschätzt und begründet. 
+
+#### Kompetenzstufe IV (Punktwerte von 530 bis unter 600): sicheres und flexibles Anwenden von begrifflichem Wissen und Prozeduren im curricularen Umfang
+Schülerinnen und Schüler auf Kompetenzstufe IV wenden auch in einem wenig vertrauten Kontext mathematisches Wissen sicher an. 
+Sie beschreiben eigene Vorgehensweisen korrekt, verstehen und reflektieren die Lösungswege anderer Kinder und beherrschen das Rechnen im curricularen Umfang in allen Varianten sicher. 
+Zahldarstellungen in Stellenwerttafeln können auch bei sehr großen Zahlen (also im Zahlenraum bis zu einer Million) nach Vorschrift selbstständig manipuliert und systematisch verändert werden. 
+Begriffe der ebenen und räumlichen Geometrie werden flexibel verwendet und geometrische Aussagen können hinterfragt und diskutiert werden. 
+Auch bei komplexen Zahlenmustern wird die dahinterliegende Regel erkannt und das Muster korrekt fortgesetzt. Das Rechnen mit Größen ist sicher und flexibel und umfasst insbesondere auch Näherungs- und Überschlagsrechnungen. 
+Modellierungsaufgaben werden selbst dann gelöst, wenn sie nicht unmittelbar auf einfachen Alltagserfahrungen basieren. 
+Informationen aus unterschiedlichen Quellen können in einen Zusammenhang gestellt und in Modellierungsaufgaben selbstständig verwendet und manipuliert werden. 
+Komplexere Zufallsexperimente werden angemessen beurteilt, mögliche Ergebnisse werden korrekt bestimmt. 
+
+#### Kompetenzstufe V (Punktwerte ab 600): Modellierung komplexer Probleme unter selbstständiger Entwicklung geeigneter Strategien
+Schülerinnen und Schüler auf der höchsten Kompetenzstufe bearbeiten mathematische Problemstellungen in allen Inhaltsbereichen, auch in einem unbekannten Kontext, angemessen, sicher und flexibel. 
+Dabei werden auf hohem Niveau geeignete Strategien angewendet, sinnvolle Bewertungen abgegeben oder Verallgemeinerungen geleistet. 
+Umfangreiches curricular verankertes Wissen wird auch in ungewohnten Situationen flexibel genutzt. 
+Das Vorgehen kann nachvollziehbar kommuniziert und begründet werden. 
+Mathematische Argumentationen werden angemessen bewertet. 
+Komplexe Sachsituationen werden modelliert und bearbeitet, selbst wenn besondere Schwierigkeiten, wie die Verwendung von Tabellen, der Umgang mit zusammengesetzten Größen oder das Rechnen mit Zahlen in Kommaschreibweise, auftreten. 
+Es können auch ungewohnte funktionale Zusammenhänge analysiert und genutzt werden. 
+Die Lösung von Aufgaben gelingt auch dann, wenn sie ein hohes Maß an räumlichem Denken oder entsprechenden analytischen Fähigkeiten voraussetzt. 
+Der Umgang mit Daten ist genauso wie die mathematische Aufbereitung von Zufallsexperimenten durch selbstständiges Arbeiten geprägt.
+
+{{< pagebreak >}}
+# Informationen zur Pilotierungsstudie `r year-1`
+
+Primäres Ziel der Pilotierung war es, psychometrische Informationen über die entwickelten Aufgaben zu erhalten, um hochwertige Items für die Hauptstudie auswählen zu können. 
+Durch die Einbettung bereits normierter Aufgaben in das Testdesign der Pilotierungsstudie wurde eine Anbindung der neu entwickelten Aufgaben an die Metrik der Bildungsstandards und somit an die oben genannten Kompetenzstufen realisiert.
+
+## Testdesign
+```{r include=FALSE}
+#| label: n_afg
+n_afg <- df_para |> 
+  filter(!iqbitem_id %in% its_anker) |> 
+  pull(AufgID) |>
+  unique() |> 
+  length()
+```
+
+```{r include=FALSE}
+#| label: n_its_kb
+
+df_tmp <- tf24$itemparsVera |>
+  filter(!iqbitem_id %in% its_anker) |> 
+  group_by(domain) |> 
+  summarise(n=n()) |> 
+  pivot_wider(names_from = domain, values_from = n) 
+
+df_tmp[, "kb1"] <- df_tmp[, kb1_short]
+df_tmp[, "kb2"] <- df_tmp[, kb2_short]
+df_tmp[, kb1_short] <- NULL
+df_tmp[, kb2_short] <- NULL
+
+n_its_kb <- mutate(df_tmp, BM = GL - kb1 - kb2)
+
+n_its <- n_its_kb$GL[[1]]
+```
+
+```{r}
+#| label: Tab_TestDes
+
+Tab_TestDes <- ls_input$booklets |> 
+  select(-block1) |> 
+  mutate(across(everything(), ~ str_replace_all(.x, "_Stopp", ""))) |> 
+  mutate(across(everything(), ~ ifelse(str_detect(.x, "Link"), str_c("*", .x, "*"), .x))) |> 
+  mutate(Pause = "") |> 
+  relocate(Pause, .after = block6)
+
+
+Tab_TestDes <-  rbind(Tab_TestDes,
+        data.frame(booklet = "",
+                   block2 = "",
+                   block3 = "",
+                   block4 = "*Basismodule*",
+                   block5 = "",
+                   block6 = "",
+                   Pause = "",
+                   block7 = "*Ergänzungsmodule*"),
+        data.frame(booklet = "",
+                   block2 = "",
+                   block3 = "40 min",
+                   block4 = "",
+                   block5 = "",
+                   block6 = "",
+                   Pause = "*Pause*",
+                   block7 = "20 min"))
+
+str_Tab_TestDes <- c(knitr::kable(Tab_TestDes, col.names = c("", "ZO", "GM", "DH", "MS", "RF", "", str_c(kb1_short, "/", kb2_short))))
+
+# str_Tab_TestDes <- c(str_Tab_TestDes[1],
+#                      str_Tab_TestDes[2],
+#                      str_Tab_TestDes[3:8],
+#                      str_Tab_TestDes[2],
+#                      str_Tab_TestDes[9:14],
+#                      str_Tab_TestDes[2],
+#                      str_Tab_TestDes[15:20],
+#                      str_Tab_TestDes[2],
+#                      str_Tab_TestDes[21:26],
+#                      str_Tab_TestDes[2],
+#                      str_Tab_TestDes[27:28])
+```
+
+Für den VERA-Durchgang im Schuljahr `r year-1`/`r str_sub(year, 3, 4)` wurden `r n_afg` Aufgaben mit `r n_its` Items aller fünf Leitideen pilotiert. 
+
+In einem ersten Schritt wurden die Testaufgaben zu Blöcken von Testaufgaben zusammengefasst, wobei für das spätere Basismodul und für die Ergänzungsmodule separate Blöcke erstellt wurden. 
+Aufgaben, die vornehmlich für den Einsatz im Basismodul vorgesehen waren, wurden zu Blöcken mit einer Bearbeitungszeit von 8 Minuten gruppiert. 
+Diese Blöcke enthielten jeweils Aufgaben zu einer Leitidee. 
+Für die Ergänzungsmodule wurden Blöcke zu den Leitideen „`r kb1`“ und „`r kb2`“ mit unterschiedlicher Schwierigkeit zusammengestellt, die für eine Bearbeitungszeit von 20 Minuten konzipiert waren. 
+In einem zweiten Schritt wurden diese Blöcke verschiedenen Testheften mit einer Bearbeitungszeit von jeweils 60 Minuten zugewiesen, sodass einzelne Schülerinnen und Schüler nur Teilmengen des gesamten Itempools bearbeiteten. 
+In diesem modularisierten Teildesign kamen insgesamt 24 Testhefte zum Einsatz. 
+Jedes Testheft beinhaltete sechs Blöcke, wobei die ersten fünf Blöcke für den Einsatz im Basismodul und der letzte Block für den Einsatz im Ergänzungsmodul konzipiert waren. 
+
+Dabei wurden 20 Blöcke mit normierten Aufgaben aus dem Aufgabenpool des IQB eingesetzt (Verlinkungsaufgaben), um eine Anbindung an die Metrik der Bildungsstandards zu ermöglichen. 
+Dies ist Voraussetzung, um die Aufgaben auf dem Kompetenzstufenmodell (vgl. @sec-ksgl) einordnen zu können. 
+Die Testhefte waren durch bestimmte, in mehreren Testheften auftretende Aufgaben miteinander verbunden. 
+Die unterschiedlichen Testheftversionen wurden zufällig auf die Schülerinnen und Schüler gleichmäßig in allen teilnehmenden Bundesländern klassenweise verteilt. 
+In jeder Klasse wurden dabei 12 der 24 Testheftversionen, so nötig mehrfach, zufällig auf die Schülerinnen und Schüler verteilt. 
+Die Versionen wurden so ausgewählt, dass für jeden Ergänzungsmodulblock eines der beiden Testhefte mit diesem Block eingesetzt wurde. 
+@Tbl-thdesign zeigt das modularisierte Design.
+
+::: {#tbl-thdesign}
+```{r}
+#| tbl-colwidths: [8, 13, 13, 16, 13, 13, 9, 15]
+#| classes: plain
+#| output: asis
+
+cat(str_Tab_TestDes, sep = "\n")
+```
+
+_Anmerkungen._ TH01 bis TH24 = Testheft 1 bis 24; 
+
+ZO = „Zahlen und Operationen“; GM = „Größen und Messen“; DH = „Daten, Häufigkeit und Wahrscheinlichkeit“; MS = „Muster und Strukturen“; RF = „Raum und Form“; Link = Blöcke mit Verlinkungsaufgaben 
+
+
+Modularisiertes Testdesigns der Pilotierungsstudie `r year-1`
+<!-- ToDo: Tabelle formatieren (Tabellenkopf (ggf. zweizeilig); horizontale Linien; Hintergrund) -->
+:::
+
+
+
+## Stichprobe
+```{r include=FALSE}
+#| label: txt_Stichprobe
+
+rlauf_SOLL <- rlauf |> 
+  group_by(`BL-ID`) |>
+  summarise(Klassen_angefragt = n()) |> 
+  left_join(BuLa, by = c("BL-ID"="BL"))  |> 
+  select(BuLa, Klassen_angefragt)
+
+rlauf_IST <- rlauf |> 
+  group_by(`BL-ID`) |>
+  filter(IST > 0) |> 
+  summarise(Klassen_realisiert = n()) |> 
+  left_join(BuLa, by = c("BL-ID"="BL")) |> 
+  select(BuLa, Klassen_realisiert)
+
+# Anteil veränderte Bedingungen:
+freqBed <- df_merged |> 
+  semi_join(ska, by = "idstud") |> # nur IDs, die in Skalierung dabei waren
+  count(ADaten_BedingVeraendert) |> 
+  mutate(freq = round(n/sum(n)*100, 1),
+         lbl = case_when(ADaten_BedingVeraendert == "1" ~ "veränderte Bedingungen",
+                         ADaten_BedingVeraendert == "0" ~ "normale Bedingungen"))
+
+meanAlter <- df_merged |> 
+  semi_join(ska, by = "idstud") |> # nur IDs, die in Skalierung dabei waren
+  select(ADaten_Alter) |>  
+  filter(ADaten_Alter < 90) |> 
+  summarise(mean = mean(ADaten_Alter), sd = sd(ADaten_Alter)) |> 
+  round(1)
+
+freqGen <- df_merged |> 
+  semi_join(ska, by = "idstud") |> # nur IDs, die in Skalierung dabei waren
+  mutate(ADaten_Geschlecht = if_else(ADaten_Geschlecht %in% c("1", "2", "3"), ADaten_Geschlecht, "4")) |> 
+  #filter(ADaten_Geschlecht <= 5) |> 
+  count(ADaten_Geschlecht) |> 
+  mutate(freq = round(n/sum(n)*100, 1),
+         lbl = case_when(ADaten_Geschlecht == "1" ~ "m",
+                         ADaten_Geschlecht == "2" ~ "w",
+                         ADaten_Geschlecht == "3" ~ "d",
+                         ADaten_Geschlecht == "4" ~ "kA")) 
+
+freqSprache <- df_merged |> 
+  semi_join(ska, by = "idstud") |> # nur IDs, die in Skalierung dabei waren
+  mutate(ADaten_Sprache = if_else(ADaten_Sprache %in% c("1", "2", "3"), ADaten_Sprache, "4")) |> 
+  #filter(ADaten_Sprache <= 5) |> 
+  count(ADaten_Sprache)|> 
+  mutate(freq = round(n/sum(n)*100, 1),
+         lbl = case_when(ADaten_Sprache == "1" ~ "D",
+                         ADaten_Sprache == "2" ~ "DuA",
+                         ADaten_Sprache == "3" ~ "A",
+                         ADaten_Sprache == "4" ~ "kA")) 
+
+nAntw_pilo <- tf24$itempars |>
+  filter(!item %in% its_anker) |>
+  pull(Nvalid) |> 
+  summary()
+
+nAntw_anker <- tf24$itempars |> 
+  filter(item %in% its_anker) |>
+  pull(Nvalid) |> 
+  summary()
+```
+
+```{r include=FALSE}
+#| label: Tab_BuLa
+
+Tab_BuLa <- df_merged |> 
+  semi_join(ska, by = "idstud") |> 
+  mutate(idclass = str_sub(idstud, 1, 8),
+         BL = str_sub(idstud, 1, 2)) |> 
+  left_join(BuLa, by = "BL") |> 
+  select(idstud, idclass, BuLa, starts_with("ADaten"))
+
+#Hotfix in 2024:
+Tab_BuLa[Tab_BuLa$idclass %in% c("21013001", "22013101"), c("BuLa")] <- "Niedersachsen"
+
+Tab_BuLa1 <- Tab_BuLa |> 
+  group_by(BuLa) |>
+  summarise(Anzahl_SuS = n()) |>
+  left_join(rlauf_IST, by = "BuLa") |> 
+  left_join(rlauf_SOLL, by = "BuLa") |> 
+  relocate(Klassen_realisiert, Klassen_angefragt, .after = BuLa) |> 
+  mutate(Anteil_SuS = Anzahl_SuS/sum(Anzahl_SuS)*100) |>  (\(d)
+    bind_rows(d, summarise(d, 
+                           across(where(is.numeric), sum),
+                           across(where(is.character), ~"Gesamt")))
+  )() |> 
+  mutate(Anteil_SuS = round(Anteil_SuS, 2))
+
+Tab_BuLa2 <- Tab_BuLa |> 
+  filter(ADaten_Sprache <=5) |> 
+  group_by(BuLa) |> 
+  count(ADaten_Sprache) |> 
+  arrange(BuLa, desc(ADaten_Sprache)) |> 
+  mutate(freq = round(n/sum(n)*100, 2),
+         lbl = case_when(ADaten_Sprache == "1" ~ "immer Deutsch",
+                         ADaten_Sprache == "2" ~ "Deutsch und eine andere Sprache",
+                         ADaten_Sprache == "3" ~ "meistens eine andere Sprache")) |> 
+  select(BuLa, freq, lbl) |> 
+  pivot_wider(names_from = "lbl",
+              values_from = freq) |> 
+  mutate(sum_check = `immer Deutsch` + `Deutsch und eine andere Sprache` + `meistens eine andere Sprache`)
+
+Tab_BuLa_Out <- Tab_BuLa1 |> 
+  full_join(Tab_BuLa2[, 1:3], by = "BuLa") |>
+  transmute(Land = BuLa,
+            `Anzahl realisiert` = Klassen_realisiert,
+            `Anzahl angefragt` = Klassen_angefragt,
+            Anzahl = Anzahl_SuS,
+            `Anteil der Pilotierungsstichprobe` = str_c(Anteil_SuS, " %"),
+            `Anteil der Kinder, die zu Hause meistens eine andere Sprache als Deutsch sprechen` = str_c(`meistens eine andere Sprache`, " %"),
+            `Anteil der Kinder, die zu Hause meistens Deutsch und eine andere Sprache sprechen` = str_c(`Deutsch und eine andere Sprache`, " %"))
+  
+Tab_BuLa_Out[nrow(Tab_BuLa_Out),]$`Anteil der Kinder, die zu Hause meistens eine andere Sprache als Deutsch sprechen` <- freqSprache |> 
+  mutate(freq = str_c(freq, " %")) |> 
+  filter(lbl == "A") |> 
+  pull(freq)
+
+Tab_BuLa_Out[nrow(Tab_BuLa_Out),]$`Anteil der Kinder, die zu Hause meistens Deutsch und eine andere Sprache sprechen` <- freqSprache |> 
+  mutate(freq = str_c(freq, " %")) |> 
+  filter(lbl == "DuA") |> 
+  pull(freq)
+```
+
+Die insgesamt realisierte Stichprobe umfasste in der Pilotierungsstudie `r year-1` im Fach Mathematik `r nrow(filter(rlauf, IST > 0))` Klassen der dritten Jahrgangsstufe aus `r zahlwort[nrow(rlauf_SOLL)]` deutschen Ländern (vgl. @tbl-bula; angeforderte Stichprobe: `r nrow(filter(rlauf))` Klassen). 
+Insgesamt nahmen `r nrow(ska)` Schülerinnen und Schüler an der Untersuchung teil. 
+Davon nahmen laut Angaben der Lehrkräfte `r freqBed[freqBed$ADaten_BedingVeraendert == 1, "freq"]` % der Schülerinnen und Schüler unter veränderten Testbedingungen teil, weil sie beispielsweise aufgrund eines bestimmten Förderschwerpunktes oder noch unzureichender Deutschkenntnisse eine reduzierte Aufgabenmenge bearbeitet haben oder die Bearbeitungszeit erhöht wurde. Aufgrund der geringen Anzahl wurden diese Fälle regulär in die Auswertung einbezogen. 
+Der Altersdurchschnitt betrug `r meanAlter$mean` Jahre (_SD_ = `r meanAlter$sd` Jahre), 
+`r freqGen[freqGen$lbl == "w", "freq"]` % der Jugendlichen waren weiblich, `r freqGen[freqGen$lbl == "m", "freq"]` % männlich, `r freqGen[freqGen$lbl == "d", "freq"]` % divers^[Diese Kategorie wurde im Fragebogen als „anders“ bezeichnet und wie folgt erläutert: „Mit anders meinen wir, dass du Mädchen und Junge bist oder keins von beidem.“.] und `r freqGen[freqGen$lbl == "kA", "freq"]` % ohne gültige Angabe. 
+In der Stichprobe gaben `r freqSprache[freqSprache$lbl == "A", "freq"]` % der getesteten Schülerinnen und Schüler an, zu Hause meistens eine andere Sprache als Deutsch zu sprechen, `r freqSprache[freqSprache$lbl == "DuA", "freq"]` % gaben an, Deutsch und eine andere Sprache zu sprechen,  `r freqSprache[freqSprache$lbl == "D", "freq"]` % gaben an, immer Deutsch zu sprechen und `r freqSprache[freqSprache$lbl == "kA", "freq"]` % hatten keine gültige Angabe.
+@tbl-bula gibt eine Übersicht über den Umfang der Klassen- und Schülerstichproben sowie den Anteil der Kinder mit teilweise anderer Familiensprache nach Bundesländern. Die Schulen wurden jeweils von den Ländern benannt, wobei die Anzahl der Klassen pro Land in Anlehnung an den Königsteiner Schlüssel festgelegt wurde. 
+Durch das oben beschriebene Testdesign lagen für die im Jahr `r year-1` pilotierten Aufgaben pro Item `r nAntw_pilo["Min."][[1]]` bis `r nAntw_pilo["Max."][[1]]` Antworten von Schülerinnen und Schüler (_Median_ = `r nAntw_pilo["Median"][[1]]`) vor.^[Ausgenommen sind die zur Verlinkung mit der Bildungsstandardmetrik eingesetzten Ankeritems. Für diese Items lagen pro Item `r nAntw_anker["Min."][[1]]` bis `r nAntw_anker["Max."][[1]]` Antworten (_Median_ = `r nAntw_anker["Median"][[1]]`) vor.]
+
+::: {#tbl-bula}
+```{r}
+#| tbl-colwidths: [25,10,10,10,15,15,15]
+#| classes: plain
+
+knitr::kable(Tab_BuLa_Out, "pipe", align = 'lrrrrrr')
+```
+
+Zusammensetzung der Pilotierungsstichprobe `r year-1` nach Land
+<!-- ToDo: Tabelle formatieren (Tabellenkopf (ggf. zweizeilig mit Zellen über 2 Spalten); horizontale Linien; Hintergrund z. T. dunkler; erste Spalte links alignen) -->
+:::
+
+## Durchführung
+Die Pilotierung der entwickelten Testaufgaben erfolgte zwischen Mai und Juni `r year-1`. 
+Das Erhebungsdesign, die Erstellung der Testhefte und die Datenauswertung oblagen dem IQB. 
+Die logistische Durchführung der Testung wurde mit den jeweiligen Ländern abgestimmt und durch diese unterstützt. 
+Insbesondere wurden die beteiligten Schulen sowie die Testleitungen, bei denen es sich überwiegend um Lehrkräfte handelte, von den Ländern benannt. 
+Die Testleitungen waren auch für den Rückversand der Testunterlagen verantwortlich. 
+Die vom IQB erstellten und durch die Firma `r versanddienst` gedruckten Testunterlagen wurden nach Absprache mit den Ländern direkt an die Schulen, an die jeweiligen Testleitungen oder an die zuständigen Landesinstitute bzw. -behörden verschickt. 
+Der Versand der Testhefte und die Rücklaufkontrolle wurden ebenfalls durch die Firma `r versanddienst` realisiert.
+Die Durchführung des Tests erfolgte durch Testleitende, die von den Ländern benannt und geschult wurden. 
+Die reine Testzeit betrug im Mittel ca. 60 Minuten, nach 40 Minuten war eine Pause von 10 Minuten vorgesehen. 
+Die Testleitenden waren auch für die Rücksendung der Testunterlagen an die Firma `r versanddienst` verantwortlich.
+
+## Auswertung
+### Datenerfassung und Kodierung
+```{r echo=FALSE}
+#| label: df_Kappakrit
+
+df_Kappakrit <- ueber |> 
+  mutate(iqbitem_id = str_sub(Variable, 1, -2)) |> 
+  semi_join(df_HT, by = "iqbitem_id") |> 
+  filter(round(meankappa,2) < 0.8) |> 
+  arrange(desc(meankappa))
+```
+
+Die Testunterlagen wurden durch die Firma `r versanddienst` zunächst eingescannt. 
+Für geschlossene Items (Multiple-Choice, Richtig-Falsch) erfolgte eine automatisierte Datenerfassung durch eine spezielle Scannersoftware. 
+Halboffene Items, bei denen bereits eine kurze Einweisung eine hinreichend zuverlässige Kodierung garantiert, wurden durch geschulte Mitarbeitende der Firma `r versanddienst` kodiert und zusammen mit den geschlossenen Items an das IQB übermittelt. 
+Offene Items wurden anhand der eingescannten Testunterlagen von geschulten Kodierende bewertet. 
+An drei aufeinanderfolgenden Terminen wurden zudem Schulungen durch die fachdidaktischen Kooperationspartner des Projekts durchgeführt. 
+Die Schulungen dienten einerseits dazu, eine maximale Interrater-Reliabilität zu erzielen und andererseits dazu, die Auswertungsanleitungen weiter zu verbessern. 
+Um die Reliabilität der Urteile zu prüfen, wurden pro Item 20% der Antworten von Schülerinnen und Schülern doppelt, das heißt von zwei verschiedenen Kodierenden, bewertet. 
+```{r}
+#| output: asis
+
+cat(sep = "\n", 
+    str_c(ifelse(nrow(df_Kappakrit) > 0,
+       str_c("Bis auf ", zahlwort[nrow(df_Kappakrit)], " Ausnahmen (Kappa[^5] ", 
+             glue_collapse(round(df_Kappakrit$meankappa, 2), sep = ", ", last = " und "), 
+             ") wiesen a"),
+       "A"),
+       "lle Items, die in Haupttestmodule aufgenommen wurden, " ,
+       ifelse(nrow(df_Kappakrit) > 0,"", "wiesen "),
+      "eine gute Interrater-Reliabilität auf",
+      ifelse(nrow(df_Kappakrit) > 0,
+       str_c(", diese wurden aber aufgrund anderer wünschenswerter Itemeigenschaften im Test belassen"),
+       ""),
+      "."),
+    str_c("Die prozentuale Übereinstimmung zwischen den Kodierenden betrug im Mittel (_Median_) ",
+          round(100*median(ueber$meanagree),1),
+          "% bei einem Kappa", 
+          ifelse(nrow(df_Kappakrit) > 0,"", "[^5]"), " von ",
+          round(median(ueber$meankappa), 2), "."),
+    "\n[^5]: vgl. @Cohen.1960")
+```
+
+Wie schon in der Pilotierung 2023 wurde auch dieses Jahr wieder ein Teil der Variablen nicht durch den Dienstleister `r versanddienst`, sondern im eigenen Team am IQB kodiert, der erfahrungsgemäß in der Komplexität zwischen Items liegt, bei denen bereits eine kurze Einweisung eine hinreichend zuverlässige Kodierung garantiert, und Items, die mehrfach geschult werden müssen.
+
+### Datenauswertung 
+<!-- ToDo: R-Pakete eatPrep und TAM zitieren, jedes Jahr die aktuelle Version -->
+Die Auswertung der Testdaten erfolgte mit Methoden der klassischen und probabilistischen Testtheorie mit den Statistik-Programmen SPSS und R. 
+In einem ersten Schritt wurden unter Verwendung des R-Pakets eatPrep [@eatPrep] die Rohdaten der geschlossenen Items mit Hilfe der in einer Datenbank hinterlegten Richtig- und Falschoptionen rekodiert und mit den bereits kodierten halboffenen und offenen Items zusammengeführt. 
+Für Mehrfach-Ankreuz-Aufgaben, die aus zwei bis maximal vier Teilfragen bestehen, bei denen „ja“ oder „nein“ bzw. „trifft zu“ oder „trifft nicht zu“ anzukreuzen ist, wurde nur dann ein Punkt vergeben, wenn alle Teilfragen richtig beantwortet wurden. Dies ist dadurch begründet, dass die Ratewahrscheinlichkeit für eine Frage mit zwei Antwortalternativen („ja“/„nein“) 50% beträgt und eine Zusammenfassung mehrerer Fragen dieses Typs die Ratewahrscheinlichkeit deutlich reduziert. Die genauen Aggregationsvorschriften gehen aus den separat übermittelten Auswertungsanleitungen hervor.
+
+Im zweiten Schritt erfolgte die Skalierung der Leistungsdaten auf der Basis von Item-Response-Modellen mit Hilfe des R-Pakets TAM [@TAM_4.2-21]. 
+In ersten Kalibrierungsläufen wurden zunächst mit Hilfe des eindimensionalen Raschmodells die Itemparameter aller Items frei geschätzt, wobei neben den für VERA vorgesehenen Items auch die normierten Items aus dem IQB-Aufgabenpool einbezogen wurden. 
+Diese Analysen wurden sowohl für das Globalmodell als auch für die leitideenspezifischen Modelle durchgeführt. Es galten dabei folgende Maßgaben:
+
+- Fehlende Werte aufgrund von Nicht-Bearbeitungen wurden als Falschantworten gewertet.
+- Ungültige Antworten wurden als Falschantworten gewertet.
+- Der Mittelwert der Personenfähigkeit wurde auf den Wert null fixiert.[^6]
+
+
+[^6]: Die Verortung der Skala ist im Raschmodell ein freier Parameter und muss deshalb fixiert werden. Üblich ist das Fixieren der mittleren Personenfähigkeit oder der mittleren Itemschwierigkeit auf den Wert null.
+
+Im nächsten Schritt wurden die aus dem IQB-Ländervergleich 2011 bekannten Parameter des Globalmodells der verwendeten Items aus dem IQB-Pool benutzt, um über ein Linkingverfahren [Mean-Mean-Linking\; @Loyd.1980] die Schwierigkeitsparameter (Logits) der für die Vergleichsarbeiten vorgesehenen Items auf der Metrik der Bildungsstandards angeben zu können. 
+Abschließend erfolgte eine Transformation der Itemparameter von der Logit-Skala auf die Bildungsstandardmetrik mit dem Mittelwert $M = 500$, der Standardabweichung $SD = 100$ und der Lösungswahrscheinlichkeit[^7]  $p = 0.625$ (anstatt $p = 0.50$) gemäß folgender Formel:
+
+
+$$
+\begin{aligned}
+Metrik_{\text{BISTA}} & = 500 + \frac{100}{SD_{\text{ref}}}\cdot \left( Logit + \log \left( \frac{p}{1-p} \right) - M_{\text{ref}} \right)\\
+& = 500 +  \frac{100}{1.097} \cdot \left( Logit + 0.51 - 0.086 \right)
+\end{aligned}
+$$
+
+[^7]: Dies ist die Wahrscheinlichkeit, dass eine Person mit einer gegebenen Fähigkeit ein Item mit korrespondierender Schwierigkeit korrekt beantwortet. In der natürlichen Skala des Raschmodells beträgt diese Wahrscheinlichkeit stets $0.5$. Eine andere Lösungswahrscheinlichkeit $p$ erhält man durch eine konstante Verschiebung der Itemschwierigkeiten um $\log\left(\frac{p}{1-p}\right)$.
+
+Zur Erläuterung: $0.51$ ist die Verschiebungskonstante, um eine Lösungswahrscheinlichkeit von $p = 0.625$ zu erhalten; $0.086$ ist der Mittelwert und $1.097$ die Standardabweichung der Referenzpopulation aus der 4. Jahrgangsstufe. 
+
+Diese Werte beziehen sich seit der VERA-Hauptstudie 2013 auf den IQB-Ländervergleich in der Primarstufe aus dem Jahr 2011. Daher lassen sich die VERA-Ergebnisse vor dem Jahr 2013 nicht in Bezug zu aktuellen Ergebnissen setzen. 
+
+```{r echo=FALSE}
+#| label: st_KSdiff
+
+df_tmp <- tf24$itemparsVera |> 
+  select(iqbitem_id, domain, kstufe) |> 
+  pivot_wider(id_cols = "iqbitem_id",
+              names_from = "domain",
+              values_from = "kstufe")
+
+df_tmp[, "kb1"] <- df_tmp[, kb1_short]
+df_tmp[, "kb2"] <- df_tmp[, kb2_short]
+df_tmp[, kb1_short] <- NULL
+df_tmp[, kb2_short] <- NULL
+
+
+df_KSdiff <- df_tmp |> 
+  filter(!is.na(kb1) | !is.na(kb2)) |> 
+  mutate(diff_GLkb1 = GL - kb1,
+         diff_GLkb2 = GL - kb2) |> 
+  mutate(diff_GL = case_when(!is.na(diff_GLkb1) ~ abs(diff_GLkb1),
+                             !is.na(diff_GLkb2) ~ abs(diff_GLkb2),
+                             TRUE ~ NA)) |> 
+  count(diff_GL)
+
+tmp_zw <- c()
+tmp_zw[1] <- "gleich"
+tmp_zw[2] <- "eine Kompetenzstufe"
+tmp_zw[3:13] <- str_c(zahlwort[2:12], " Kompetenzstufen")
+
+st_KSdiff <- ifelse(max(df_KSdiff$diff_GL)==0, "", str_c(" (",
+  glue_collapse(str_c("in ", df_KSdiff$n, " Item", ifelse(df_KSdiff$n>1,"s", ""), " ",
+                      tmp_zw[df_KSdiff$diff_GL+1]), 
+                sep = ", ", last = " und "),
+   " Abweichung)"
+  ))
+```
+
+Analoge Transformationen wurden für die Berechnung der Itemschwierigkeiten auf den leit-ideenspezifischen Modellen vorgenommen. Die dafür zu verwendenden Mittelwerte und Standardabweichungen der 4. Jahrgangsstufe im IQB-Ländervergleich Primarstufe aus dem Jahr 2011 sind im @sec-hinwaus dargestellt.[^8]
+
+[^8]: Die Itemparameter und Zuordnungen zu den Kompetenzstufen, basierend auf dem Globalmodell, unterscheiden sich `r ifelse(max(df_KSdiff$diff_GL)==0, "nicht", "nur geringfügig")` von denen, welche auf Grundlage der leitideenspezifischen Modelle ermittelt wurden`r st_KSdiff`.
+
+### Aufgabenauswahl
+
+Die Auswertung der Pilotierungsdaten auf der Basis von Item-Response-Modellen diente der Itemauswahl aufgrund von psychometrischen Qualitätskriterien und der Bestimmung der Schwierigkeitswerte der Aufgaben auf der Metrik der Bildungsstandards. 
+Im Folgenden wird das Vorgehen genauer beschrieben und es werden empirische Ergebnisse zur Qualität der Tests dargestellt.
+
+Bei der Auswahl der Aufgaben wurden verschiedene Kriterien berücksichtigt. 
+Das in TAM bestimmte Maß des Infit (auch Weighted Fit/MNSQ) diente als Gütekriterium für die Passung der einzelnen Items zum Raschmodell. In Zweifelsfällen wurde zusätzlich eine grafische Überprüfung des Itemfits herangezogen. Darüber hinaus wurde auf der Basis der klassischen Testtheorie die Trennschärfe der Items berechnet. Diese entspricht der punktbiserialen Korrelation der Itemwerte mit den Gesamttestrohwerten (d. h. den Gesamttestwerten ohne das entsprechende Item). Im Einzelnen wurden folgende Schwellen verwendet:
+
+- Die Trennschärfe der Items sollte größer als $0.25$ sein, jedoch nicht unter $0.15$ fallen. 
+-	Der Infit sollte nicht größer als $1.10$ ausfallen, wobei in Ausnahmefällen Werte bis $1.15$ toleriert wurden. Eine Untergrenze wurde nicht definiert, da Items mit einem Infit kleiner als $1$ zwar keine optimale Passung zum Raschmodell aufweisen, aber trennschärfer als modellkonform sind, was eine positive Eigenschaft darstellt.
+
+
+Anhand dieser Schwellen wurde über den Ausschluss von einzelnen Items oder ganzen Aufgaben entschieden. 
+Auf diese Weise entstand ein Pool von psychometrisch gut geeigneten Items. 
+Die finale Entscheidung über die Aufnahme der Aufgaben in die VERA-3-Testmodule erfolgte durch Mitglieder der Aufgabenentwicklungs- und der Bewertungsgruppe. 
+Diese begutachteten den vom IQB zusammengestellten Pool psychometrisch geeigneter Aufgaben und wählten unter Berücksichtigung der Aufgabenschwierigkeiten die im VERA-Durchgang `r year` zu verwendenden Aufgaben aus. 
+Dabei spielten auch fachdidaktische Kriterien eine Rolle. 
+So sollten die Aufgaben beispielsweise zentrale Aspekte der in diesem Durchgang zu überprüfenden inhaltlichen Kompetenzen (Leitideen) abdecken. 
+
+! In diesem Jahr wurden darüber hinaus für die Auswahl im Basismodul erstmalig auch auf psychometrisch gut geeignete Items zurückgegriffen, die im Jahr 2023 pilotiert wurden. 
+Das Pilotierungsjahr einzelner Aufgaben kann der Itemkennwertetabelle entnommen werden.
+Dabei wurde sich dafür entschieden, bei diesen Aufgaben die Verlässlichkeit der Lösungshäufigkeit (ebenfalls in der Itemkennwertetabelle) auf „gering“ zu setzen, da die Pilotierung diese Aufgaben in anderen Ländern stattfand als bei den restlichen.
+
+<!-- ToDo: Eingerahmtes Ausrufezeichen an den Rand -->
+
+```{r echo=FALSE}
+#| label: n_its_ht
+
+df_tmp <- mutate(df_HT, model = case_when(str_to_upper(model)==kb1_short ~ "kb1",
+                                          str_to_upper(model)==kb2_short ~ "kb2",
+                                          str_to_upper(model)=="GLOBAL" ~ "BM",
+                                          TRUE ~ model))
+
+n_its_ht <- df_tmp |> 
+  group_by(model) |>
+  summarise(n=n()) |> 
+  ungroup()
+
+n_its_ht <- n_its_ht |> 
+  add_row(model = "GL", n = sum(n_its_ht$n)) |> 
+  pivot_wider(names_from = model, values_from = n) |> 
+  relocate("GL", "kb1", "kb2", "BM")
+```
+
+Von den insgesamt `r n_its_kb$GL[1]` im Jahr `r year-1` pilotierten Items (Basismodul: `r n_its_kb$BM[1]`, Ergänzungsmodul „`r kb1`“: `r n_its_kb$kb1[1]`, Ergänzungsmodul „`r kb2`“: `r n_its_kb$kb2[1]`) wurden `r n_its_ht$GL[1]` (Basismodul: `r n_its_ht$BM[1]`, Ergänzungsmodul „`r kb1`“: `r n_its_ht$kb1[1]`, Ergänzungsmodul „`r kb2`“: `r n_its_ht$kb2[1]`) in die finalen Testmodule aufgenommen.
+
+{{< pagebreak >}}
+# Hinweise zur Auswertung der VERA-Hauptstudie `r year`
+## Testmodule der VERA-Hauptstudie `r year`
+
+```{r include=FALSE}
+#| label: Tab_logits
+Tab_logits <- df_its_HT |> 
+  group_by(lbl) |> 
+  summarise(lh = str_c(round(100 * mean(lh), 0), " %"),
+            logit = as.character(round(mean(logit),2))) |> 
+  tibble::rownames_to_column() |>  
+  pivot_longer(-rowname) |> 
+  pivot_wider(names_from=rowname, values_from=value) 
+
+colnames(Tab_logits) <- Tab_logits[1, ]
+
+Tab_logits$lbl <- c("lbl", "Lösungshäufigkeit", "Schwierigkeit in Logits")
+
+
+Tab_logits_out <- filter(Tab_logits, lbl != "lbl") |> 
+  relocate(`GL-BM`, starts_with(kb1_short), .after = lbl)
+
+colnames(Tab_logits_out)[1] <- " "
+```
+
+```{r include=FALSE}
+#| label: n_afg_ht
+#| 
+n_afg_ht <- df_afg_HT |> 
+  transmute(domain = str_sub(iqbmodul_id, 10, 11)) |>
+  mutate(domain = case_when(domain == "GL" ~ "BM",
+                            TRUE ~ domain)) |> 
+  group_by(domain) |>
+  summarise(n=n()) |> 
+  pivot_wider(names_from = domain, values_from = n)
+```
+
+Durch das oben beschriebene Vorgehen der Aufgabenauswahl entstand ein Pool von psychometrisch geeigneten Items, aus denen im nächsten Schritt die finalen Testmodule zusammengestellt wurden. 
+Dabei erfolgte die Auswahl der Aufgaben unter gleichzeitiger Berücksichtigung fachdidaktischer und psychometrischer Gesichtspunkte. 
+Für VERA-3 `r year` umfasst das Testmaterial insgesamt fünf Testmodule, davon ein Basismodul mit Aufgaben zu allen Leitideen (GL-BM) und je zwei Ergänzungsmodule (EM) in zwei Schwierigkeitsausprägungen (A, B) für die Leitideen „`r kb1`“ (`r kb1_short`) sowie „`r kb2`“ (`r kb2_short`). 
+Dabei sind die Module mit der Bezeichnung „A“ (`r kb1_short`-EM-A, `r kb2_short`-EM-A) für leistungsschwächere bis durchschnittliche Lerngruppen konzipiert, um Leistungen im unteren bis mittleren Kompetenzbereich zu erfassen. Diese Module beinhalten primär Aufgaben, die insbesondere die Kompetenzstufen I, II und III abdecken, sowie vereinzelt Aufgaben auf den Kompetenz-stufen IV und V. 
+Die Module mit der Bezeichnung „B“ (`r kb1_short`-EM-B, `r kb2_short`-EM-B) sind für durchschnittliche bis leistungsstärkere Lerngruppen konzipiert und differenzieren Leistungen im mittleren bis oberen Kompetenzbereich. Diese Module beinhalten primär Aufgaben, die insbesondere die Kompetenzstufen III, IV und V abdecken, sowie vereinzelt Aufgaben auf den Kompetenzstufen I und II. 
+
+Angaben zur Schwierigkeit der einzelnen Items können den zusätzlich separat übergebenen Itemkennwertetabellen entnommen werden. 
+Die Abbildungen @fig-KSBM\-[-@fig-KSkb2] zeigen, wie sich die Mathematikitems in den VERA-3-Testmodulen für die Vergleichsarbeiten `r year` auf die Kompetenzstufen verteilen. Zusätzlich werden in @tbl-logits die durchschnittlichen Lösungshäufigkeiten und Schwierigkeiten der Items in den Testmodulen angegeben.
+
+::: {#tbl-logits}
+```{r echo=FALSE}
+#| tbl-colwidths: [25,15,15,15,15,15]
+#| classes: plain
+#| 
+knitr::kable(Tab_logits_out, align = 'lccccc')
+```
+_Anmerkungen._ GL-BM = Globalmodell Basismodul, `r kb1_short`-EM-A = „`r kb1`“ Ergänzungsmodul A, `r kb1_short`-EM-B = „`r kb1`“ Ergänzungsmodul B, `r kb2_short`-EM-A = „`r kb2`“ Ergänzungsmodul A, `r kb2_short`-EM-B = „`r kb2`“ Ergänzungsmodul B. Die Angaben zu den Lösungshäufigkeiten beziehen sich auf die Gesamtpopulation.
+
+Durchschnittliche Lösungshäufigkeiten und arithmetische Mittel der Logits in den 
+VERA-3-Testmodulen `r year` im Fach Mathematik
+:::
+
+<!-- ToDo: Caption und Anmerkungen kleiner machen; Anmerkungen links ausrichten -->
+
+```{r echo=FALSE}
+tmp_ymax <- df_its_HT |>  
+  count(kstufe, lbl) |> 
+  pull(n) |> 
+  max()
+
+tmp_ymax <- tmp_ymax + 1
+```
+
+{{< pagebreak >}}
+
+::: {#fig-KSBM}
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=6.3, fig.asp=.50}
+filter(df_its_HT, domain == "global") |> 
+  mutate(kstufe = as.character(as.roman(kstufe))) |> 
+  ggplot(aes(x=kstufe, fill = lbl)) +
+  geom_bar(width = 0.35) + 
+  scale_fill_grey() +
+  scale_y_continuous(breaks = 0:tmp_ymax, limits = c(0, tmp_ymax), expand = c(0,0)) +
+  labs(x = "Kompetenzstufe",
+       y = "Anzahl Items") +
+  theme_minimal() + # alternativ: theme_excel_new()
+  theme(legend.title = element_blank(),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        text = element_text(size = 10,  family = "sans"),
+        axis.title = element_text(face = "bold"),
+        axis.line = element_line(colour = "darkgrey"),
+        plot.background = element_rect(colour = "darkgrey", fill = NA, size = 1))
+```
+_Anmerkung._ GL-BM = Globalmodell Basismodul.
+
+Verteilung der Items auf die Stufen des Kompetenzstufenmodells des VERA-3-Basismoduls `r year`
+:::
+::: {#fig-KSkb1}
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=6.3, fig.asp=.50}
+filter(df_its_HT, domain == str_to_lower(kb1_short)) |> 
+  mutate(kstufe = as.character(as.roman(kstufe))) |> 
+  ggplot(aes(x=kstufe, fill = lbl)) +
+  geom_bar(width = 0.35, position = position_dodge2(width = 0.9, padding = 0, preserve = "single")) + 
+  scale_fill_grey() +
+  scale_y_continuous(breaks = 0:tmp_ymax, limits = c(0, tmp_ymax), expand = c(0,0)) +
+  labs(x = "Kompetenzstufe",
+       y = "Anzahl Items") +
+  theme_minimal() + # alternativ: theme_excel_new()
+  theme(legend.title = element_blank(),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        text = element_text(size = 10,  family = "sans"),
+        axis.title = element_text(face = "bold"),
+        axis.line = element_line(colour = "darkgrey"),
+        plot.background = element_rect(colour = "darkgrey", fill = NA, size = 1))
+```
+_Anmerkung._ `r kb1_short`-EM-A = „`r kb1`“ Ergänzungsmodul A, `r kb1_short`-EM-B = „`r kb1`“ Ergänzungsmodul B.
+
+Verteilung der Items auf die Stufen des Kompetenzstufenmodells in den VERA-3-Ergänzungsmodulen `r year` zur Leitidee „`r kb1`“ 
+:::
+::: {#fig-KSkb2}
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=6.3, fig.asp=.50}
+filter(df_its_HT, domain == str_to_lower(kb2_short)) |> 
+  mutate(kstufe = as.character(as.roman(kstufe))) |> 
+  ggplot(aes(x=kstufe, fill = lbl)) +
+  geom_bar(width = 0.35, position = position_dodge2(width = 0.9, padding = 0, preserve = "single")) + 
+  scale_fill_grey() +
+  scale_y_continuous(breaks = 0:tmp_ymax, limits = c(0, tmp_ymax), expand = c(0,0)) +
+  labs(x = "Kompetenzstufe",
+       y = "Anzahl Items") +
+  theme_minimal() + # alternativ: theme_excel_new()
+  theme(legend.title = element_blank(),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        text = element_text(size = 10,  family = "sans"),
+        axis.title = element_text(face = "bold"),
+        axis.line = element_line(colour = "darkgrey"),
+        plot.background = element_rect(colour = "darkgrey", fill = NA, size = 1))
+```
+_Anmerkung._ `r kb2_short`-EM-A = „`r kb2`“ Ergänzungsmodul A, `r kb2_short`-EM-B = „`r kb2`“ Ergänzungsmodul B.
+
+Verteilung der Items auf die Stufen des Kompetenzstufenmodells in den VERA-3-Ergänzungsmodulen `r year` zur Leitidee „`r kb2`“ 
+:::
+
+<!-- ToDo: Caption und Anmerkungen kleiner machen; Anmerkungen links ausrichten -->
+
+```{r echo=FALSE}
+#| label: Tab_HT_Afg
+
+Tab_HT_Afg <- df_IKWT |> 
+  select(name, itemnr_mod, iqbitem_id) |>
+  mutate(itemnr_mod = round(as.numeric(itemnr_mod))) |> 
+  left_join(select(df_HT, iqbitem_id, iqbmodul_id), by = "iqbitem_id") |> 
+  select(-iqbitem_id) |> 
+  unique() |> 
+  arrange(str_sub(iqbmodul_id, -2) != "BM", iqbmodul_id) |> 
+  mutate(iqbmodul_id = str_sub(iqbmodul_id, 10)) |> 
+  pivot_wider(names_from = iqbmodul_id, values_from = name) |>
+  mutate(across(-itemnr_mod, ~ if_else(is.na(.x), "", .x))) |> 
+  relocate(!!str_c(kb1_short, "-EM-A"), !!str_c(kb1_short, "-EM-B"), .after = "GL-BM") |> 
+  arrange(itemnr_mod)
+```   
+
+
+Insgesamt wurden für das Basismodul `r n_afg_ht[, "BM"][[1]]` Aufgaben, für die Ergänzungsmodule zur Leitidee „`r kb1`“ `r n_afg_ht[, kb1_short][[1]]` Aufgaben und für die Ergänzungsmodule zur Leitidee „`r kb2`“ `r n_afg_ht[, kb2_short][[1]]` Aufgaben für die Erstellung des Testmaterials für VERA 3 `r year` herangezogen.
+Die in den einzelnen Testmodulen enthaltenen Aufgaben können @tbl-afgs entnommen werden.
+{{< pagebreak >}}
+
+::: {#tbl-afgs}
+```{r echo=FALSE}
+#| tbl-colwidths: [5,19,19,19,19,19]
+#| classes: plain
+
+knitr::kable(Tab_HT_Afg, col.names = c("", colnames(Tab_HT_Afg)[-1]), format.args = list(na.encode = FALSE))
+```
+_Anmerkungen._ GL-BM = Globalmodell Basismodul, `r kb1_short`-EM-A = „`r kb1`“ Ergänzungsmodul A, `r kb1_short`-EM-B = „`r kb1`“ Ergänzungsmodul B, `r kb2_short`-EM-A = „`r kb2`“ Ergänzungsmodul A, `r kb2_short`-EM-B = „`r kb2`“ Ergänzungsmodul B. Die Reihenfolge der Aufgaben in der Tabelle entspricht der Bearbeitungsreihenfolge in den Modulen.
+
+Aufgaben im VERA-3-`r year`  Basismodul und in den Ergänzungsmodulen
+:::
+
+{{< pagebreak >}}
+## Hinweise zur Auswertung {#sec-hinwaus}
+
+Die aus der Pilotierung gewonnenen Itemparameter wurden bereits in Form von Itemkennwertetabellen übergeben. 
+Neben den Logits für das Globalmodell ist für die Items zusätzlich der Punktwert auf der jeweiligen Bildungsstandardmetrik angegeben. 
+Diese hat in den getesteten Leitideen in der Population der deutschen Viertklässlerinnen und Viertklässler einen Mittelwert von $500$ und eine Standardabweichung von $100$. 
+Für zentrale Skalierungen in den Ländern wird empfohlen, wie folgt vorzugehen: 
+
+Um die Fähigkeiten der Schülerinnen und Schüler auf der Skala der Bildungsstandards für die 4. Jahrgangsstufe abzubilden, können die zur Verfügung gestellten Itemschwierigkeiten auf der Logit-Skala als fixierte Ankerparameter verwendet werden. 
+Es ist zu berücksichtigen, dass in der verwendeten Software keine Restriktionen auf die Mittelwerte der Personen- oder Itemparameter gelegt werden dürfen. Auf diese Weise erhält man Personenfähigkeiten auf der Logit-Skala der Bildungsstandards. Um diese auf die Bildungsstandard-Metrik zu überführen, muss für jedes Modell die folgende Transformation durchgeführt werden:
+
+$$
+Metrik_{\text{BISTA}} = 500 + \frac{100}{SD_{\text{ref}}}\cdot \left( Logit - M_{\text{ref}} \right)
+$$
+
+Hierbei sind für $M_{\text{ref}}$ und $SD_{\text{ref}}$ folgende Werte einzusetzen, die sich auf den Mittelwert und die Standardabweichung der Logits der Referenzpopulation der 4. Jahrgangsstufe im IQB-Ländervergleich Primarstufe aus dem Jahr 2011 beziehen:
+
+|                     |     Globalmodell    |
+|---------------------|---------------------|
+| $M_{\text{ref}}$    | $0.086$             |
+| $SD_{\text{ref}}$   | $1.097$             |
+
+
+Für die Schätzung der Personenfähigkeit aufgrund der Leistungen in VERA-3 bieten sich folgende alternative Vorgehensweisen an: 
+Zum einen können die in den Ländern erhobenen Leistungsdaten unter Fixierung der Itemparameter auf die in der Pilotierung erhaltenen Parameter skaliert und die so geschätzten Personenparameter wie oben angegeben transformiert werden, sodass eine Anbindung an das jeweilige Kompetenzstufenmodell gewährleistet ist. 
+Die unterschiedlich schweren Kombinationen von Testmodulen können dabei entweder gemeinsam oder getrennt skaliert werden. 
+Zum anderen kann eine teilweise oder vollständige Neuskalierung der Daten in den einzelnen Ländern vorgenommen werden (Fixierung von Itemparametern wird aufgehoben). 
+Grundsätzlich ist zu empfehlen, die Itemparameter in einem ersten Schritt zunächst frei zu schätzen, um differenzielles Itemfunktionieren (DIF) prüfen zu können. 
+Eine getrennte Skalierung der verschiedenen Modulkombinationen kann darüber hinaus sinnvoll sein, um zu überprüfen, inwiefern die Itemparameter einer bestimmten Modulkombination nach Elimination der Mittelwertsunterschiede mit den Itemparametern einer anderen Modulkombination oder mit den vom IQB gelieferten Itemparametern übereinstimmen. 
+
+Es gilt zu beachten:
+
+- Eine Fixierung der Itemparameter kann zu fehlerhaften Ergebnissen führen, falls nach der Übergabe der Testmodule an die Länder (substanzielle) inhaltliche oder formale Änderungen an den in VERA-3 eingesetzten Items bzw. den zugehörigen Auswer-tungsanleitungen vorgenommen wurden.
+- Falls mehrere Modulkombinationen gleichzeitig skaliert werden, muss in der Skalierung mitunter eine Berücksichtigung dieser Schwierigkeits- bzw. Leistungsgruppierung erfolgen. 
+In Softwareprogrammen wie BILOG-MG oder ConQuest, die auf der Schätzmethode Marginal Maximum Likelihood (MML) beruhen, sind die Versionen der Modulkombinationen in einem Hintergrundmodell als Dummy-Variablen zu spezifizieren, da sonst die Unterschiede zwischen den Schwierigkeitsniveaus unterschätzt werden. 
+In Softwareprogrammen wie Winsteps oder eRm, die auf den Schätzmethoden Joint Maximum Likelihood (JML) oder Conditional Maximum Likelihood (CML) beruhen, ist keine Spezifikation der Versionen der Modulkombinationen als Gruppen notwendig (und auch nicht möglich).
+
+## Allgemeine Empfehlungen für die Rückmeldung an die Schulen
+
+Für die Rückmeldung der Leistungsstände der Schülerinnen und Schüler an die Schulen werden die folgenden Empfehlungen ausgesprochen:
+
+Die Rückmeldung der Leistungsstände der Schülerinnen und Schüler kann prinzipiell sowohl auf Schul- und Klassenebene als auch auf Individualebene erfolgen. 
+Aufgrund der limitierten Testzeit kann nur eine begrenzte Anzahl von Aufgaben und Items jedes inhaltlichen Kompetenzbereichs eingesetzt werden. 
+Dies wiederum hat zur Folge, dass die erhaltenen Schätzungen der Personenfähigkeiten auf Individualebene relativ ungenau sind. 
+Die Zuverlässigkeit bzw. Reliabilität der Messung und der damit verbundenen Diagnose ist beschränkt und weist ein breites Vertrauensintervall auf. 
+Dies bedeutet, dass die erhaltene Punktschätzung der Personenfähigkeit nicht der tatsächlichen Fähigkeit der Schülerin bzw. des Schülers entsprechen muss, sondern die tatsächliche Fähigkeit etwas oberhalb oder unterhalb des erhaltenen Punktwertes liegen kann. 
+Sollte eine Rückmeldung auf Individualebene gewählt werden, empfehlen wir daher, die erhaltenen Schätzungen der Kompetenzstände nur als einen möglichen Indikator der Fähigkeit bzw. des Leistungsstandes der Schülerinnen und Schüler zu interpretieren. 
+In jedem Fall sollten weitere Informationen, wie beispielsweise mündliche Leistungsüberprüfungen, Klassenarbeiten, Unterrichtsgespräche etc., hinzugezogen werden, um zu einem zutreffenden Urteil im Hinblick auf den jeweiligen Leistungsstand einzelner Schülerinnen und Schüler gelangen zu können. 
+Hinsichtlich der Nutzung von VERA-Ergebnissen für Benotungen oder Schul-laufbahnempfehlungen wird auf die Vereinbarung zur Weiterentwicklung von VERA (Beschluss der Kultusministerkonferenz vom 08.03.2012) verwiesen.
+
+{{< pagebreak >}}
+# Literatur
+```{r include=FALSE}
+cite_packages(output = "file", out.dir = ".", pkgs = c("base", "eatPrep", "eatModel", "TAM"))
+```
