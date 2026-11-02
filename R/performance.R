@@ -143,6 +143,7 @@ example_leistung_input <- function(profile = "v3_de_lesen_zuhoeren",
 #' validate_leistung_input(example_leistung_input())
 #' @export
 validate_leistung_input <- function(input) {
+  input <- performance_component(input)
   fail <- function(message) stop(message, call. = FALSE)
   exact_names <- function(x, expected, label, is_table = FALSE) {
     if ((is_table && !is.data.frame(x)) || (!is_table && (!is.list(x) || is.data.frame(x))) ||
@@ -339,12 +340,16 @@ summarise_leistung_input <- function(input) {
 
 #' Generate example inputs for the implemented report scope
 #'
-#' A convenient entry point for synthetic report inputs. The current scope is
-#' the performance chapter only; this function does not invent input fields for
-#' the remaining chapters.
+#' A convenient entry point for synthetic report inputs. By default this includes
+#' test design, sample composition and performance. All example populations,
+#' item counts, booklet arrangements and cuts are illustrative, not real study
+#' results. The performance-only scope remains available explicitly.
 #'
 #' @inheritParams example_leistung_input
-#' @return The same `config` and `data` list as [example_leistung_input()].
+#' @param scope `"pilotierung"` includes the implemented pilot-study sections;
+#'   `"pilotierung_leistung"` returns the earlier performance-only example.
+#' @return A `config` and `data` list. The pilot-study scope uses schema
+#'   `0.3.0-draft` and adds `design` and `sample` to the performance input tables.
 #' @seealso [render_report()]
 #' @examples
 #' demo <- example_report(profile = "v3_ma_mg_mm", seed = 42)
@@ -352,8 +357,18 @@ summarise_leistung_input <- function(input) {
 #' @export
 example_report <- function(profile = "v3_de_lesen_zuhoeren", seed = 42L,
                            n_persons = 24L, n_pv = 15L,
-                           main_year = 2027L, pilot_year = 2026L) {
-  example_leistung_input(profile = profile, seed = seed,
-                         n_persons = n_persons, n_pv = n_pv,
-                         main_year = main_year, pilot_year = pilot_year)
+                           main_year = 2027L, pilot_year = 2026L,
+                           scope = c("pilotierung", "pilotierung_leistung")) {
+  scope <- match.arg(scope)
+  input <- example_leistung_input(profile = profile, seed = seed,
+                                  n_persons = n_persons, n_pv = n_pv,
+                                  main_year = main_year, pilot_year = pilot_year)
+  if (scope == "pilotierung") {
+    input$config$scope <- scope
+    input$config$schema_version <- "0.3.0-draft"
+    input$data$design <- example_design_data(input$config)
+    input$data$sample <- example_sample_data(input)
+    validate_report_input(input)
+  }
+  input
 }

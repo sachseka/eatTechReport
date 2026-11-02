@@ -1,0 +1,209 @@
+---
+title: "Testdesign und Stichprobenbeschreibung"
+lang: de
+format:
+  html:
+    minimal: true
+execute:
+  warning: false
+  message: false
+---
+
+Die Pilotierungsabschnitte verbinden das Aufgaben- und Iteminventar mit dem
+Testheftaufbau, dem Klassenrücklauf, der Stichprobenzusammensetzung und den
+Leistungskennzahlen. Tabellen und Quarto-Texte verwenden dieselben berechneten
+Ergebnisse. Die fachliche Fallauswahl erfolgt in der vorgelagerten Auswertung;
+das Berichtspaket entfernt keine Personen aus der angegebenen Population.
+
+## Mit einem synthetischen Beispiel beginnen
+
+```{r}
+library(eatTechReport)
+
+demo <- example_report(
+  profile = "v3_de_lesen_zuhoeren",
+  n_persons = 24,
+  n_pv = 15,
+  main_year = 2027,
+  pilot_year = 2026
+)
+validate_report_input(demo)
+ergebnis <- summarise_report_input(demo)
+names(demo$data)
+```
+
+Alle Beispielangaben sind synthetisch. Das betrifft auch Heftaufbau, Zeiten,
+Rücklauf, Hintergrundmerkmale und gültige Antwortzahlen. **2026 ist hier nur
+eine Demoannahme für das Pilotierungsjahr.** Die Beispiel-Cuts sind keine
+freigegebenen Kompetenzstufengrenzen.
+
+`example_report()` erzeugt standardmäßig den Umfang `scope = "pilotierung"`
+mit Schema `0.3.0-draft`. Dazu gehören Testdesign, Stichprobe und Leistung; ein
+vollständiger Technischer Bericht mit sämtlichen weiteren Kapiteln folgt
+schrittweise. Reine Leistungseingaben bleiben mit `example_leistung_input()`
+oder `example_report(scope = "pilotierung_leistung")` verfügbar; sie verwenden
+weiterhin Schema `0.2.0-draft`.
+
+`data$population` und `data$pvs` folgen dem Vertrag im Artikel
+[Leistungskennzahlen und Plausible Values](leistung.html). Die zusätzlichen
+Angaben stehen als R-Objekte unter `data$design` und `data$sample`.
+
+## Aufgaben, Items, Blöcke und Testhefte
+
+`data$design` enthält genau sechs Tabellen. IDs werden als Zeichenketten
+geliefert, auch wenn ein Quellsystem dafür Zahlen verwendet.
+
+| Tabelle | Spalten | Bedeutung und Schlüssel |
+| --- | --- | --- |
+| `items` | `item_id`, `task_id`, `domain_id`, `role` | Ein Item der beschriebenen Pilotierung je `item_id`; `task_id` verbindet die Items einer Aufgabe. Die Rolle ist `pilot` oder `anchor`. |
+| `blocks` | `block_id`, `label`, `module` | Ein Block je `block_id`; `module` ist `none`, `base` oder `supplement`. |
+| `block_items` | `block_id`, `item_id` | Eine eindeutige Block-Item-Zuordnung. Dasselbe Item darf in mehreren Blöcken vorkommen. |
+| `booklets` | `booklet_id`, `design_id` | Ein Testheft je `booklet_id`; `design_id` verweist auf sein Teildesign. |
+| `booklet_slots` | `booklet_id`, `position`, `kind`, `block_id`, `duration_minutes` | Eine eindeutige Heftposition; `kind` ist `block`, `pause` oder `instruction`. |
+| `design_rules` | `design_id`, `label`, `assignment_unit`, `assignment_description` | Ein Teildesign je `design_id`; Verteilungseinheit `person`, `class` oder `school` und eine ausdrückliche Beschreibung des Verfahrens. |
+
+Bei einer Pause oder Instruktion ist `block_id = NA_character_`. Die Zeit
+steht je Heftposition in Minuten; sie muss endlich und nicht negativ sein.
+Positionsnummern sind positive ganze Zahlen. Hefte dürfen unterschiedlich
+viele Positionen haben. Jede deklarierte Aufgabe beziehungsweise jedes Item
+gehört zum verwendeten Inventar; unbenutzte Items, Blöcke, Hefte oder
+Teildesigns werden nicht stillschweigend mitgezählt.
+
+Die Itemrolle bezeichnet den aktuellen Einsatz. Aus `pilot` folgt nicht,
+dass ein Item neu entwickelt wurde; aus `anchor` wird kein Herkunftsjahr
+abgeleitet. Bei Mathematik beschreibt `base` beziehungsweise `supplement`
+den vorgesehenen Moduleinsatz. Die Leistungsskala bleibt für alle Leitideen
+`MO`. Weder Modul noch Leitidee erzeugen weitere Leistungsskalen.
+
+```{r}
+knitr::kable(ergebnis$design$pool)
+knitr::kable(ergebnis$design$totals)
+knitr::kable(ergebnis$design$booklets)
+```
+
+Gesamtzahlen zählen eindeutige Aufgaben und Items. Eine Aufgabe kann Items
+in mehreren Bereichen oder Rollen enthalten; ihre Gruppenzahlen dürfen dann
+nicht zum Gesamtwert addiert werden. Auch ein Item, das in mehreren Blöcken
+oder mehrfach innerhalb eines Hefts vorkommt, zählt im jeweiligen Inventar
+nur einmal. Dagegen zählt die Heftzeit jede tatsächlich eingeplante Position.
+`test_minutes` enthält nur Blockzeiten; `total_minutes` enthält zusätzlich
+Pausen und Instruktionen.
+
+## Teilnahme, Rücklauf und Auswertung unterscheiden
+
+`data$sample` besteht aus vier Tabellen, einer Definition der Antwortzahlen
+und der Liste der Hintergrundmerkmale:
+
+| Bestandteil | Spalten beziehungsweise Inhalt | Bedeutung |
+| --- | --- | --- |
+| `states` | `state_id`, `label` | Eindeutige Länderkennungen und Anzeigenamen. Ein Land kann ohne realisierte Teilnahme vorkommen. |
+| `classes` | `class_id`, `state_id`, `requested`, `participated` | Eindeutige Klassen; Anfrage und tatsächliche Teilnahme werden jeweils ausdrücklich als `TRUE` oder `FALSE` geliefert. |
+| `persons` | `person_id`, `class_id` | Eindeutige tatsächlich teilnehmende Personen mit Klassenbezug. |
+| `response_counts` | `item_id`, `n_valid` | Eine Zeile je Inventaritem mit einer nicht negativen, ganzzahligen Anzahl gültiger beziehungsweise bewertbarer Antworten. |
+| `response_definition` | Eine Zeichenkette | Fachliche Definition von `Nvalid`, einschließlich Bezugsmenge und Umgang mit Auslassungen oder anderen Fehlwertcodes. |
+| `characteristics` | `age`, `gender`, `family_language`, `changed_conditions` | Die unten beschriebenen Hintergrundmerkmale. |
+
+Jede Person aus `data$population` muss in `sample$persons` vorkommen.
+Teilnehmende, die nicht zur Auswertungspopulation gehören, bleiben in der
+Teilnahmeübersicht enthalten. Die Stichprobenzusammensetzung verwendet dagegen
+die eindeutigen Personen aus `data$population`: Eine Person mit PVs für zwei
+Skalen wird hierbei einmal gezählt.
+
+Nachträglich hinzugekommene Klassen dürfen `requested = FALSE` und
+`participated = TRUE` haben. Daher wird nicht vorausgesetzt, dass angefragte
+und teilnehmende Klassenzahlen übereinstimmen oder dass die Teilnahme geringer
+sein muss. Länder- und Klassenkennungen werden nicht aus Zeichenpositionen
+einer Personen-ID abgeleitet.
+
+```{r}
+knitr::kable(ergebnis$sample$totals)
+knitr::kable(ergebnis$sample$by_state, digits = 1)
+knitr::kable(ergebnis$sample$by_scale)
+```
+
+`participant_percent` beschreibt den Anteil eines Landes an sämtlichen
+Teilnehmenden, `analysis_percent` seinen Anteil an der Auswertungspopulation.
+Beide Prozentangaben haben damit unterschiedliche, ausdrücklich benannte Nenner.
+
+## Hintergrundmerkmale und fehlende Angaben
+
+Die vier Schlüssel unter `characteristics` sind verbindlich. Ein Merkmal kann
+ausdrücklich den Wert `NULL` erhalten, wenn es nicht erhoben wurde; daraus wird
+keine Tabelle mit vermeintlich gemessenen Nullprozenten erzeugt.
+
+| Merkmal | Aufbau |
+| --- | --- |
+| `age` | `list(label, values)`, wobei `values` die Spalten `person_id`, `value` enthält; `value` ist das positive Alter in Jahren oder `NA_real_`. |
+| `gender` | `list(label, categories, values)`; Kategorien in dieser Reihenfolge: `c("männlich", "weiblich", "divers")`. |
+| `family_language` | Derselbe kategoriale Aufbau; die Kategorien werden ausdrücklich angegeben. |
+| `changed_conditions` | Derselbe kategoriale Aufbau; die Kategorien werden ausdrücklich angegeben. |
+
+Für jedes erhobene Merkmal enthält `values` jede Auswertungsperson genau
+einmal. Zusätzliche dokumentierte Teilnehmende sind erlaubt; sie gehen nicht
+in die Zusammensetzung der Auswertungspopulation ein. Eine fehlende Angabe
+wird als `NA` geliefert, nicht durch eine fehlende Personenzeile. Kategoriale
+Werte sind die deklarierten Zeichenketten oder `NA_character_`.
+
+Bei kategorialen Merkmalen ergänzt das Paket die Kategorie **keine Angabe**
+aus den `NA`-Werten. Der Nenner umfasst alle Auswertungspersonen, einschließlich
+dieser fehlenden Angaben. Für Geschlecht erscheinen somit männlich, weiblich,
+divers und keine Angabe. Deklarierte Kategorien bleiben auch bei Anzahl null
+sichtbar.
+
+Altersmittelwert und Stichprobenstandardabweichung beruhen auf gültigen
+Altersangaben; gültiges und fehlendes N werden zusätzlich ausgewiesen.
+Ohne gültiges Alter bleibt der Mittelwert fehlend, bei weniger als zwei
+gültigen Werten auch die Standardabweichung.
+
+```{r}
+knitr::kable(ergebnis$sample$characteristics$age, digits = 1)
+knitr::kable(ergebnis$sample$characteristics$gender, digits = 1)
+knitr::kable(ergebnis$sample$characteristics$family_language_by_state, digits = 1)
+```
+
+Familiensprache wird zusätzlich nach Land zusammengefasst. Der Nenner ist dann
+die Auswertungspopulation des jeweiligen Landes. Bei einem Land ohne solche
+Personen ist der Prozentwert nicht definiert und wird als fehlend ausgewiesen.
+Das ist von einer vorhandenen Population mit null Personen in einer Kategorie
+zu unterscheiden.
+
+## Gültige Antworten je Item und Ankerfußnote
+
+`n_valid` bezeichnet bewertbare Antworten aus der Auswertungspopulation der
+zugehörigen Skala. Es ist keine Zahl vorgelegter Items. Wie Auslassungen
+bewertet werden, legt die vorgelagerte Auswertung fest und dokumentiert dies
+in `response_definition`; das Berichtspaket interpretiert keine Rohcodes.
+
+Jedes Inventaritem muss genau eine Antwortzahl besitzen. Null ist eine gültige
+Anzahl und bleibt in der Verteilung enthalten. `Nvalid` darf die Zahl der
+Auswertungspersonen der passenden Skala nicht überschreiten.
+
+```{r}
+knitr::kable(ergebnis$sample$responses_by_domain, digits = 1)
+knitr::kable(ergebnis$sample$responses_overall, digits = 1)
+```
+
+Die Zusammenfassungen enthalten Minimum, Median und Maximum über die Items.
+Pilot- und Ankeritems werden getrennt ausgewertet. Im Word-Bericht steht die
+Ankerstatistik in einer separaten Fußnote; beide verwenden dieselbe Definition
+von `Nvalid`. Der Median erscheint als *Median* = …; Dezimalangaben erhalten
+eine Nachkommastelle, absolute Anzahlen werden ganzzahlig dargestellt.
+
+## Vorhandene R-Ergebnisse anbinden
+
+Die Tabellen werden möglichst direkt aus den vorhandenen R-Objekten gebildet.
+Ein zusätzlich manuell gepflegter CSV-Bestand ist dafür nicht nötig.
+`validate_report_input()` prüft gemeinsame Schlüssel, vollständige Zuordnungen,
+Kategorien, Antwortzahlen und die PV-Eingaben vor der Berechnung.
+
+Ein projektspezifischer Adapter für aktuelle reale Auswertungsobjekte ist noch
+nicht enthalten. Dafür müssen Spalten, Einheiten, Codebuch und Fallauswahl der
+tatsächlichen Quelle geklärt werden. Beispielsweise dürfen numerische
+Geschlechts- oder Sprachcodes erst nach ihrer dokumentierten Zuordnung in die
+vorgesehenen Kategorien überführt werden. Historische Mathematiklisten sind
+kein verbindliches Schema für neue Deutsch- und Mathematikdaten.
+
+Für reale Berichte werden `data_origin = "observed"`, fachlich freigegebene
+Cuts und die tatsächlichen Design- und Stichprobenangaben geliefert. Der
+[Word-Bericht mit editierbaren Quarto-Texten](textredaktion.html) verwendet
+weiterhin die verbindliche lokale Corporate-Vorlage.

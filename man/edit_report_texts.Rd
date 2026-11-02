@@ -4,18 +4,25 @@
 \alias{edit_report_texts}
 \title{Copy editable Quarto text blocks}
 \usage{
-edit_report_texts(path, overwrite = FALSE)
+edit_report_texts(
+  path,
+  overwrite = FALSE,
+  scope = c("pilotierung", "pilotierung_leistung")
+)
 }
 \arguments{
 \item{path}{Local directory for the editable text blocks.}
 
 \item{overwrite}{Whether existing blocks may be replaced. Defaults to FALSE.}
+
+\item{scope}{Report scope: \code{"pilotierung"} for design, sample and performance,
+or \code{"pilotierung_leistung"} for the performance section only.}
 }
 \value{
 Invisibly, the paths of the copied Quarto files.
 }
 \description{
-Copies the text blocks for the current performance report into a working
+Copies the text blocks for the selected report scope into a working
 directory. Edit these copies and pass the directory to \code{\link[=render_report]{render_report()}}.
 The package installation itself is never edited.
 }

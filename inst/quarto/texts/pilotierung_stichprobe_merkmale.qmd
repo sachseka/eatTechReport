@@ -1,0 +1,67 @@
+### Zusammensetzung der Auswertungspopulation {#pilotierung_stichprobe_merkmale}
+
+```{r}
+#| label: pilotierung_stichprobe_alter
+#| results: asis
+characteristics <- results$sample$characteristics
+age <- characteristics$age
+if (is.null(age)) {
+  cat("Das Alter wurde für diesen Durchgang nicht erhoben.\n\n")
+} else if (age$n_valid == 0L) {
+  cat("Für das Alter liegen keine gültigen Angaben vor (keine Angabe: ",
+      age$n_missing, " Personen).\n\n", sep = "")
+} else {
+  cat("Das mittlere Alter beträgt ", eatTechReport:::study_number(age$mean),
+      " Jahre (Standardabweichung = ", eatTechReport:::study_number(age$sd),
+      "; gültige Angaben: ", age$n_valid, "; keine Angabe: ", age$n_missing,
+      ").\n\n", sep = "")
+  if (!is.finite(age$sd)) cat("Die Standardabweichung ist bei weniger als zwei gültigen Altersangaben nicht berechenbar.\n\n")
+}
+```
+
+Die folgenden Angaben beschreiben Geschlecht, Familiensprache und veränderte
+Testbedingungen. Die Kategorie „keine Angabe“ ist in den Prozentnenner
+eingeschlossen. Die Anteile beziehen sich somit auf alle Personen der
+Auswertungspopulation.
+
+```{r}
+#| label: pilotierung_stichprobe_kategorien
+#| results: asis
+category_names <- c(gender = "Geschlecht", family_language = "Familiensprache",
+                     changed_conditions = "Veränderte Testbedingungen")
+for (variable in names(category_names)) {
+  values <- characteristics[[variable]]
+  if (is.null(values)) {
+    cat(eatTechReport:::report_markdown_text(category_names[[variable]]),
+        " wurde für diesen Durchgang nicht erhoben.\n\n", sep = "")
+  } else {
+    cat("**", eatTechReport:::report_markdown_text(values$label[1]), "**\n\n", sep = "")
+    display <- data.frame(
+      "Ausprägung" = values$category,
+      "Personen (N)" = values$n,
+      "Anteil (%)" = eatTechReport:::study_number(values$percent),
+      check.names = FALSE
+    )
+    cat(eatTechReport:::study_table_markdown(display, c("l", "r", "r")))
+  }
+}
+```
+
+```{r}
+#| label: pilotierung_stichprobe_familiensprache_laender
+#| results: asis
+language <- characteristics$family_language_by_state
+if (!is.null(language)) {
+  cat("**Familiensprache nach Land**\n\n",
+      "Die Prozentanteile beziehen sich jeweils auf die Auswertungspopulation ",
+      "des Landes einschließlich fehlender Angaben. Für Länder ohne ",
+      "Auswertungspersonen werden keine Prozentanteile berechnet; dies ist ",
+      "durch einen Gedankenstrich gekennzeichnet.\n\n", sep = "")
+  for (language_table in eatTechReport:::study_language_tables(language)) {
+    cat(eatTechReport:::study_table_markdown(language_table, c("l", rep("r", ncol(language_table) - 1L))))
+  }
+}
+```
+
+Rundungsbedingt können sich ausgewiesene Prozentanteile geringfügig von
+100,0 % unterscheiden.

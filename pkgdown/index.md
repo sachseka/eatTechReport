@@ -8,25 +8,34 @@
 eatTechReport verbindet vorhandene Auswertungsergebnisse mit redigierbaren
 Quarto-Texten für Technische Berichte zu VERA-3.
 
-Der erste Entwicklungsstand umfasst den **Leistungsabschnitt der
-Pilotierungsstichprobe**: vollständige Plausible Values auf der
-500er-Berichtsskala, ungewichtete Kennzahlen, Kompetenzstufenanteile,
-Dichtegrafiken und einen Word-Prototyp nach der lokalen Corporate-Vorlage.
-Die übrigen Berichtskapitel werden schrittweise ergänzt.
+Der aktuelle Entwicklungsstand umfasst **Testdesign, Stichprobe und Leistung**:
+Aufgaben- und Itemzahlen, variable Testheftpläne, Rücklauf und
+Stichprobenzusammensetzung, gültige Antwortzahlen sowie Plausible Values auf
+der 500er-Berichtsskala. Daraus entstehen ungewichtete Kennzahlen,
+Kompetenzstufenanteile, Dichtegrafiken und Word-Abschnitte nach der lokalen
+Corporate-Vorlage. Ein vollständiger Technischer Bericht mit den weiteren
+Methoden-, Itemgüte- und Haupttestkapiteln folgt schrittweise.
 
 ## Direkt ausprobieren
 
 ```r
 library(eatTechReport)
 demo <- example_report(n_persons = 200, seed = 42)
-summarise_leistung_input(demo)$descriptives
+validate_report_input(demo)
+ergebnis <- summarise_report_input(demo)
+ergebnis$design$pool
+ergebnis$sample$characteristics$gender
+ergebnis$descriptives
 plot_performance(demo, scale_id = "DL")
 ```
 
-Die Beispiele verwenden simulierte Werte und illustrative Grenzwerte.
+Die Beispiele verwenden synthetische Designs, Stichproben und Werte sowie
+illustrative Grenzwerte.
 Kennzahlen und Grafiken lassen sich ohne Word-Vorlage ausprobieren.
 
 - [Einstieg](articles/einstieg.html): Beispieldaten erzeugen, prüfen und darstellen.
+- [Testdesign und Stichprobe](articles/pilotierung.html): R-Eingaben für
+  Aufgaben, Hefte, Rücklauf, Hintergrundmerkmale und gültige Antwortzahlen.
 - [Leistungskennzahlen und PVs](articles/leistung.html): Eingabestruktur,
   Skalenkennungen und Berechnungsregeln.
 - [Word-Bericht und Textredaktion](articles/textredaktion.html): Corporate-Vorlage,
@@ -48,7 +57,3 @@ Die automatisierten Tests prüfen Berechnungen, Eingaben und Berichtserzeugung
 mit synthetischen Daten. R CMD check läuft auf Windows, macOS und Linux;
 Codecov zeigt die Abdeckung des R-Codes. Die tatsächliche Word-Automation und
 das Corporate-Layout werden zusätzlich lokal geprüft.
-
-Für das private Repository setzen Codecov und sein Badge die
-[Einrichtung der Repository-Anbindung und des privaten Badge-Links](https://github.com/sachseka/eatTechReport#dokumentation-und-entwicklung)
-voraus.

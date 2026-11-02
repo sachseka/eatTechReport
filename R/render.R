@@ -1,20 +1,24 @@
 #' Copy editable Quarto text blocks
 #'
-#' Copies the text blocks for the current performance report into a working
+#' Copies the text blocks for the selected report scope into a working
 #' directory. Edit these copies and pass the directory to [render_report()].
 #' The package installation itself is never edited.
 #'
 #' @param path Local directory for the editable text blocks.
 #' @param overwrite Whether existing blocks may be replaced. Defaults to FALSE.
+#' @param scope Report scope: `"pilotierung"` for design, sample and performance,
+#'   or `"pilotierung_leistung"` for the performance section only.
 #' @return Invisibly, the paths of the copied Quarto files.
 #' @export
 #' @examples
 #' texts <- tempfile("report-texts-")
 #' edit_report_texts(texts)
-edit_report_texts <- function(path, overwrite = FALSE) {
+edit_report_texts <- function(path, overwrite = FALSE,
+                              scope = c("pilotierung", "pilotierung_leistung")) {
+  scope <- match.arg(scope)
   check_report_path(path, "path")
   check_report_flag(overwrite, "overwrite")
-  sources <- report_text_files()
+  sources <- report_text_files(scope = scope)
   targets <- file.path(path, basename(sources))
   if (!overwrite && any(file.exists(targets))) {
     stop("Textbausteine existieren bereits; zum Ersetzen overwrite = TRUE angeben.", call. = FALSE)
@@ -28,11 +32,11 @@ edit_report_texts <- function(path, overwrite = FALSE) {
   invisible(normalizePath(targets, winslash = "/"))
 }
 
-#' Render the performance chapter with the mandatory corporate Word template
+#' Render pilot-study sections with the mandatory corporate Word template
 #'
-#' This first renderer covers the performance of the pilot sample only. It is
-#' not a complete technical report and does not invent content for other
-#' chapters. Inputs follow [example_leistung_input()] and are validated before
+#' The renderer covers test design, sample composition and performance for the
+#' pilot-study scope, or the performance section alone. It is not yet a complete
+#' technical report. Inputs follow [example_report()] and are validated before
 #' rendering. Synthetic data and illustrative cuts are explicitly labelled.
 #'
 #' The private corporate DOTX is required for every report. Its styles, page
@@ -46,8 +50,9 @@ edit_report_texts <- function(path, overwrite = FALSE) {
 #' example `lokal/demo-de`. This snapshot is not a signed-off release archive;
 #' change comparison and margin markers are not implemented yet.
 #'
-#' @param config Report configuration from the performance input contract.
-#' @param data Performance input tables, including population and PV values.
+#' @param config Report configuration from [example_report()].
+#' @param data Input tables including population, PV values and, for the
+#'   pilot-study scope, design and sample information.
 #' @param corporate_template Path to the mandatory corporate DOTX template.
 #' @param text_dir Optional directory containing all editable Quarto blocks
 #'   created by [edit_report_texts()]. NULL uses the package blocks.
@@ -78,7 +83,7 @@ render_report <- function(config, data,
                           update_fields = c("auto", "word", "none")) {
   update_fields <- match.arg(update_fields)
   input <- list(config = config, data = data)
-  validate_leistung_input(input)
+  validate_report_input(input)
   check_report_path(corporate_template, "corporate_template")
   check_report_path(output_dir, "output_dir")
   check_report_flag(overwrite, "overwrite")
@@ -89,7 +94,7 @@ render_report <- function(config, data,
   if (tolower(tools::file_ext(corporate_template)) != "dotx") {
     stop("corporate_template muss auf die freigegebene DOTX-Vorlage verweisen.", call. = FALSE)
   }
-  sources <- report_text_files(text_dir)
+  sources <- report_text_files(text_dir, scope = config$scope)
   if (!requireNamespace("knitr", quietly = TRUE) || !requireNamespace("rmarkdown", quietly = TRUE)) {
     stop("Die R-Ausfuehrung in Quarto benoetigt knitr und rmarkdown.", call. = FALSE)
   }
@@ -123,7 +128,7 @@ render_report <- function(config, data,
   if (!identical(dirname(output_dir), parent) || !identical(dirname(destination), parent)) {
     stop("Die Ausgabeordner liegen ausserhalb des angegebenen Zielverzeichnisses.", call. = FALSE)
   }
-  writeLines("eatTechReport performance rendering", file.path(output_dir, ".eatTechReport-render"))
+  writeLines("eatTechReport rendering", file.path(output_dir, ".eatTechReport-render"))
   archive_dir <- file.path(output_dir, "archive")
   text_path <- file.path(archive_dir, "texts")
   asset_path <- file.path(output_dir, "figures")
@@ -142,7 +147,7 @@ render_report <- function(config, data,
   if (!all(file.copy(sources, copied_texts, overwrite = TRUE))) {
     stop("Die Textbausteine konnten nicht in den Renderlauf kopiert werden.", call. = FALSE)
   }
-  summaries <- summarise_leistung_input(input)
+  summaries <- summarise_report_input(input)
   saveRDS(input, file.path(archive_dir, "inputs.rds"), version = 3)
   saveRDS(summaries, file.path(archive_dir, "summaries.rds"), version = 3)
   display_labels <- list(
@@ -163,9 +168,9 @@ render_report <- function(config, data,
   }
   subject <- if (config$report$subject == "de") "Deutsch" else "Mathematik"
   title <- paste("Technischer Bericht VERA-3", config$report$main_year, "\u2013", subject)
-  subtitle <- if (config$report$data_origin == "synthetic") {
-    "Leistungsbaustein \u00b7 Synthetisches Beispiel"
-  } else "Leistungsbaustein \u00b7 Entwicklungsfassung"
+  scope_label <- if (config$scope == "pilotierung") "Pilotierungsstudie" else "Leistungsbaustein"
+  subtitle <- paste(scope_label, "\u00b7", if (config$report$data_origin == "synthetic")
+    "Synthetisches Beispiel" else "Entwicklungsfassung")
   quarto::quarto_render(
     input = source, output_format = "docx", output_file = "report.docx",
     metadata = list(title = title, subtitle = subtitle),
@@ -279,8 +284,11 @@ check_report_flag <- function(value, label) {
   }
 }
 
-report_text_files <- function(text_dir = NULL) {
+report_text_files <- function(text_dir = NULL,
+                              scope = c("pilotierung", "pilotierung_leistung")) {
+  scope <- match.arg(scope)
   expected <- c("grundlagen_ueberblick.qmd", "pilotierung_leistung.qmd", "leistung_methoden.qmd")
+  if (scope == "pilotierung") expected <- c(expected, study_text_names())
   if (is.null(text_dir)) text_dir <- system.file("quarto", "texts", package = "eatTechReport")
   check_report_path(text_dir, "text_dir")
   paths <- file.path(text_dir, expected)
@@ -288,6 +296,12 @@ report_text_files <- function(text_dir = NULL) {
     stop("text_dir muss alle Textbausteine enthalten: ", paste(expected, collapse = ", "), call. = FALSE)
   }
   paths
+}
+
+study_text_names <- function() {
+  paste0(c("pilotierung_design_pool", "pilotierung_design_hefte",
+           "pilotierung_stichprobe_ruecklauf", "pilotierung_stichprobe_merkmale",
+           "pilotierung_stichprobe_bearbeitungen"), ".qmd")
 }
 
 word_ns <- function() c(w = "http://schemas.openxmlformats.org/wordprocessingml/2006/main",

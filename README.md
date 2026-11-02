@@ -11,11 +11,12 @@
 <!-- badges: end -->
 
 eatTechReport entwickelt Technische Berichte für VERA-3 aus vorhandenen
-Auswertungsergebnissen und redigierbaren Quarto-Textbausteinen. Der erste
-Paketstand umfasst die **Leistung der Pilotierungsstichprobe**: Eingabeprüfung,
-PV-Kennzahlen, Kompetenzstufenanteile, Dichtegrafiken und einen Word-Prototyp
-nach der verbindlichen Corporate-Vorlage. Weitere Kapitel werden schrittweise
-ergänzt.
+Auswertungsergebnissen und redigierbaren Quarto-Textbausteinen. Der aktuelle
+Paketstand umfasst **Testdesign, Stichprobenbeschreibung und Leistung der
+Pilotierungsstichprobe**: Eingabeprüfung, Aufgaben- und Itemzahlen,
+Testheftaufbau, Rücklauf, Hintergrundmerkmale, gültige Antwortzahlen,
+PV-Kennzahlen und Dichtegrafiken. Die Word-Ausgabe verwendet die verbindliche
+Corporate-Vorlage. Weitere Kapitel werden schrittweise ergänzt.
 
 ## Installation und erster Einstieg
 
@@ -36,16 +37,26 @@ demo <- example_report(
   pilot_year = 2026  # Demoannahme
 )
 
-validate_leistung_input(demo)
-kennzahlen <- summarise_leistung_input(demo)
+validate_report_input(demo)
+kennzahlen <- summarise_report_input(demo)
+kennzahlen$design$pool
+kennzahlen$sample$characteristics$gender
 kennzahlen$descriptives
 kennzahlen$percentages
 plot_performance(demo, scale_id = "DL")
 ```
 
 `seed` steuert die reproduzierbare Simulation; Haupttest- und Pilotierungsjahr
-sind separate Angaben. Die Daten und Cuts des Beispiels sind rein illustrativ.
+sind separate Angaben. Alle Beispielangaben sind synthetisch, einschließlich
+Testdesign, Stichprobe, Antwortzahlen und illustrativer Cuts.
 Für Mathematik steht das Profil `v3_ma_mg_mm` mit der globalen Skala `MO` bereit.
+
+`example_report()` erzeugt standardmäßig `scope = "pilotierung"` mit Schema
+`0.3.0-draft`. Für die Leistungsdarstellung allein bleiben
+`example_leistung_input()` und `example_report(scope = "pilotierung_leistung")`
+verfügbar. Die Leistungsfunktionen können auch vollständige Berichtsobjekte
+verarbeiten; `validate_leistung_input()` prüft dabei den PV-Teil.
+`validate_report_input()` prüft zusätzlich Testdesign und Stichprobe.
 
 ## Word-Bericht und Textredaktion
 
@@ -71,10 +82,10 @@ bericht$path
 bericht$manifest$fields_updated
 ```
 
-Der Bericht enthält derzeit den Leistungsabschnitt und kennzeichnet simulierte
-Daten sichtbar. Ein vollständiger Technischer Bericht mit Testdesign,
-Itemkennwerten und Haupttestkapiteln ist noch nicht umgesetzt. Bestehende
-Ausgaben werden standardmäßig nicht überschrieben.
+Der Bericht enthält derzeit die Abschnitte Testdesign, Stichprobe und Leistung
+und kennzeichnet synthetische Eingaben sichtbar. Ein vollständiger Technischer
+Bericht mit empirischer Itemgüte und Haupttestkapiteln ist noch nicht umgesetzt.
+Bestehende Ausgaben werden standardmäßig nicht überschrieben.
 
 Die Texte lassen sich als Quarto-Dateien in einen eigenen Arbeitsordner kopieren:
 
@@ -90,9 +101,14 @@ bericht <- render_report(
 )
 ```
 
+Die Voreinstellung kopiert acht Bausteine für `scope = "pilotierung"`.
+Mit `scope = "pilotierung_leistung"` werden die drei bisherigen Bausteine für
+eine reine Leistungsdarstellung kopiert. Der Textordner muss alle Bausteine
+des beim Rendern verwendeten Umfangs enthalten.
+
 Vorlage, reale Eingaben, redigierte Texte, Corporate-Berichte und ihre
-Archivdateien bleiben lokal. Der erste Stand schreibt eine nachvollziehbare
-Renderablage; fachliche Vorjahresvergleiche und Randmarkierungen folgen später.
+Archivdateien bleiben lokal. Der Renderer legt einen nachvollziehbaren
+Arbeitsstand ab; fachliche Vorjahresvergleiche und Randmarkierungen folgen später.
 
 ## Eingaben und fachliche Regeln
 
@@ -106,9 +122,19 @@ Renderablage; fachliche Vorjahresvergleiche und Randmarkierungen folgen später.
   Die PVs werden nicht vorab je Person gemittelt.
 - Die vorgesehenen Stufen heißen Ia, Ib, II, III, IV. Reale Grenzwerte benötigen
   ein fachlich freigegebenes Skalenprofil.
+- Aufgaben und Items werden über eindeutige IDs gezählt; Wiederverwendungen
+  in Blöcken und Heften erhöhen ihre Gesamtanzahl nicht.
+- Teilnahme und Auswertungspopulation werden getrennt beschrieben. Die
+  Hintergrundmerkmale beziehen sich auf eindeutige Auswertungspersonen;
+  fehlende kategoriale Angaben erscheinen als „keine Angabe“ im Prozentnenner.
+- Itembearbeitungszahlen bezeichnen gültige beziehungsweise bewertbare
+  Antworten (`Nvalid`) nach einer ausdrücklich dokumentierten Auswertungsregel.
+  Die Kennwerte der Ankeritems stehen in einer eigenen Fußnote.
 
-Der Artikel [Leistungskennzahlen und Plausible Values](vignettes/leistung.qmd)
-beschreibt `config`, `data` und die Berechnungsregeln.
+Der Artikel [Testdesign und Stichprobenbeschreibung](vignettes/pilotierung.qmd)
+erläutert die zusätzlichen R-Objekte `data$design` und `data$sample`.
+[Leistungskennzahlen und Plausible Values](vignettes/leistung.qmd) beschreibt
+die PV-Eingaben und ihre Berechnungsregeln.
 
 ## Dokumentation und Entwicklung
 
@@ -118,19 +144,11 @@ und übermittelt den Bericht an Codecov. Die Tests verwenden ausschließlich
 synthetische Daten und Word-XML-Beispiele; private Vorlagen und Microsoft Word
 sind keine Voraussetzung für diese Prüfungen.
 
-Für die Codecov-Ersteinrichtung muss die Codecov-GitHub-App Zugriff auf das
-private Repository erhalten und dieses in Codecov eingerichtet werden. Nach
-einer Neuerstellung gilt das für die neue Repository-Instanz auch bei gleichem
-Namen; fehlt dieser Zugriff, kann der Upload mit `Repository not found`
-scheitern. Der Workflow authentifiziert den Upload über OIDC. Siehe
-[Codecov-Einrichtung](https://docs.codecov.com/docs/quick-start) und
-[OIDC-Authentifizierung](https://github.com/codecov/codecov-action#using-oidc).
-
-Für ein privates Repository benötigt das Coverage-Badge den privaten Badge-Link
-aus **Configuration → Badges & Graphs** in Codecov. Die oben verwendete
-öffentliche Badge-URL genügt dafür nicht; der Badge-Zugriff ist von der
-OIDC-Authentifizierung des Uploads getrennt. Siehe
-[Codecov-Badges](https://docs.codecov.com/docs/status-badges).
+Codecov ist für das öffentliche Repository eingerichtet. Der Upload verwendet
+[OIDC-Authentifizierung](https://github.com/codecov/codecov-action#using-oidc)
+und benötigt kein zusätzliches Upload-Secret. Für ein neues Repository muss
+die [Codecov-GitHub-App](https://docs.codecov.com/docs/quick-start) zunächst
+Zugriff erhalten.
 
 Die tatsächliche Word-Automation und die visuelle Kontrolle der Corporate-Ausgabe
 werden zusätzlich lokal geprüft. Eine hohe R-Testabdeckung ersetzt diese

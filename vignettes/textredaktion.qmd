@@ -8,8 +8,9 @@ execute:
   eval: false
 ---
 
-Der erste Word-Prototyp stellt die Leistung der Pilotierungsstichprobe dar.
-Die weiteren Kapitel des Technischen Berichts werden schrittweise ergänzt.
+Die Word-Ausgabe umfasst Testdesign, Stichprobenbeschreibung und Leistung der
+Pilotierungsstichprobe. Die weiteren Kapitel des Technischen Berichts werden
+schrittweise ergänzt.
 Die folgenden Aufrufe sind für die lokale Anwendung vorgesehen und werden
 beim Website-Build nicht ausgeführt.
 
@@ -40,7 +41,7 @@ bericht$archive_dir
 ```
 
 Der Prototyp kennzeichnet synthetische Eingaben sichtbar und verwendet
-dieselben Kennzahlen wie `summarise_leistung_input()`. Fehlt die Vorlage,
+dieselben Kennzahlen wie `summarise_report_input()`. Fehlt die Vorlage,
 endet die Dokumenterzeugung mit einer Fehlermeldung.
 
 ## Inhaltsverzeichnis und Seitenzahlen aktualisieren
@@ -76,6 +77,19 @@ Die Texte lassen sich in einen eigenen lokalen Arbeitsordner kopieren:
 edit_report_texts("lokal/redaktion")
 ```
 
+Die Voreinstellung `scope = "pilotierung"` kopiert acht Bausteine:
+
+| Datei | Inhalt |
+| --- | --- |
+| `grundlagen_ueberblick.qmd` | Allgemeine Informationen und Datenherkunft. |
+| `pilotierung_design_pool.qmd` | Aufgaben, Items und ihre Rollen. |
+| `pilotierung_design_hefte.qmd` | Heftaufbau, Zeiten, Zuweisung und Blöcke. |
+| `pilotierung_stichprobe_ruecklauf.qmd` | Teilnahme, Rücklauf und Auswertungspopulation. |
+| `pilotierung_stichprobe_merkmale.qmd` | Alter, Geschlecht, Familiensprache und Testbedingungen. |
+| `pilotierung_stichprobe_bearbeitungen.qmd` | Gültige Antworten je Item und Ankeritem-Fußnote. |
+| `pilotierung_leistung.qmd` | PV-Kennzahlen, Kompetenzstufen und Dichtegrafiken. |
+| `leistung_methoden.qmd` | Berechnungsregeln der Leistungsdarstellung. |
+
 Die erzeugten `.qmd`-Dateien werden in RStudio oder VS Code geöffnet. Absätze,
 Überschriften und Erläuterungen lassen sich dort kapitelweise redigieren.
 Bestehende R-Ausdrücke und Codeblöcke verbinden die Texte mit den berechneten
@@ -94,6 +108,19 @@ bericht <- render_report(
 Der Arbeitsordner enthält redigierbare Quellen. Die installierten
 Standardbausteine werden dabei nicht verändert. Der Quarto-Text beeinflusst
 die Inhalte; die verbindliche Corporate-Vorlage bestimmt die Gestaltung.
+
+Für den früheren Leistungsumfang werden drei Bausteine benötigt:
+
+```{r}
+leistung <- example_report(scope = "pilotierung_leistung")
+edit_report_texts("lokal/redaktion-leistung", scope = "pilotierung_leistung")
+```
+
+Der Renderer erwartet die zum gewählten Umfang passenden Dateien. Wer einen
+bisherigen Ordner mit drei redigierten Bausteinen auf den größeren Umfang
+erweitern möchte, legt einen neuen Ordner mit acht Bausteinen an und überträgt
+die eigenen Textanpassungen dorthin. Vorhandene Dateien werden standardmäßig
+nicht überschrieben.
 
 ## Ausgaben und Renderablage
 
@@ -114,9 +141,11 @@ Corporate-Dokumente und Renderablagen bleiben unter `lokal/`. Die Ablage ist
 ein technischer Renderstand; fachliche Freigabe, Vorjahresvergleich und
 automatische Ausrufezeichen am rechten Rand werden später ergänzt.
 
-## Umfang der ersten Fassung
+## Umgesetzter Umfang
 
-Der Prototyp dient dazu, den Leistungsabschnitt und den Weg von R-Eingaben über
-Quarto zum Corporate-DOCX zu prüfen. Ein vollständiger Technischer Bericht,
-der Abgleich mit realen Eingaben und die abschließende Prüfung sämtlicher
-Word-Layoutvarianten stehen noch aus.
+Der Umfang `pilotierung` verbindet Testdesign, Stichprobenbeschreibung und
+Leistung im Corporate-DOCX. Ein vollständiger Technischer Bericht mit
+empirischer Itemgüte und Haupttestkapiteln, die Anbindung aktueller realer
+Auswertungsobjekte sowie Vorjahresvergleiche und Randmarkierungen stehen noch
+aus. Die vollständigen Eingabestrukturen sind unter
+[Testdesign und Stichprobe](pilotierung.html) beschrieben.

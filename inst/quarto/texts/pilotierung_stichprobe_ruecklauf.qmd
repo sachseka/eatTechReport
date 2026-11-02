@@ -1,0 +1,38 @@
+## Stichprobe {#pilotierung_stichprobe}
+
+### Teilnahme und Auswertung {#pilotierung_stichprobe_ruecklauf}
+
+Für die Pilotierungsstudie wurden `r results$sample$totals$n_requested_classes`
+Klassen angefragt. Teilgenommen haben
+`r results$sample$totals$n_participants` Schülerinnen und Schüler aus
+`r results$sample$totals$n_participating_classes` Klassen. Die
+Auswertungspopulation umfasst `r results$sample$totals$n_analysis_persons`
+Personen. Die folgende Tabelle unterscheidet die Teilnahme von der
+Auswertungspopulation und zeigt deren Verteilung auf die Länder.
+
+```{r}
+#| label: pilotierung_stichprobe_laendertabelle
+#| results: asis
+state <- results$sample$by_state
+total <- results$sample$totals
+state_table <- data.frame(
+  "Land" = c(state$label, "Gesamt"),
+  "Klassen angefragt" = c(state$n_requested_classes, total$n_requested_classes),
+  "Klassen teilgenommen" = c(state$n_participating_classes, total$n_participating_classes),
+  "Personen teilgenommen" = c(state$n_participants, total$n_participants),
+  "Personen ausgewertet" = c(state$n_analysis_persons, total$n_analysis_persons),
+  "Anteil Auswertung (%)" = eatTechReport:::study_number(c(state$analysis_percent, 100)),
+  check.names = FALSE
+)
+cat(eatTechReport:::study_table_markdown(state_table, c("l", rep("r", 5))))
+if (total$n_not_analysed > 0L) {
+  cat("Von den Teilnehmenden gehen ", total$n_not_analysed,
+      " Personen nicht in die Auswertungspopulation ein.\n\n", sep = "")
+}
+```
+
+Die Prozentanteile beziehen sich auf die gesamte Auswertungspopulation.
+Eine Person wird dabei einmal gezählt, auch wenn sie in mehreren Skalen
+ausgewertet wird. Die skalenbezogenen Fallzahlen sind bei der
+Leistungsdarstellung angegeben. Die Zusammensetzung der Stichprobe wird im
+folgenden Abschnitt für die Auswertungspopulation beschrieben.

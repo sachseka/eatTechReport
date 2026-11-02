@@ -1,0 +1,59 @@
+### Aufbau und Zuweisung der Testhefte {#pilotierung_design_hefte}
+
+Der Itempool ist auf `r results$design$totals$n_blocks` Blöcke verteilt.
+Insgesamt stehen `r results$design$totals$n_booklets` Testhefte zur Verfügung.
+Die folgenden Übersichten zeigen die Reihenfolge und vorgesehene Dauer der
+Blöcke, Instruktionen und Pausen. Bei längeren Heften setzt sich die
+Positionsfolge in der nächsten Tabelle fort. Ein Gedankenstrich bezeichnet
+eine nicht belegte Position.
+
+```{r}
+#| label: pilotierung_design_hefttabellen
+#| results: asis
+assignment_labels <- c(person = "Personen", class = "Klassen", school = "Schulen")
+for (part in eatTechReport:::study_design_tables(results$design)) {
+  rule <- part$rule
+  cat("\n\n**", eatTechReport:::report_markdown_text(rule$label), "**\n\n", sep = "")
+  cat("Zuweisungseinheit: ", assignment_labels[[rule$assignment_unit]], ". ",
+      eatTechReport:::report_markdown_text(rule$assignment_description), "\n\n", sep = "")
+  for (position_table in part$parts) {
+    cat(eatTechReport:::study_table_markdown(position_table))
+  }
+  b <- part$booklets
+  durations <- data.frame(
+    "Testheft" = b$booklet_id,
+    "Testblöcke" = b$n_blocks,
+    "Items" = b$n_items,
+    "Bearbeitungszeit (Min.)" = eatTechReport:::study_number(b$test_minutes),
+    "Gesamtdauer (Min.)" = eatTechReport:::study_number(b$total_minutes),
+    check.names = FALSE
+  )
+  cat(eatTechReport:::study_table_markdown(durations, c("l", "r", "r", "r", "r")))
+}
+```
+
+Die Bearbeitungszeit umfasst die Testblöcke; die Gesamtdauer schließt zusätzlich
+die ausgewiesenen Instruktionen und Pausen ein. Die Itemanzahl je Heft zählt
+unterschiedliche Items.
+
+Die Blockübersicht weist die enthaltenen Pilot- und Ankeritems aus:
+
+```{r}
+#| label: pilotierung_design_blocktabelle
+#| results: asis
+b <- results$design$blocks
+block_table <- data.frame(
+  "Block" = b$label,
+  "Bereiche" = b$domain_ids,
+  "Pilotitems" = b$n_pilot,
+  "Ankeritems" = b$n_anchor,
+  check.names = FALSE
+)
+if (config$report$subject == "ma") {
+  module_labels <- c(none = "ohne Zuordnung", base = "Basismodul", supplement = "Ergänzungsmodul")
+  block_table <- cbind(block_table[1:2],
+                       "Vorgesehener Einsatz" = unname(module_labels[b$module]),
+                       block_table[3:4])
+}
+cat(eatTechReport:::study_table_markdown(block_table))
+```

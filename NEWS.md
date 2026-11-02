@@ -1,12 +1,23 @@
 # eatTechReport 0.0.0.9000
 
+* Extend `example_report()` and Word output with test design and sample sections.
+  The default `pilotierung` scope uses schema `0.3.0-draft`; the earlier
+  `pilotierung_leistung` scope remains available explicitly.
+* Add `validate_report_input()` and `summarise_report_input()` for consistent
+  item/task counts, variable booklet designs, participation and analysis
+  populations, sample characteristics, and valid item-response counts.
+* Include missing categorical answers in percentage denominators and report
+  them separately. Keep pilot-item and anchor-item response summaries distinct;
+  anchor statistics appear in a separate Word footnote.
+* Add five editable Quarto blocks and an article covering the new inputs.
+  `edit_report_texts()` now selects the blocks for the requested report scope.
 * Add cross-platform R CMD check and Codecov workflows, with additional tests
   for report generation, archived results, and safe recovery after failures.
 * Include author ORCIDs and workflow/coverage badges in the documentation.
 * Keep internal planning documents locally; user documentation remains in the
   package reference and website articles.
-* Introduce an installable development package for the VERA-3 performance
-  section. Other technical-report chapters remain under development.
+* Provide an installable development package for VERA-3 pilot-study sections.
+  Other technical-report chapters remain under development.
 * Provide reproducible synthetic German and mathematics inputs with 15
   plausible values by default, independent report years, and the agreed
   domain/scale codes.
@@ -15,7 +26,7 @@
   reporting scale.
 * Plot PV distributions with common smoothing and the same proficiency-level
   percentages used in the summary tables.
-* Render an editable Quarto performance section to Word using the mandatory
+* Render editable Quarto pilot-study sections to Word using the mandatory
   locally supplied corporate template, and save a reproducibility snapshot.
   Successful reruns retain the previous output as a backup. With Microsoft Word
   on Windows, update the contents and page-number fields automatically.

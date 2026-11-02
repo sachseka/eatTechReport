@@ -1,5 +1,5 @@
 ---
-title: "Einstieg: vom PV-Datensatz zur Leistungsdarstellung"
+title: "Einstieg: Pilotierungsberichte aus R"
 lang: de
 format:
   html:
@@ -9,9 +9,11 @@ execute:
   message: false
 ---
 
-Der erste Paketstand berechnet die Leistung der Pilotierungsstichprobe und
-stellt sie je auswertbarer Skala dar. Für Deutsch sind mehrere
-Kompetenzbereiche möglich; Mathematik erhält eine gemeinsame globale Skala.
+Der aktuelle Paketstand verbindet Testdesign, Stichprobenbeschreibung und
+Leistungsdarstellung. Die Eingaben liegen als R-Objekte vor; dieselben
+berechneten Ergebnisse werden in Tabellen und redigierbaren Quarto-Texten
+verwendet. Für Deutsch sind mehrere Kompetenzbereiche möglich; Mathematik
+erhält eine gemeinsame globale Leistungsskala.
 
 ## Installation
 
@@ -40,15 +42,32 @@ demo <- example_report(
   pilot_year = 2026
 )
 
-validate_leistung_input(demo)
+validate_report_input(demo)
 ```
 
 `main_year` bezeichnet das Haupttestjahr; `pilot_year` das ausdrücklich
 angegebene Pilotierungsjahr. **2026 ist hier nur eine Demoannahme.** `seed`
 steuert die Wiederholbarkeit der Simulation und hat keine Jahresbedeutung.
+Auch Testdesign, Hintergrundmerkmale und Antwortzahlen sind in diesem
+Beispiel synthetisch.
+
+## Testdesign und Stichprobe prüfen
 
 ```{r}
-kennzahlen <- summarise_leistung_input(demo)
+kennzahlen <- summarise_report_input(demo)
+knitr::kable(kennzahlen$design$pool)
+knitr::kable(kennzahlen$sample$totals)
+knitr::kable(kennzahlen$sample$characteristics$gender, digits = 1)
+```
+
+Der Itempool zählt eindeutige Aufgaben und Items. Teilnahme und
+Auswertungspopulation sind getrennt ausgewiesen. Die Zusammensetzung bezieht
+sich auf die Auswertungspersonen; fehlende kategoriale Angaben erscheinen als
+eigene Kategorie und bleiben im Prozentnenner.
+
+## Leistung der Pilotierungsstichprobe
+
+```{r}
 knitr::kable(kennzahlen$descriptives, digits = 1)
 ```
 
@@ -92,7 +111,14 @@ plot_performance(ma, scale_id = "MO")
 
 ## Weiterarbeiten
 
-Der Artikel [Leistungskennzahlen und PVs](leistung.html) beschreibt den
-Eingabevertrag und die Aggregation. Unter
+`example_report()` verwendet standardmäßig `scope = "pilotierung"` und Schema
+`0.3.0-draft`. Für die Leistung allein steht
+`example_report(scope = "pilotierung_leistung")` zur Verfügung; dieser Umfang
+behält Schema `0.2.0-draft`. Die Funktionen `summarise_leistung_input()` und
+`plot_performance()` können auch mit dem größeren Berichtsobjekt arbeiten.
+
+Der Artikel [Testdesign und Stichprobe](pilotierung.html) beschreibt die neuen
+Eingaben und Zählregeln. [Leistungskennzahlen und PVs](leistung.html) erläutert
+den PV-Eingabevertrag und die Aggregation. Unter
 [Word-Bericht und Textredaktion](textredaktion.html) folgt der lokale
 Renderaufruf mit der verbindlichen Corporate-Vorlage.

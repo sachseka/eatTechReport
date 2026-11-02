@@ -13,8 +13,8 @@ template:
 home:
   title: Technische VERA-Berichte aus R und Quarto
   description: >
-    PV-Kennzahlen, Kompetenzstufenanteile und Dichtegrafiken für VERA-3
-    sowie Word-Berichte aus redigierbaren Quarto-Textbausteinen.
+    Testdesign, Stichprobenbeschreibung und PV-Leistungskennzahlen für VERA-3
+    sowie Word-Abschnitte aus redigierbaren Quarto-Textbausteinen.
 navbar:
   structure:
     left: [intro, reference, articles, news]
@@ -26,6 +26,8 @@ navbar:
     articles:
       text: Anleitungen
       menu:
+        - text: Testdesign und Stichprobe
+          href: articles/pilotierung.html
         - text: Leistungskennzahlen und PVs
           href: articles/leistung.html
         - text: Word-Bericht und Textredaktion
@@ -35,9 +37,11 @@ reference:
     contents:
       - example_report
       - example_leistung_input
+      - validate_report_input
       - validate_leistung_input
   - title: Kennzahlen und Grafiken
     contents:
+      - summarise_report_input
       - summarise_leistung_input
       - plot_performance
   - title: Word-Bericht und Textredaktion
@@ -49,5 +53,6 @@ articles:
     navbar: ~
     contents:
       - einstieg
+      - pilotierung
       - leistung
       - textredaktion

@@ -1,8 +1,10 @@
 # Allgemeine Informationen {#grundlagen_ueberblick}
 
-Dieser Berichtsteil beschreibt die Leistung der Pilotierungsstichprobe im Fach
+Dieser Berichtsteil beschreibt
+`r if (config$scope == "pilotierung") "das Testdesign, die Stichprobe und die Leistung der Pilotierungsstichprobe" else "die Leistung der Pilotierungsstichprobe"`
+im Fach
 `r if (config$report$subject == "de") "Deutsch" else "Mathematik"` für den
-Haupttestdurchgang `r config$report$main_year`. Er umfasst die Verteilung auf der
+Haupttestdurchgang `r config$report$main_year`. Die Leistungsdarstellung umfasst die Verteilung auf der
 500er-Berichtsskala, die Anteile auf den Kompetenzstufen und deskriptive Kennwerte.
 Weitere Kapitel des Technischen Berichts sind in dieser Entwicklungsfassung
 noch nicht enthalten.
@@ -11,7 +13,7 @@ noch nicht enthalten.
 #| label: bericht_datenherkunft
 #| results: asis
 if (config$report$data_origin == "synthetic") {
-  cat("**Synthetisches Beispiel:** Alle Personenwerte wurden simuliert. ",
+  cat("**Synthetisches Beispiel:** Alle Daten und Zahlenangaben sind illustrative Beispieldaten. ",
       "Das Pilotierungsjahr ist eine Demoannahme; die eingezeichneten Cuts ",
       "sind ausschließlich illustrative Grenzwerte. Diese Fassung enthält ",
       "keine empirischen Aussagen über eine tatsächliche Pilotierungsstudie.\n\n", sep = "")

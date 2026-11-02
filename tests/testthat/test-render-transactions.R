@@ -47,7 +47,7 @@ test_that("a successful rendering archives exact inputs and records pending fiel
   expect_identical(tools::md5sum(fixture$template), original_template)
   expect_identical(readRDS(file.path(result$archive_dir, "inputs.rds")), fixture$input)
   expect_identical(readRDS(file.path(result$archive_dir, "summaries.rds")),
-                    summarise_leistung_input(fixture$input))
+                    summarise_report_input(fixture$input))
   expect_identical(result$manifest$report_md5, unname(tools::md5sum(result$path)))
   expect_identical(result$manifest$main_source_md5,
                     unname(tools::md5sum(file.path(fixture$output, "report.qmd"))))

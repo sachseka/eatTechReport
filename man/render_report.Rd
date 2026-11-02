@@ -2,7 +2,7 @@
 % Please edit documentation in R/render.R
 \name{render_report}
 \alias{render_report}
-\title{Render the performance chapter with the mandatory corporate Word template}
+\title{Render pilot-study sections with the mandatory corporate Word template}
 \usage{
 render_report(
   config,
@@ -15,9 +15,10 @@ render_report(
 )
 }
 \arguments{
-\item{config}{Report configuration from the performance input contract.}
+\item{config}{Report configuration from \code{\link[=example_report]{example_report()}}.}
 
-\item{data}{Performance input tables, including population and PV values.}
+\item{data}{Input tables including population, PV values and, for the
+pilot-study scope, design and sample information.}
 
 \item{corporate_template}{Path to the mandatory corporate DOTX template.}
 
@@ -42,9 +43,9 @@ A list of class \code{eat_report} with \code{path}, \code{archive_dir}, \code{ma
 \code{summaries}, \code{config} and \code{previous_output_dir}. Paths are absolute.
 }
 \description{
-This first renderer covers the performance of the pilot sample only. It is
-not a complete technical report and does not invent content for other
-chapters. Inputs follow \code{\link[=example_leistung_input]{example_leistung_input()}} and are validated before
+The renderer covers test design, sample composition and performance for the
+pilot-study scope, or the performance section alone. It is not yet a complete
+technical report. Inputs follow \code{\link[=example_report]{example_report()}} and are validated before
 rendering. Synthetic data and illustrative cuts are explicitly labelled.
 }
 \details{

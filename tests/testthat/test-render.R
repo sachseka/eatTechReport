@@ -11,7 +11,8 @@ test_that("editable blocks are copied and protected from accidental replacement"
   destination <- tempfile("report-texts-")
   files <- edit_report_texts(destination)
   expect_setequal(basename(files), c("grundlagen_ueberblick.qmd",
-                                    "pilotierung_leistung.qmd", "leistung_methoden.qmd"))
+                                    "pilotierung_leistung.qmd", "leistung_methoden.qmd",
+                                    study_text_names()))
   writeLines("Meine redigierte Fassung", files[[1L]])
   expect_error(edit_report_texts(destination), "existieren bereits")
   expect_identical(readLines(files[[1L]]), "Meine redigierte Fassung")
