@@ -1,5 +1,10 @@
 # eatTechReport
 
+<!-- badges: start -->
+[![R-CMD-check](https://github.com/sachseka/eatTechReport/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/sachseka/eatTechReport/actions/workflows/R-CMD-check.yaml)
+[![Codecov test coverage](https://codecov.io/gh/sachseka/eatTechReport/graph/badge.svg)](https://app.codecov.io/gh/sachseka/eatTechReport)
+<!-- badges: end -->
+
 eatTechReport verbindet vorhandene Auswertungsergebnisse mit redigierbaren
 Quarto-Texten für Technische Berichte zu VERA-3.
 
@@ -38,3 +43,8 @@ synthetische Daten; der Website-Build erzeugt keine Word-Berichte.
 Das Paket schätzt keine PVs aus Itemantworten. Es prüft und verarbeitet bereits
 vorliegende Ergebnisse. Für die reale Berichtserstellung sind fachlich
 freigegebene Kompetenzstufengrenzen erforderlich.
+
+Die automatisierten Tests prüfen Berechnungen, Eingaben und Berichtserzeugung
+mit synthetischen Daten. R CMD check läuft auf Windows, macOS und Linux;
+Codecov zeigt die Abdeckung des R-Codes. Die tatsächliche Word-Automation und
+das Corporate-Layout werden zusätzlich lokal geprüft.

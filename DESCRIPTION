@@ -4,8 +4,10 @@ Title: Generate Technical Reports for Educational Assessments
 Version: 0.0.0.9000
 Authors@R: c(
     person("Karoline A.", "Sachse",
-        email = "karoline.sachse@iqb.hu-berlin.de", role = c("aut", "cre")),
-    person("Kilian-Kristoph", "Schumann", role = "aut"))
+        email = "karoline.sachse@iqb.hu-berlin.de", role = c("aut", "cre"),
+        comment = c(ORCID = "0000-0001-6688-1267")),
+    person("Kilian-Kristoph", "Schumann", role = "aut",
+        comment = c(ORCID = "0000-0001-9502-6083")))
 Description: Validate plausible values and population definitions for VERA-3
     assessments, calculate performance summaries, and plot distributions
     with proficiency-level percentages. Assemble an editable Quarto performance
@@ -26,9 +28,10 @@ Imports:
     xml2,
     zip
 Suggests:
+    covr,
     pkgdown (>= 2.0.0),
     roxygen2,
-    testthat (>= 3.0.0)
+    testthat (>= 3.2.0)
 SystemRequirements: Quarto command line interface (for Word document rendering),
     Microsoft Word on Windows (for automatic pagination and field updates)
 Config/testthat/edition: 3

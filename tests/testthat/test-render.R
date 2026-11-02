@@ -21,7 +21,7 @@ test_that("editable blocks are copied and protected from accidental replacement"
 })
 
 test_that("unrelated output directories are never overwritten", {
-  skip_if(is.null(quarto::quarto_path()), "Quarto CLI is unavailable")
+  local_mocked_bindings(quarto_path = function() "quarto-test", .package = "quarto")
   input <- example_leistung_input()
   destination <- tempfile("report-unrelated-")
   dir.create(destination)
@@ -49,7 +49,7 @@ test_that("Word field policy is explicit and portable", {
 })
 
 test_that("failed overwrite leaves earlier output and manifest intact", {
-  skip_if(is.null(quarto::quarto_path()), "Quarto CLI is unavailable")
+  local_mocked_bindings(quarto_path = function() "quarto-test", .package = "quarto")
   input <- example_leistung_input()
   destination <- tempfile("report-previous-")
   dir.create(file.path(destination, "archive"), recursive = TRUE)
@@ -65,33 +65,6 @@ test_that("failed overwrite leaves earlier output and manifest intact", {
   expect_identical(readLines(file.path(destination, "report.docx")), "previous report")
   expect_identical(readRDS(file.path(destination, "archive/manifest.rds")), old_manifest)
 })
-
-synthetic_word_template <- function(path) {
-  directory <- tempfile("word-parts-")
-  dir.create(file.path(directory, "word"), recursive = TRUE)
-  writeLines('<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.template.main+xml"/></Types>',
-             file.path(directory, "[Content_Types].xml"))
-  w <- word_ns()[["w"]]
-  r <- word_ns()[["r"]]
-  document <- paste0('<w:document xmlns:w="', w, '" xmlns:r="', r, '"><w:body>',
-    '<w:p><w:pPr><w:pStyle w:val="TitelDeckblatt"/></w:pPr><w:r><w:rPr><w:color w:val="B40036"/></w:rPr><w:t>Private placeholder</w:t></w:r></w:p>',
-    '<w:p><w:pPr><w:pStyle w:val="SubtitelDeckblatt"/></w:pPr><w:r><w:rPr><w:color w:val="000000"/></w:rPr><w:t>Private subtitle</w:t></w:r></w:p>',
-    '<w:p><w:pPr><w:sectPr><w:headerReference w:type="default" r:id="rId1"/>',
-    '<w:headerReference w:type="first" r:id="rId2"/><w:footerReference w:type="default" r:id="rId3"/>',
-    '<w:pgSz w:w="11906" w:h="16838"/></w:sectPr></w:pPr></w:p>',
-    '<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1400" w:right="1400" w:bottom="1400" w:left="1400"/>',
-    '</w:sectPr></w:body></w:document>')
-  writeLines(document, file.path(directory, "word/document.xml"))
-  styles <- paste0('<w:styles xmlns:w="', w, '">',
-    '<w:style w:type="paragraph" w:styleId="Standard"><w:name w:val="Normal"/></w:style>',
-    '<w:style w:type="paragraph" w:styleId="Text"><w:name w:val="Body Text"/><w:rPr><w:sz w:val="22"/></w:rPr></w:style>',
-    '<w:style w:type="paragraph" w:styleId="Titel"><w:name w:val="Title"/></w:style>',
-    '<w:style w:type="paragraph" w:styleId="TitelDeckblatt"><w:name w:val="Titel_Deckblatt"/><w:rPr><w:color w:val="FFFFFF"/><w:sz w:val="44"/></w:rPr></w:style>',
-    '<w:style w:type="paragraph" w:styleId="SubtitelDeckblatt"><w:name w:val="Subtitel_Deckblatt"/><w:rPr><w:color w:val="FFFFFF"/></w:rPr></w:style>',
-    '</w:styles>')
-  writeLines(styles, file.path(directory, "word/styles.xml"))
-  pack_word_package(directory, path)
-}
 
 test_that("reference conversion retains geometry and inherited corporate styles", {
   template <- tempfile(fileext = ".dotx")
@@ -150,4 +123,44 @@ test_that("table postprocessing uses horizontal rules and repeated headings", {
   expect_identical(xml2::xml_attr(xml2::xml_find_all(doc, "//w:tbl/w:tr//w:keepNext", word_ns()),
                                  "w:val", word_ns()), c("1", "0"))
   expect_length(xml2::xml_find_all(doc, "//w:trPr/w:cantSplit", word_ns()), 2L)
+})
+
+test_that("long tables can flow across pages and the contents field starts a new page", {
+  template <- tempfile(fileext = ".dotx")
+  synthetic_word_template(template)
+  directory <- tempfile("long-table-fixture-")
+  extract_word_package(template, directory)
+  ns <- word_ns()
+  document_path <- file.path(directory, "word/document.xml")
+  doc <- xml2::read_xml(document_path)
+  body <- xml2::xml_find_first(doc, "w:body", ns)
+  contents <- xml2::read_xml(paste0('<w:sdt xmlns:w="', ns[["w"]],
+    '"><w:sdtContent><w:p><w:r><w:instrText>TOC</w:instrText></w:r>',
+    '</w:p></w:sdtContent></w:sdt>'))
+  xml2::xml_add_child(body, contents, .where = 0)
+  rows <- vapply(seq_len(10L), function(i) {
+    paste0('<w:tr><w:tc><w:p><w:r><w:t>Row ', i, '</w:t></w:r></w:p></w:tc></w:tr>')
+  }, character(1))
+  table <- xml2::read_xml(paste0('<w:tbl xmlns:w="', ns[["w"]], '">',
+                                paste(rows, collapse = ""), '</w:tbl>'))
+  xml2::xml_add_child(body, table, .where = 1)
+  xml2::write_xml(doc, document_path)
+  writeLines(paste0('<w:settings xmlns:w="', ns[["w"]], '">',
+                     '<w:updateFields w:val="false"/></w:settings>'),
+               file.path(directory, "word/settings.xml"))
+  report <- tempfile(fileext = ".docx")
+  pack_word_package(directory, report)
+
+  finalise_report_docx(report)
+  result <- tempfile("long-table-result-")
+  extract_word_package(report, result)
+  doc <- xml2::read_xml(file.path(result, "word/document.xml"))
+  expect_length(xml2::xml_find_all(doc, "//w:tbl/w:tr", ns), 10L)
+  expect_length(xml2::xml_find_all(doc, "//w:tbl//w:keepNext|//w:tbl//w:cantSplit", ns), 0L)
+  expect_length(xml2::xml_find_all(doc, "//w:trPr/w:tblHeader", ns), 1L)
+  expect_length(xml2::xml_find_all(doc,
+    "//w:sdt/preceding-sibling::*[1][self::w:p]//w:br[@w:type='page']", ns), 1L)
+  settings <- xml2::read_xml(file.path(result, "word/settings.xml"))
+  expect_identical(xml2::xml_attr(xml2::xml_find_first(settings, "w:updateFields", ns),
+                                 "w:val", ns), "true")
 })

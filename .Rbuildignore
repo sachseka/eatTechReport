@@ -20,3 +20,5 @@
 ^grateful-.*$
 ^.*[.]Rcheck$
 ^.*[.]tar[.]gz$
+^check$
+^coverage[.]xml$

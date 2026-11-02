@@ -21,11 +21,11 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Karoline A. Sachse \email{karoline.sachse@iqb.hu-berlin.de}
+\strong{Maintainer}: Karoline A. Sachse \email{karoline.sachse@iqb.hu-berlin.de} (\href{https://orcid.org/0000-0001-6688-1267}{ORCID})
 
 Authors:
 \itemize{
-  \item Kilian-Kristoph Schumann
+  \item Kilian-Kristoph Schumann (\href{https://orcid.org/0000-0001-9502-6083}{ORCID})
 }
 
 }

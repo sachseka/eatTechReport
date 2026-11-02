@@ -5,12 +5,17 @@
   <img src="man/figures/logo-light.png" alt="eatTechReport-Logo: Schreibmaschine mit Berichtseite" align="right" width="160">
 </picture>
 
+<!-- badges: start -->
+[![R-CMD-check](https://github.com/sachseka/eatTechReport/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/sachseka/eatTechReport/actions/workflows/R-CMD-check.yaml)
+[![Codecov test coverage](https://codecov.io/gh/sachseka/eatTechReport/graph/badge.svg)](https://app.codecov.io/gh/sachseka/eatTechReport)
+<!-- badges: end -->
+
 eatTechReport entwickelt Technische Berichte für VERA-3 aus vorhandenen
 Auswertungsergebnissen und redigierbaren Quarto-Textbausteinen. Der erste
 Paketstand umfasst die **Leistung der Pilotierungsstichprobe**: Eingabeprüfung,
 PV-Kennzahlen, Kompetenzstufenanteile, Dichtegrafiken und einen Word-Prototyp
-nach der verbindlichen Corporate-Vorlage. Die weiteren Kapitel folgen dem
-[Arbeitsplan](docs/ARBEITSPLAN.md).
+nach der verbindlichen Corporate-Vorlage. Weitere Kapitel werden schrittweise
+ergänzt.
 
 ## Installation und erster Einstieg
 
@@ -102,10 +107,20 @@ Renderablage; fachliche Vorjahresvergleiche und Randmarkierungen folgen später.
 - Die vorgesehenen Stufen heißen Ia, Ib, II, III, IV. Reale Grenzwerte benötigen
   ein fachlich freigegebenes Skalenprofil.
 
-Der [Eingabevertrag](docs/SCHNITTSTELLE_LEISTUNG.md) beschreibt `config` und `data`.
-Die [Kapitelmatrix](docs/KAPITELMATRIX.md) hält den vereinbarten Gesamtumfang fest.
+Der Artikel [Leistungskennzahlen und Plausible Values](vignettes/leistung.qmd)
+beschreibt `config`, `data` und die Berechnungsregeln.
 
 ## Dokumentation und Entwicklung
+
+GitHub Actions prüft das Paket auf Windows, macOS und Linux sowie mit R-release,
+R-devel und R-oldrel-1. Ein eigener Workflow misst die R-Testabdeckung mit `covr`
+und übermittelt den Bericht an Codecov. Die Tests verwenden ausschließlich
+synthetische Daten und Word-XML-Beispiele; private Vorlagen und Microsoft Word
+sind keine Voraussetzung für diese Prüfungen.
+
+Die tatsächliche Word-Automation und die visuelle Kontrolle der Corporate-Ausgabe
+werden zusätzlich lokal geprüft. Eine hohe R-Testabdeckung ersetzt diese
+Integrationsprüfung nicht.
 
 Die pkgdown-Website wird lokal mit synthetischen Beispielen erzeugt:
 
@@ -115,7 +130,8 @@ install.packages("pkgdown")
 pkgdown::build_site(preview = FALSE)
 ```
 
-Das Ausgabeziel ist `_pkgdown/`; `docs/` enthält die Planungsquellen.
+Das Ausgabeziel ist `_pkgdown/`. Interne Arbeitsunterlagen werden außerhalb
+des Repositories unter `lokal/planung/` gepflegt.
 Website-Beispiele greifen nicht auf die private Word-Vorlage oder reale Daten
 zu. Der Website-Build veröffentlicht nichts.
 
@@ -141,7 +157,5 @@ R bereits eine ungültige `C.UTF-8`-Ländereinstellung meldet, kann in der hier
 geprüften deutschen Windows-Umgebung zusätzlich vor dem R-Aufruf
 `$env:LC_ALL = 'German_Germany.utf8'` gesetzt werden.
 
-Die historischen Quarto-Berichte sind in der
-[Dokumentation des Altbestands](docs/ALTBESTAND.md) beschrieben. Sie gehören
-nicht zur neuen Paket-API. [Logo-Varianten und Herkunft](docs/LOGO.md) sind
-separat dokumentiert.
+Die historischen Quarto-Berichte gehören nicht zur neuen Paket-API.
+[Logo-Varianten und Herkunft](design/README.md) sind separat dokumentiert.

@@ -22,8 +22,8 @@ die Light-/Dark-Versionen unter `D:/eat/IQB-Methods/logos/`.
 - [Lightmode](../man/figures/logo-light.png)
 - [Darkmode](../man/figures/logo-dark.png)
 - [Standardlogo für Paketwerkzeuge](../man/figures/logo.png)
-- [Bildquelle vor geometrischer Bereinigung](../design/logo-source.png)
-- [Reproduzierbare Bereinigung](../design/build-logo.ps1)
+- [Bildquelle vor geometrischer Bereinigung](logo-source.png)
+- [Reproduzierbare Bereinigung](build-logo.ps1)
 
 Die beiden finalen Varianten werden aus derselben Bildquelle abgeleitet. Damit
 bleiben Motiv, Wortmarke, Größe und Position übereinstimmend.

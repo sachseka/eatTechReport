@@ -1,5 +1,10 @@
 # eatTechReport 0.0.0.9000
 
+* Add cross-platform R CMD check and Codecov workflows, with additional tests
+  for report generation, archived results, and safe recovery after failures.
+* Include author ORCIDs and workflow/coverage badges in the documentation.
+* Keep internal planning documents locally; user documentation remains in the
+  package reference and website articles.
 * Introduce an installable development package for the VERA-3 performance
   section. Other technical-report chapters remain under development.
 * Provide reproducible synthetic German and mathematics inputs with 15

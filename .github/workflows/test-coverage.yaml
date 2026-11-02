@@ -1,0 +1,94 @@
+# Based on https://github.com/r-lib/actions/tree/v2/examples
+# OIDC authentication: https://github.com/codecov/codecov-action#using-oidc
+name: test-coverage
+
+'on':
+  push:
+    branches: [main, 'feat/**']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-coverage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      R_KEEP_PKG_SOURCE: 'yes'
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: release
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: |
+            any::covr
+            any::xml2
+          needs: coverage
+          install-quarto: true
+
+      - name: Measure R test coverage
+        shell: Rscript {0}
+        run: |
+          coverage <- covr::package_coverage(
+            type = "tests",
+            quiet = FALSE,
+            clean = FALSE,
+            install_path = file.path(
+              normalizePath(Sys.getenv("RUNNER_TEMP"), winslash = "/"),
+              "coverage-package"
+            )
+          )
+          print(coverage)
+          covr::to_cobertura(coverage, file = "coverage.xml")
+          cat(sprintf("## R test coverage\n\n%.1f%% of R code covered.\n",
+                      covr::percent_coverage(coverage)),
+              file = Sys.getenv("GITHUB_STEP_SUMMARY"), append = TRUE)
+
+      - name: Preserve coverage report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: r-test-coverage
+          path: coverage.xml
+          if-no-files-found: ignore
+          retention-days: 14
+
+      # Fork PRs still run the tests and retain their XML artifact. They do not
+      # need a secret or an authenticated upload into the upstream account.
+      - name: Upload coverage to Codecov using OIDC
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        uses: codecov/codecov-action@v7
+        with:
+          use_oidc: true
+          files: coverage.xml
+          disable_search: true
+          plugins: noop
+          fail_ci_if_error: true
+          slug: sachseka/eatTechReport
+
+      - name: Preserve test output on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-test-failures
+          path: ${{ runner.temp }}/coverage-package/**/testthat.Rout*
+          if-no-files-found: ignore
+          retention-days: 14
