@@ -118,6 +118,20 @@ und übermittelt den Bericht an Codecov. Die Tests verwenden ausschließlich
 synthetische Daten und Word-XML-Beispiele; private Vorlagen und Microsoft Word
 sind keine Voraussetzung für diese Prüfungen.
 
+Für die Codecov-Ersteinrichtung muss die Codecov-GitHub-App Zugriff auf das
+private Repository erhalten und dieses in Codecov eingerichtet werden. Nach
+einer Neuerstellung gilt das für die neue Repository-Instanz auch bei gleichem
+Namen; fehlt dieser Zugriff, kann der Upload mit `Repository not found`
+scheitern. Der Workflow authentifiziert den Upload über OIDC. Siehe
+[Codecov-Einrichtung](https://docs.codecov.com/docs/quick-start) und
+[OIDC-Authentifizierung](https://github.com/codecov/codecov-action#using-oidc).
+
+Für ein privates Repository benötigt das Coverage-Badge den privaten Badge-Link
+aus **Configuration → Badges & Graphs** in Codecov. Die oben verwendete
+öffentliche Badge-URL genügt dafür nicht; der Badge-Zugriff ist von der
+OIDC-Authentifizierung des Uploads getrennt. Siehe
+[Codecov-Badges](https://docs.codecov.com/docs/status-badges).
+
 Die tatsächliche Word-Automation und die visuelle Kontrolle der Corporate-Ausgabe
 werden zusätzlich lokal geprüft. Eine hohe R-Testabdeckung ersetzt diese
 Integrationsprüfung nicht.

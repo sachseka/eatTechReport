@@ -48,3 +48,7 @@ Die automatisierten Tests prüfen Berechnungen, Eingaben und Berichtserzeugung
 mit synthetischen Daten. R CMD check läuft auf Windows, macOS und Linux;
 Codecov zeigt die Abdeckung des R-Codes. Die tatsächliche Word-Automation und
 das Corporate-Layout werden zusätzlich lokal geprüft.
+
+Für das private Repository setzen Codecov und sein Badge die
+[Einrichtung der Repository-Anbindung und des privaten Badge-Links](https://github.com/sachseka/eatTechReport#dokumentation-und-entwicklung)
+voraus.
