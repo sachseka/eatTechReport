@@ -1,0 +1,98 @@
+---
+title: "Einstieg: vom PV-Datensatz zur Leistungsdarstellung"
+lang: de
+format:
+  html:
+    minimal: true
+execute:
+  warning: false
+  message: false
+---
+
+Der erste Paketstand berechnet die Leistung der Pilotierungsstichprobe und
+stellt sie je auswertbarer Skala dar. Für Deutsch sind mehrere
+Kompetenzbereiche möglich; Mathematik erhält eine gemeinsame globale Skala.
+
+## Installation
+
+Im lokalen Projektordner lässt sich das Entwicklungspaket installieren:
+
+```{r}
+#| eval: false
+install.packages("remotes")
+remotes::install_local(".", dependencies = NA)
+```
+
+Die folgenden Beispiele benötigen keine Word-Vorlage und schreiben keine
+Berichte. Alle Werte werden synthetisch erzeugt.
+
+## Deutsch: Lesen und Zuhören
+
+```{r}
+library(eatTechReport)
+
+demo <- example_report(
+  profile = "v3_de_lesen_zuhoeren",
+  seed = 42,
+  n_persons = 200,
+  n_pv = 15,
+  main_year = 2027,
+  pilot_year = 2026
+)
+
+validate_leistung_input(demo)
+```
+
+`main_year` bezeichnet das Haupttestjahr; `pilot_year` das ausdrücklich
+angegebene Pilotierungsjahr. **2026 ist hier nur eine Demoannahme.** `seed`
+steuert die Wiederholbarkeit der Simulation und hat keine Jahresbedeutung.
+
+```{r}
+kennzahlen <- summarise_leistung_input(demo)
+knitr::kable(kennzahlen$descriptives, digits = 1)
+```
+
+Die Tabelle enthält je Skala die Personenanzahl, PV-Anzahl, den Mittelwert und
+die Standardabweichung. Die Berechnung verwendet ungerundete Werte; `digits`
+legt hier lediglich die Anzeige fest.
+
+```{r}
+#| fig-width: 8
+#| fig-height: 4.8
+#| fig-alt: "Simulierte Leistungsverteilung für Lesen mit Kompetenzstufengrenzen und Prozentanteilen."
+plot_performance(demo, scale_id = "DL")
+```
+
+Die hier verwendeten Kompetenzstufengrenzen sind **rein illustrativ**. Die
+Stufenbezeichnungen Ia, Ib, II, III, IV sind als Vorgabe hinterlegt; die
+numerischen Cuts müssen für reale Berichte fachlich freigegeben sein.
+
+## Mathematik: gemeinsame Skala MO
+
+```{r}
+ma <- example_report(
+  profile = "v3_ma_mg_mm",
+  seed = 42,
+  n_persons = 200
+)
+
+knitr::kable(ma$config$domains)
+knitr::kable(summarise_leistung_input(ma)$descriptives, digits = 1)
+```
+
+Die fünf Leitideen verweisen alle auf `MO`. Die Modulschwerpunkte `MG` und `MM`
+erzeugen keine zusätzlichen psychometrischen Skalen oder Untergruppen.
+
+```{r}
+#| fig-width: 8
+#| fig-height: 4.8
+#| fig-alt: "Simulierte globale Mathematik-Leistungsverteilung mit Kompetenzstufengrenzen und Prozentanteilen."
+plot_performance(ma, scale_id = "MO")
+```
+
+## Weiterarbeiten
+
+Der Artikel [Leistungskennzahlen und PVs](leistung.html) beschreibt den
+Eingabevertrag und die Aggregation. Unter
+[Word-Bericht und Textredaktion](textredaktion.html) folgt der lokale
+Renderaufruf mit der verbindlichen Corporate-Vorlage.

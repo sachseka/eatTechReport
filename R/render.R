@@ -1,0 +1,524 @@
+#' Copy editable Quarto text blocks
+#'
+#' Copies the text blocks for the current performance report into a working
+#' directory. Edit these copies and pass the directory to [render_report()].
+#' The package installation itself is never edited.
+#'
+#' @param path Local directory for the editable text blocks.
+#' @param overwrite Whether existing blocks may be replaced. Defaults to FALSE.
+#' @return Invisibly, the paths of the copied Quarto files.
+#' @export
+#' @examples
+#' texts <- tempfile("report-texts-")
+#' edit_report_texts(texts)
+edit_report_texts <- function(path, overwrite = FALSE) {
+  check_report_path(path, "path")
+  check_report_flag(overwrite, "overwrite")
+  sources <- report_text_files()
+  targets <- file.path(path, basename(sources))
+  if (!overwrite && any(file.exists(targets))) {
+    stop("Textbausteine existieren bereits; zum Ersetzen overwrite = TRUE angeben.", call. = FALSE)
+  }
+  if (!dir.exists(path) && !dir.create(path, recursive = TRUE)) {
+    stop("Der Textordner konnte nicht angelegt werden.", call. = FALSE)
+  }
+  if (!all(file.copy(sources, targets, overwrite = overwrite))) {
+    stop("Nicht alle Textbausteine konnten kopiert werden.", call. = FALSE)
+  }
+  invisible(normalizePath(targets, winslash = "/"))
+}
+
+#' Render the performance chapter with the mandatory corporate Word template
+#'
+#' This first renderer covers the performance of the pilot sample only. It is
+#' not a complete technical report and does not invent content for other
+#' chapters. Inputs follow [example_leistung_input()] and are validated before
+#' rendering. Synthetic data and illustrative cuts are explicitly labelled.
+#'
+#' The private corporate DOTX is required for every report. Its styles, page
+#' geometry, headers and footers are used to prepare a local DOCX reference.
+#' Template body text is not imported. Missing Pandoc styles are derived from
+#' corporate styles. Quarto must be installed separately.
+#'
+#' All generated files, including the derived reference and a baseline snapshot
+#' of inputs, results, texts and software information, are written inside
+#' `output_dir`. Use a private directory excluded from version control, for
+#' example `lokal/demo-de`. This snapshot is not a signed-off release archive;
+#' change comparison and margin markers are not implemented yet.
+#'
+#' @param config Report configuration from the performance input contract.
+#' @param data Performance input tables, including population and PV values.
+#' @param corporate_template Path to the mandatory corporate DOTX template.
+#' @param text_dir Optional directory containing all editable Quarto blocks
+#'   created by [edit_report_texts()]. NULL uses the package blocks.
+#' @param output_dir Private local directory for the report and its snapshot.
+#' @param overwrite Allow replacement of an earlier eatTechReport rendering in
+#'   this directory. The earlier directory is retained as a sibling backup after
+#'   successful rendering. Failed attempts leave the previous output intact.
+#'   Nonempty unrelated directories are always rejected.
+#' @param update_fields How to finalise Word fields and the table of contents.
+#'   `"auto"` uses a locally installed Microsoft Word on Windows when available.
+#'   `"word"` requires it. `"none"` skips this step. Unupdated documents have
+#'   manifest status `fields_pending` and produce a warning. Word automation
+#'   operates only on the newly generated staging document.
+#' @return A list of class `eat_report` with `path`, `archive_dir`, `manifest`,
+#'   `summaries`, `config` and `previous_output_dir`. Paths are absolute.
+#' @export
+#' @examples
+#' \dontrun{
+#' demo <- example_report()
+#' result <- render_report(demo$config, demo$data,
+#'                         corporate_template = "lokal/Bericht.dotx",
+#'                         output_dir = "lokal/demo-de")
+#' result$path
+#' }
+render_report <- function(config, data,
+                          corporate_template = "lokal/Bericht.dotx",
+                          text_dir = NULL, output_dir, overwrite = FALSE,
+                          update_fields = c("auto", "word", "none")) {
+  update_fields <- match.arg(update_fields)
+  input <- list(config = config, data = data)
+  validate_leistung_input(input)
+  check_report_path(corporate_template, "corporate_template")
+  check_report_path(output_dir, "output_dir")
+  check_report_flag(overwrite, "overwrite")
+  if (!file.exists(corporate_template) || dir.exists(corporate_template)) {
+    stop("Die verbindliche Corporate-Vorlage fehlt: ", corporate_template,
+         ". Es gibt keine Ersatzgestaltung.", call. = FALSE)
+  }
+  if (tolower(tools::file_ext(corporate_template)) != "dotx") {
+    stop("corporate_template muss auf die freigegebene DOTX-Vorlage verweisen.", call. = FALSE)
+  }
+  sources <- report_text_files(text_dir)
+  if (!requireNamespace("knitr", quietly = TRUE) || !requireNamespace("rmarkdown", quietly = TRUE)) {
+    stop("Die R-Ausfuehrung in Quarto benoetigt knitr und rmarkdown.", call. = FALSE)
+  }
+  quarto_path <- quarto::quarto_path()
+  if (is.null(quarto_path) || !nzchar(quarto_path)) {
+    stop("Quarto CLI ist nicht installiert oder nicht auffindbar.", call. = FALSE)
+  }
+  existing <- if (dir.exists(output_dir)) list.files(output_dir, all.files = TRUE, no.. = TRUE) else character()
+  if (length(existing) && (!overwrite || !file.exists(file.path(output_dir, ".eatTechReport-render")))) {
+    stop("output_dir ist nicht leer. Nur eigene fruehere Renderlaeufe koennen mit overwrite = TRUE ersetzt werden.",
+         call. = FALSE)
+  }
+  fields_requested <- resolve_field_update(update_fields)
+  parent <- dirname(output_dir)
+  if (!dir.exists(parent) && !dir.create(parent, recursive = TRUE)) {
+    stop("Der uebergeordnete Ausgabeordner konnte nicht angelegt werden.", call. = FALSE)
+  }
+  parent <- normalizePath(parent, winslash = "/")
+  destination <- if (dir.exists(output_dir)) normalizePath(output_dir, winslash = "/") else
+    file.path(parent, basename(output_dir))
+  template_path <- normalizePath(corporate_template, winslash = "/")
+  sources <- normalizePath(sources, winslash = "/")
+  source_paths <- tolower(c(template_path, sources))
+  if (any(startsWith(source_paths, paste0(tolower(destination), "/")))) {
+    stop("Vorlage und redigierte Texte muessen ausserhalb von output_dir liegen.", call. = FALSE)
+  }
+  output_dir <- tempfile(".eatTechReport-render-", tmpdir = parent)
+  dir.create(output_dir)
+  output_dir <- normalizePath(output_dir, winslash = "/")
+  # Both directory moves at the end are confined to this checked parent.
+  if (!identical(dirname(output_dir), parent) || !identical(dirname(destination), parent)) {
+    stop("Die Ausgabeordner liegen ausserhalb des angegebenen Zielverzeichnisses.", call. = FALSE)
+  }
+  writeLines("eatTechReport performance rendering", file.path(output_dir, ".eatTechReport-render"))
+  archive_dir <- file.path(output_dir, "archive")
+  text_path <- file.path(archive_dir, "texts")
+  asset_path <- file.path(output_dir, "figures")
+  for (path in c(archive_dir, text_path, asset_path)) dir.create(path, recursive = TRUE, showWarnings = FALSE)
+  complete <- FALSE
+  write_report_manifest(list(status = "rendering"), archive_dir)
+  on.exit({
+    if (!complete && dir.exists(archive_dir)) {
+      write_report_manifest(list(status = "failed", scope = config$scope), archive_dir)
+      message("Renderlauf fehlgeschlagen; bisherige Ausgabe bleibt erhalten. Arbeitsdateien: ", output_dir)
+    }
+  }, add = TRUE)
+  reference <- file.path(output_dir, "corporate-reference.docx")
+  prepare_corporate_reference(template_path, reference)
+  copied_texts <- file.path(text_path, basename(sources))
+  if (!all(file.copy(sources, copied_texts, overwrite = TRUE))) {
+    stop("Die Textbausteine konnten nicht in den Renderlauf kopiert werden.", call. = FALSE)
+  }
+  summaries <- summarise_leistung_input(input)
+  saveRDS(input, file.path(archive_dir, "inputs.rds"), version = 3)
+  saveRDS(summaries, file.path(archive_dir, "summaries.rds"), version = 3)
+  display_labels <- list(
+    scales = vapply(config$scales, function(scale) report_markdown_text(scale$label), character(1)),
+    levels = lapply(config$scales, function(scale) report_markdown_text(scale$level_labels))
+  )
+  saveRDS(display_labels, file.path(archive_dir, "display-labels.rds"), version = 3)
+  for (scale_id in names(config$scales)) {
+    ggplot2::ggsave(file.path(asset_path, paste0(scale_id, ".png")),
+                    plot = plot_performance(input, scale_id),
+                    width = 6.2, height = 3.7, units = "in", dpi = 200, bg = "white")
+  }
+  main_source <- system.file("quarto", "report.qmd", package = "eatTechReport")
+  if (!nzchar(main_source)) stop("Die Quarto-Hauptdatei fehlt in der Paketinstallation.", call. = FALSE)
+  source <- file.path(output_dir, "report.qmd")
+  if (!file.copy(main_source, source, overwrite = TRUE)) {
+    stop("Die Quarto-Hauptdatei konnte nicht kopiert werden.", call. = FALSE)
+  }
+  subject <- if (config$report$subject == "de") "Deutsch" else "Mathematik"
+  title <- paste("Technischer Bericht VERA-3", config$report$main_year, "\u2013", subject)
+  subtitle <- if (config$report$data_origin == "synthetic") {
+    "Leistungsbaustein \u00b7 Synthetisches Beispiel"
+  } else "Leistungsbaustein \u00b7 Entwicklungsfassung"
+  quarto::quarto_render(
+    input = source, output_format = "docx", output_file = "report.docx",
+    metadata = list(title = title, subtitle = subtitle),
+    quiet = TRUE, as_job = FALSE
+  )
+  report_path <- file.path(output_dir, "report.docx")
+  if (!file.exists(report_path)) stop("Quarto hat keine DOCX-Datei erzeugt.", call. = FALSE)
+  finalise_report_docx(report_path)
+  fields_updated <- FALSE
+  if (fields_requested) {
+    update_docx_fields(report_path, file.path(archive_dir, "word-fields.log"))
+    fields_updated <- TRUE
+  }
+  session <- utils::sessionInfo()
+  writeLines(utils::capture.output(session), file.path(archive_dir, "sessionInfo.txt"), useBytes = TRUE)
+  hashes <- tools::md5sum(copied_texts)
+  names(hashes) <- basename(copied_texts)
+  manifest <- list(
+    archive_schema = "0.1.0", status = if (fields_updated) "development_snapshot" else "fields_pending",
+    created_utc = format(Sys.time(), tz = "UTC", usetz = TRUE),
+    scope = config$scope, data_origin = config$report$data_origin,
+    schema_version = config$schema_version,
+    package_version = as.character(utils::packageVersion("eatTechReport")),
+    quarto_version = as.character(quarto::quarto_version()),
+    template_file = basename(template_path), template_md5 = unname(tools::md5sum(template_path)),
+    text_md5 = hashes, report_md5 = unname(tools::md5sum(report_path)),
+    main_source_file = "../report.qmd", main_source_md5 = unname(tools::md5sum(source)),
+    reference_file = "../corporate-reference.docx", figures_dir = "../figures",
+    inputs_file = "inputs.rds", summaries_file = "summaries.rds",
+    change_markers = FALSE, fields_updated = fields_updated
+  )
+  write_report_manifest(manifest, archive_dir)
+  previous <- NULL
+  if (dir.exists(destination)) {
+    previous <- tempfile(paste0(basename(destination), "-previous-"), tmpdir = parent)
+    if (!identical(dirname(previous), parent) || !file.rename(destination, previous)) {
+      stop("Die bisherige Ausgabe konnte nicht gesichert werden; der neue Lauf bleibt im Arbeitsordner.", call. = FALSE)
+    }
+  }
+  if (!file.rename(output_dir, destination)) {
+    if (!is.null(previous) && !file.rename(previous, destination)) {
+      stop("Ausgabeverschiebung fehlgeschlagen. Die bisherige Ausgabe liegt unter: ", previous, call. = FALSE)
+    }
+    stop("Die neue Ausgabe konnte nicht an den Zielort verschoben werden.", call. = FALSE)
+  }
+  complete <- TRUE
+  structure(list(path = file.path(destination, "report.docx"),
+                 archive_dir = file.path(destination, "archive"), manifest = manifest,
+                 summaries = summaries, config = config, previous_output_dir = previous), class = "eat_report")
+}
+
+windows_word_available <- function() {
+  if (.Platform$OS.type != "windows" || !nzchar(Sys.which("powershell"))) return(FALSE)
+  registry <- tryCatch(utils::readRegistry("Word.Application\\CLSID", hive = "HCR", maxdepth = 1L),
+                       error = function(e) NULL)
+  length(registry) > 0L
+}
+
+resolve_field_update <- function(mode, available = windows_word_available()) {
+  if (mode == "none") {
+    warning("Word-Felder werden nicht aktualisiert; der Archivstatus lautet fields_pending.", call. = FALSE)
+    return(FALSE)
+  }
+  if (available) return(TRUE)
+  if (mode == "word") {
+    stop("update_fields = 'word' benoetigt Microsoft Word und PowerShell unter Windows.", call. = FALSE)
+  }
+  warning("Microsoft Word unter Windows ist nicht verfuegbar: Inhaltsverzeichnis und Felder bleiben unaktualisiert (fields_pending).",
+          call. = FALSE)
+  FALSE
+}
+
+update_docx_fields <- function(path, log_path) {
+  script <- system.file("scripts", "update-word-fields.ps1", package = "eatTechReport")
+  if (!nzchar(script)) stop("Das Skript zur Word-Feldaktualisierung fehlt.", call. = FALSE)
+  result <- tryCatch(processx::run(
+    command = unname(Sys.which("powershell")),
+    args = c("-NoLogo", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
+             "-File", script, "-DocumentPath", path),
+    timeout = 120000, windows_hide_window = TRUE, error_on_status = TRUE
+  ), error = function(e) {
+    stop("Word-Felder konnten nicht automatisch aktualisiert werden: ", conditionMessage(e), call. = FALSE)
+  })
+  writeLines(c(result$stdout, result$stderr), log_path, useBytes = TRUE)
+  invisible(TRUE)
+}
+
+write_report_manifest <- function(manifest, archive_dir) {
+  saveRDS(manifest, file.path(archive_dir, "manifest.rds"), version = 3)
+  writeLines(utils::capture.output(dput(manifest)), file.path(archive_dir, "manifest.txt"), useBytes = TRUE)
+}
+
+report_markdown_text <- function(value) {
+  special <- c("\\", "`", "*", "_", "{", "}", "[", "]", "(", ")", "#", "+", "-", ".", "!", "|", "<", ">")
+  vapply(strsplit(enc2utf8(value), "", fixed = TRUE), function(chars) {
+    escaped <- ifelse(chars %in% special, paste0("\\", chars), chars)
+    escaped[chars == "|"] <- "&#124;"
+    paste0(escaped, collapse = "")
+  }, character(1), USE.NAMES = FALSE)
+}
+
+check_report_path <- function(path, label) {
+  if (!is.character(path) || length(path) != 1L || is.na(path) || !nzchar(trimws(path))) {
+    stop(label, " muss genau einen nichtleeren Dateipfad enthalten.", call. = FALSE)
+  }
+}
+
+check_report_flag <- function(value, label) {
+  if (!is.logical(value) || length(value) != 1L || is.na(value)) {
+    stop(label, " muss TRUE oder FALSE sein.", call. = FALSE)
+  }
+}
+
+report_text_files <- function(text_dir = NULL) {
+  expected <- c("grundlagen_ueberblick.qmd", "pilotierung_leistung.qmd", "leistung_methoden.qmd")
+  if (is.null(text_dir)) text_dir <- system.file("quarto", "texts", package = "eatTechReport")
+  check_report_path(text_dir, "text_dir")
+  paths <- file.path(text_dir, expected)
+  if (!all(file.exists(paths)) || any(dir.exists(paths))) {
+    stop("text_dir muss alle Textbausteine enthalten: ", paste(expected, collapse = ", "), call. = FALSE)
+  }
+  paths
+}
+
+word_ns <- function() c(w = "http://schemas.openxmlformats.org/wordprocessingml/2006/main",
+                       r = "http://schemas.openxmlformats.org/officeDocument/2006/relationships")
+
+extract_word_package <- function(path, directory) {
+  entries <- utils::unzip(path, list = TRUE)$Name
+  if (!length(entries) || any(grepl("(^/|^[A-Za-z]:|\\\\|(^|/)\\.\\.(/|$))", entries))) {
+    stop("Die Word-Datei enthaelt ungueltige Archivpfade.", call. = FALSE)
+  }
+  required <- c("[Content_Types].xml", "word/document.xml", "word/styles.xml")
+  if (!all(required %in% entries)) stop("Die Datei ist kein vollstaendiges Word-Archiv.", call. = FALSE)
+  dir.create(directory, recursive = TRUE, showWarnings = FALSE)
+  utils::unzip(path, exdir = directory)
+  invisible(entries)
+}
+
+pack_word_package <- function(directory, path) {
+  path <- file.path(normalizePath(dirname(path), winslash = "/", mustWork = TRUE), basename(path))
+  files <- list.files(directory, recursive = TRUE, all.files = TRUE, no.. = TRUE)
+  zip::zipr(zipfile = path, files = files, root = directory,
+            include_directories = FALSE, mode = "mirror")
+}
+
+# Kept inside the output directory: these files contain private corporate assets.
+prepare_corporate_reference <- function(template, reference) {
+  directory <- tempfile(".corporate-parts-", tmpdir = dirname(reference))
+  on.exit(remove_word_parts(directory, dirname(reference)), add = TRUE)
+  extract_word_package(template, directory)
+  content_file <- file.path(directory, "[Content_Types].xml")
+  content <- xml2::read_xml(content_file)
+  main <- xml2::xml_find_first(content, "//*[local-name()='Override'][@PartName='/word/document.xml']")
+  if (!identical(xml2::xml_attr(main, "ContentType"),
+                 "application/vnd.openxmlformats-officedocument.wordprocessingml.template.main+xml")) {
+    stop("Die Corporate-Datei ist keine Word-DOTX-Vorlage.", call. = FALSE)
+  }
+  xml2::xml_set_attr(main, "ContentType",
+                     "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml")
+  xml2::write_xml(content, content_file)
+  ns <- word_ns()
+  document_file <- file.path(directory, "word/document.xml")
+  doc <- xml2::read_xml(document_file)
+  sections <- xml2::xml_find_all(doc, "//w:sectPr", ns)
+  if (!length(sections)) stop("Die Corporate-Vorlage enthaelt keine Seiteneinstellungen.", call. = FALSE)
+  # Resolve section inheritance before Pandoc ignores the template body.
+  refs <- list()
+  for (section in sections) {
+    for (node in xml2::xml_find_all(section, "w:headerReference|w:footerReference", ns)) {
+      key <- paste(xml2::xml_name(node), xml2::xml_attr(node, "w:type", ns = ns), sep = "_")
+      refs[[key]] <- node
+    }
+  }
+  final <- xml2::xml_find_first(doc, "(//w:sectPr)[last()]", ns)
+  xml2::xml_remove(xml2::xml_find_all(final, "w:headerReference|w:footerReference", ns))
+  for (node in refs) xml2::xml_add_child(final, node)
+  # The first page uses the corporate cover header. Subsequent pages use the
+  # effective body headers/footers; no body text is copied from the template.
+  for (kind in c("headerReference", "footerReference")) {
+    first <- xml2::xml_find_first(sections[[1L]], paste0("w:", kind, "[@w:type='first']"), ns)
+    if (!inherits(first, "xml_missing")) {
+      xml2::xml_remove(xml2::xml_find_all(final, paste0("w:", kind, "[@w:type='first']"), ns))
+      xml2::xml_add_child(final, first)
+    }
+  }
+  if (inherits(xml2::xml_find_first(final, "w:titlePg", ns), "xml_missing")) {
+    xml2::xml_add_child(final, "w:titlePg")
+  }
+  section_order <- c("headerReference", "footerReference", "footnotePr", "endnotePr", "type",
+                     "pgSz", "pgMar", "paperSrc", "pgBorders", "lnNumType", "pgNumType", "cols",
+                     "formProt", "vAlign", "noEndnote", "titlePg", "textDirection", "bidi",
+                     "rtlGutter", "docGrid", "printerSettings", "sectPrChange")
+  section_children <- xml2::xml_children(final)
+  positions <- match(xml2::xml_name(section_children), section_order)
+  positions[is.na(positions)] <- length(section_order) + 1L
+  for (node in section_children[order(positions)]) xml2::xml_add_child(final, node)
+  xml2::xml_remove(section_children)
+  xml2::write_xml(doc, document_file)
+  styles_file <- file.path(directory, "word/styles.xml")
+  styles <- xml2::read_xml(styles_file)
+  find_style <- function(name) {
+    style_nodes <- xml2::xml_find_all(styles, "w:style", ns)
+    style_names <- tolower(xml2::xml_attr(xml2::xml_find_first(style_nodes, "w:name", ns), "w:val", ns = ns))
+    pos <- match(tolower(name), style_names)
+    if (is.na(pos)) return(NULL)
+    style_nodes[[pos]]
+  }
+  cover_paragraphs <- xml2::xml_find_all(doc, "w:body/w:p[w:pPr/w:pStyle]", ns)
+  cover_style <- function(index, fallback) {
+    if (length(cover_paragraphs) >= index) {
+      id <- xml2::xml_attr(xml2::xml_find_first(cover_paragraphs[[index]], "w:pPr/w:pStyle", ns), "w:val", ns)
+      found <- xml2::xml_find_all(styles, "w:style", ns)
+      ids <- xml2::xml_attr(found, "w:styleId", ns)
+      if (id %in% ids) return(found[[match(id, ids)]])
+    }
+    find_style(fallback)
+  }
+  if (is.null(find_style("Normal")) || is.null(find_style("Body Text"))) {
+    stop("Corporate-Vorlage braucht die Formatvorlagen Normal und Body Text.", call. = FALSE)
+  }
+  mappings <- c("First Paragraph" = "Body Text", "Compact" = "Body Text",
+                "Subtitle" = "Subtitel_Zwischenseite", "TOC Heading" = "Titel_Inhaltsverzeichnis",
+                "Table Caption" = "caption", "Image Caption" = "caption",
+                "Figure" = "Body Text", "Captioned Figure" = "Body Text")
+  for (target in names(mappings)) {
+    if (!is.null(find_style(target))) next
+    source <- find_style(mappings[[target]])
+    if (is.null(source)) source <- find_style("Body Text")
+    new_style <- xml2::xml_add_child(styles, source)
+    xml2::xml_set_attr(new_style, "w:styleId", gsub("[^A-Za-z0-9]", "", target))
+    xml2::xml_set_attr(xml2::xml_find_first(new_style, "w:name", ns), "w:val", target)
+    xml2::xml_remove(xml2::xml_find_all(new_style, "w:link|w:aliases", ns))
+  }
+  # Use the styles actually applied on the template's first page. The template
+  # also contains white lettering for other backgrounds, which is unsuitable
+  # for this cover. Direct formatting on the template paragraphs overrides style
+  # properties, but their placeholder text is never copied.
+  for (i in seq_along(c("Title", "Subtitle"))) {
+    target <- find_style(c("Title", "Subtitle")[[i]])
+    cover <- cover_style(i, c("Title", "Subtitel_Zwischenseite")[[i]])
+    if (is.null(cover) || is.null(target)) next
+    if (!identical(xml2::xml_path(cover), xml2::xml_path(target))) {
+      xml2::xml_remove(xml2::xml_find_all(target, "w:pPr|w:rPr", ns))
+      for (node in xml2::xml_find_all(cover, "w:pPr|w:rPr", ns)) xml2::xml_add_child(target, node)
+    }
+    if (length(cover_paragraphs) >= i) {
+      paragraph <- cover_paragraphs[[i]]
+      direct <- list(
+        pPr = xml2::xml_find_all(paragraph, "w:pPr/*[not(self::w:pStyle or self::w:sectPr or self::w:rPr)]", ns),
+        rPr = xml2::xml_find_all(paragraph, "(.//w:r[w:t])[1]/w:rPr/*", ns)
+      )
+      for (group in names(direct)) {
+        if (!length(direct[[group]])) next
+        props <- xml2::xml_find_first(target, paste0("w:", group), ns)
+        if (inherits(props, "xml_missing")) props <- xml2::xml_add_child(target, paste0("w:", group))
+        for (node in direct[[group]]) {
+          xml2::xml_remove(xml2::xml_find_all(props, paste0("w:", xml2::xml_name(node)), ns))
+          xml2::xml_add_child(props, node)
+        }
+      }
+    }
+  }
+  xml2::write_xml(styles, styles_file)
+  # Pandoc can select the first section. Give it exactly one resolved section,
+  # after inspecting the original cover formatting. No template prose remains.
+  body <- xml2::xml_find_first(doc, "w:body", ns)
+  xml2::xml_add_child(body, final)
+  children <- xml2::xml_children(body)
+  xml2::xml_remove(children[-length(children)])
+  xml2::xml_add_child(body, "w:p", .where = 0)
+  xml2::write_xml(doc, document_file)
+  pack_word_package(directory, reference)
+  invisible(reference)
+}
+
+finalise_report_docx <- function(path) {
+  directory <- tempfile(".report-parts-", tmpdir = dirname(path))
+  on.exit(remove_word_parts(directory, dirname(path)), add = TRUE)
+  extract_word_package(path, directory)
+  ns <- word_ns()
+  document_file <- file.path(directory, "word/document.xml")
+  doc <- xml2::read_xml(document_file)
+  contents <- xml2::xml_find_first(doc, "//w:sdt[.//w:instrText[contains(., 'TOC')]]", ns)
+  if (!inherits(contents, "xml_missing")) {
+    page_break <- xml2::read_xml(paste0('<w:p xmlns:w="', ns[["w"]],
+                                      '"><w:r><w:br w:type="page"/></w:r></w:p>'))
+    xml2::xml_add_sibling(contents, page_break, .where = "before")
+  }
+  # Tables: sparse horizontal rules, repeated header row, no vertical borders.
+  for (table in xml2::xml_find_all(doc, "//w:tbl", ns)) {
+    rows <- xml2::xml_find_all(table, "w:tr", ns)
+    if (length(rows) <= 8L) {
+      for (i in seq_along(rows)) {
+        row_props <- xml2::xml_find_first(rows[[i]], "w:trPr", ns)
+        if (inherits(row_props, "xml_missing")) row_props <- xml2::xml_add_child(rows[[i]], "w:trPr", .where = 0)
+        if (inherits(xml2::xml_find_first(row_props, "w:cantSplit", ns), "xml_missing")) {
+          xml2::xml_add_child(row_props, "w:cantSplit")
+        }
+        for (paragraph in xml2::xml_find_all(rows[[i]], ".//w:p", ns)) {
+          pprops <- xml2::xml_find_first(paragraph, "w:pPr", ns)
+          if (inherits(pprops, "xml_missing")) pprops <- xml2::xml_add_child(paragraph, "w:pPr", .where = 0)
+          xml2::xml_remove(xml2::xml_find_all(pprops, "w:keepNext", ns))
+          keep <- xml2::xml_add_child(pprops, "w:keepNext")
+          xml2::xml_set_attr(keep, "w:val", if (i < length(rows)) "1" else "0")
+        }
+      }
+    }
+    props <- xml2::xml_find_first(table, "w:tblPr", ns)
+    if (inherits(props, "xml_missing")) props <- xml2::xml_add_child(table, "w:tblPr", .where = 0)
+    xml2::xml_remove(xml2::xml_find_all(props, "w:tblBorders", ns))
+    borders <- xml2::xml_add_child(props, "w:tblBorders")
+    for (side in c("top", "left", "bottom", "right", "insideH", "insideV")) {
+      border <- xml2::xml_add_child(borders, paste0("w:", side))
+      xml2::xml_set_attr(border, "w:val", if (side %in% c("top", "bottom")) "single" else "nil")
+      xml2::xml_set_attr(border, "w:sz", "4")
+      xml2::xml_set_attr(border, "w:color", "808080")
+    }
+    first_row <- xml2::xml_find_first(table, "w:tr", ns)
+    row_props <- xml2::xml_find_first(first_row, "w:trPr", ns)
+    if (inherits(row_props, "xml_missing")) row_props <- xml2::xml_add_child(first_row, "w:trPr", .where = 0)
+    if (inherits(xml2::xml_find_first(row_props, "w:tblHeader", ns), "xml_missing")) {
+      xml2::xml_add_child(row_props, "w:tblHeader")
+    }
+    for (cell in xml2::xml_find_all(first_row, "w:tc", ns)) {
+      cell_props <- xml2::xml_find_first(cell, "w:tcPr", ns)
+      if (inherits(cell_props, "xml_missing")) cell_props <- xml2::xml_add_child(cell, "w:tcPr", .where = 0)
+      xml2::xml_remove(xml2::xml_find_all(cell_props, "w:shd", ns))
+      shade <- xml2::xml_add_child(cell_props, "w:shd")
+      xml2::xml_set_attr(shade, "w:fill", "F2F2F2")
+    }
+  }
+  xml2::write_xml(doc, document_file)
+  settings_file <- file.path(directory, "word/settings.xml")
+  if (file.exists(settings_file)) {
+    settings <- xml2::read_xml(settings_file)
+    xml2::xml_remove(xml2::xml_find_all(settings, "w:updateFields", ns))
+    update <- xml2::xml_add_child(settings, "w:updateFields")
+    xml2::xml_set_attr(update, "w:val", "true")
+    xml2::write_xml(settings, settings_file)
+  }
+  pack_word_package(directory, path)
+  invisible(path)
+}
+
+remove_word_parts <- function(directory, parent) {
+  if (!dir.exists(directory)) return(invisible(NULL))
+  resolved <- normalizePath(directory, winslash = "/", mustWork = TRUE)
+  parent <- normalizePath(parent, winslash = "/", mustWork = TRUE)
+  if (!identical(dirname(resolved), parent) ||
+      !grepl("^\\.(corporate|report)-parts-", basename(resolved))) {
+    stop("Ungueltiger temporaerer Word-Arbeitsordner.", call. = FALSE)
+  }
+  unlink(resolved, recursive = TRUE)
+  invisible(NULL)
+}

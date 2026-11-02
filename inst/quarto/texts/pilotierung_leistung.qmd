@@ -1,0 +1,46 @@
+# Informationen zur Pilotierungsstudie `r config$report$pilot_year` {#pilotierung_titel}
+
+## Leistung der Pilotierungsstichprobe {#pilotierung_leistung}
+
+Die folgenden Darstellungen zeigen die Leistungsverteilung je auswertbarer
+Skala. Die Prozentangaben beziehen sich auf die beobachteten PV-Werte und sind
+unabhängig von der Glättung der Dichte. Ein Wert genau auf einer Stufengrenze
+gehört zur höheren Kompetenzstufe.
+
+```{r}
+#| label: pilotierung_leistung_skalen
+#| results: asis
+for (scale_id in names(config$scales)) {
+  scale <- config$scales[[scale_id]]
+  label <- display_labels$scales[[scale_id]]
+  descriptives <- results$descriptives[results$descriptives$scale_id == scale_id, ]
+  percentages <- results$percentages[results$percentages$scale_id == scale_id, ]
+  cat("\n\n### ", label, " (", scale_id, ") {#leistung_", tolower(scale_id), "}\n\n", sep = "")
+  cat("![Leistungsverteilung: ", label, "](figures/", scale_id,
+      ".png){width=15.5cm}\n\n", sep = "")
+  overview <- data.frame(
+    "Personen (N)" = descriptives$n_persons,
+    "Anzahl PVs" = descriptives$n_pv,
+    "Mittelwert" = decimal(descriptives$mean),
+    "Standardabweichung" = decimal(descriptives$sd), check.names = FALSE
+  )
+  cat(knitr::kable(overview, format = "pipe", align = "rrrr"), sep = "\n")
+  cat("\n\n")
+  if (nrow(percentages) <= 6L) {
+    levels <- as.data.frame(as.list(c("Anteil (%)", decimal(percentages$percent))),
+                            check.names = FALSE)
+    names(levels) <- c("Kompetenzstufe", display_labels$levels[[scale_id]])
+    alignment <- c("l", rep("r", nrow(percentages)))
+  } else {
+    levels <- data.frame("Kompetenzstufe" = display_labels$levels[[scale_id]],
+                         "Anteil (%)" = decimal(percentages$percent), check.names = FALSE)
+    alignment <- c("l", "r")
+  }
+  cat(knitr::kable(levels, format = "pipe", align = alignment), sep = "\n")
+  cat("\n\n")
+}
+```
+
+N bezeichnet die Anzahl der Personen je Skala und nicht die Anzahl der
+PV-Werte. Rundungsbedingt können sich ausgewiesene Prozentanteile geringfügig
+von 100,0 % unterscheiden.

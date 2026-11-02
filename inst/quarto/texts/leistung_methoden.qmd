@@ -1,0 +1,16 @@
+## Hinweise zur Berechnung {#leistung_methoden}
+
+Für jeden Plausible Value werden Mittelwert, Stichprobenvarianz und
+Kompetenzstufenanteile getrennt berechnet. Anschließend werden die Mittelwerte
+und Stufenanteile über die PVs gemittelt. Die berichtete Standardabweichung ist
+die Quadratwurzel der mittleren PV-Varianz:
+
+$$
+SD = \sqrt{\frac{1}{M}\sum_{m=1}^{M}s_m^2}.
+$$
+
+Dabei bezeichnet $M$ die Anzahl der PVs und $s_m^2$ die Stichprobenvarianz
+zum jeweiligen PV mit Nenner $N-1$. Die PVs werden nicht vorab je Person
+gemittelt. Die Stichprobe wird nicht nachträglich auf einen Mittelwert von
+500 normiert. Die Dichte dient der geglätteten Darstellung; die Stufenanteile
+werden direkt aus den PV-Werten berechnet.

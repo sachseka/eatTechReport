@@ -1,0 +1,23 @@
+# Allgemeine Informationen {#grundlagen_ueberblick}
+
+Dieser Berichtsteil beschreibt die Leistung der Pilotierungsstichprobe im Fach
+`r if (config$report$subject == "de") "Deutsch" else "Mathematik"` für den
+Haupttestdurchgang `r config$report$main_year`. Er umfasst die Verteilung auf der
+500er-Berichtsskala, die Anteile auf den Kompetenzstufen und deskriptive Kennwerte.
+Weitere Kapitel des Technischen Berichts sind in dieser Entwicklungsfassung
+noch nicht enthalten.
+
+```{r}
+#| label: bericht_datenherkunft
+#| results: asis
+if (config$report$data_origin == "synthetic") {
+  cat("**Synthetisches Beispiel:** Alle Personenwerte wurden simuliert. ",
+      "Das Pilotierungsjahr ist eine Demoannahme; die eingezeichneten Cuts ",
+      "sind ausschließlich illustrative Grenzwerte. Diese Fassung enthält ",
+      "keine empirischen Aussagen über eine tatsächliche Pilotierungsstudie.\n\n", sep = "")
+}
+```
+
+Die Auswertung berücksichtigt alle angegebenen Fälle je Skala ohne Gewichtung
+und ohne Untergruppen. Vollständige PV-Sätze sind Voraussetzung. In Mathematik
+werden sämtliche Leitideen auf der gemeinsamen Skala MO ausgewertet.
