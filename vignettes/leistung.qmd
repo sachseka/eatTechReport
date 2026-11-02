@@ -1,0 +1,126 @@
+---
+title: "Leistungskennzahlen und Plausible Values"
+lang: de
+format:
+  html:
+    minimal: true
+execute:
+  warning: false
+  message: false
+---
+
+Der Leistungsbaustein erwartet bereits vorliegende Plausible Values (PVs) auf
+der 500er-Berichtsskala. Er berücksichtigt die gesamte angegebene Population
+je Skala, ohne Gewichte und ohne Untergruppen. Vollständige PV-Datensätze sind
+Voraussetzung; das Berichtssystem schätzt keine fehlenden Werte nach.
+
+## Zwei Eingabeobjekte
+
+```{r}
+library(eatTechReport)
+demo <- example_report()
+names(demo$config)
+names(demo$data)
+```
+
+`config` enthält Durchgangsangaben, Bereichs- und Skalenzuordnung sowie
+PV-Kennungen, Kompetenzstufengrenzen und ihre Herkunft. `data` enthält zwei
+Tabellen:
+
+| Tabelle | Eine Zeile beschreibt | Eindeutiger Schlüssel |
+| --- | --- | --- |
+| `population` | Eine erwartete Person in einer Skala. | `person_id`, `scale_id` |
+| `pvs` | Einen PV-Wert dieser Person in dieser Skala. | `person_id`, `scale_id`, `pv_id` |
+
+```{r}
+knitr::kable(head(demo$data$population))
+knitr::kable(head(demo$data$pvs), digits = 1)
+```
+
+Die Population wird unabhängig von den PV-Zeilen angegeben. So lässt sich auch
+erkennen, wenn für eine erwartete Person alle PV-Zeilen fehlen. Bei realen Daten
+kommt sie aus dem vollständigen Personenbestand. Ein CSV-Zwischenschritt ist
+nicht erforderlich.
+
+## Bereiche und Skalen
+
+| Fach | Bereich | Kürzel | Skala |
+| --- | --- | --- | --- |
+| Deutsch | Lesen | DL | DL |
+| Deutsch | Zuhören | DH | DH |
+| Deutsch | Orthografie | DO | DO |
+| Deutsch | Sprachgebrauch | DS | DS |
+| Mathematik | Zahlen und Operationen | MZ | MO |
+| Mathematik | Größen und Messen | MG | MO |
+| Mathematik | Muster und Strukturen / Funktionaler Zusammenhang | MM | MO |
+| Mathematik | Raum und Form | MR | MO |
+| Mathematik | Daten, Häufigkeit und Wahrscheinlichkeit | MD | MO |
+
+`MO` steht für Mathematik global (overall). Die Kennzahlen werden je
+auswertbarer Skala berechnet. Die fünf Leitideen vervielfachen daher weder
+Personen noch Leistungsdarstellungen.
+
+Voraussichtlich werden 15 PVs geliefert. Die konkrete Anzahl ergibt sich aus
+`config$scales[[scale_id]]$pv_ids` und ist keine feste Begrenzung.
+
+## Berechnungsregeln
+
+Die Personenwerte werden für jeden PV getrennt ausgewertet. Anschließend
+werden die Ergebnisse über die PVs zusammengefasst:
+
+- **N:** Anzahl der erwarteten Personen je Skala.
+- **Mittelwert:** Mittel der Mittelwerte je PV.
+- **Standardabweichung:** Quadratwurzel des Mittels der Stichprobenvarianzen
+  je PV; die Varianzen verwenden den Nenner `N - 1`.
+- **Stufenanteile:** Mittel der ungewichteten Anteile je PV und Intervall.
+- **Cut-Grenze:** Ein Wert genau auf einem Cut gehört zur höheren Stufe.
+
+Die PVs werden nicht vorab je Person gemittelt. Das würde insbesondere
+Streuung und Stufenanteile verändern. Die Prozentwerte werden direkt aus den
+PV-Beobachtungen berechnet und hängen nicht von der Glättung der Dichte ab.
+
+```{r}
+ergebnis <- summarise_leistung_input(demo)
+knitr::kable(ergebnis$percentages, digits = 2)
+```
+
+`per_pv` enthält die Ergebnisse der einzelnen PVs und erlaubt die Kontrolle
+der Zusammenfassung:
+
+```{r}
+knitr::kable(head(ergebnis$per_pv), digits = 2)
+```
+
+## Dichte und Prozentangaben
+
+`plot_performance()` berechnet für jeden PV eine Dichte auf demselben Raster
+und mittelt diese Kurven. Alle PVs einer Skala verwenden dieselbe Bandbreite.
+Standardmäßig ist dies der Mittelwert der mit `stats::bw.nrd0()` je PV
+bestimmten Bandbreiten. Dadurch zählt für die automatische Glättung die
+Personenanzahl innerhalb eines PVs.
+
+Eine eigene positive Bandbreite kann die Darstellung glätten oder stärker
+ausdifferenzieren. Die beobachtungsbasierten Stufenanteile und Deskriptiva
+bleiben dabei unverändert:
+
+```{r}
+#| fig-width: 8
+#| fig-height: 4.8
+#| fig-alt: "Simulierte Leistungsverteilung für Lesen mit einer ausdrücklich gewählten Glättungsbandbreite."
+plot_performance(demo, scale_id = "DL", bandwidth = 30)
+```
+
+## Reale Eingaben vorbereiten
+
+Für reale Daten werden `config` und `data` mit den tatsächlichen Ergebnissen
+befüllt. `data_origin = "observed"` kennzeichnet reale Eingaben. Die Demo-Cuts
+mit `cut_source = "illustrative_demo_only"` werden dann zurückgewiesen.
+
+Benötigt werden freigegebene Grenzwerte auf derselben 500er-Metrik wie die PVs
+sowie ein nachvollziehbarer Herkunftsnachweis. Das Ändern von `cut_source`
+allein ist keine fachliche Freigabe der Zahlen.
+
+`validate_leistung_input()` prüft unter anderem eindeutige Schlüssel,
+vollständige Person-Skala-PV-Kombinationen, gültige Zuordnungen, endliche Werte
+und streng aufsteigende Cuts. Fehlende Werte führen zu einem Eingabefehler;
+es werden keine Fälle stillschweigend entfernt.

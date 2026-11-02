@@ -1,0 +1,24 @@
+^lokal($|/)
+^docs$
+^design$
+^man/figures/logo-draft[.]png$
+^examples$
+^_pkgdown$
+^_pkgdown[.]yml$
+^pkgdown$
+^vignettes$
+^[.]github$
+^[.]git.*$
+^[.]Rproj[.]user$
+^.*[.]Rproj$
+^TechRep.*$
+^V3.*[.]docx$
+^Titelbild[.]jpg$
+^_Doku haendische Aenderungen[.]txt$
+^deutsche-.*[.]csl$
+^references[.]bib$
+^grateful-.*$
+^.*[.]Rcheck$
+^.*[.]tar[.]gz$
+^check$
+^coverage[.]xml$

@@ -2,3 +2,16 @@
 .Rhistory
 .RData
 .Ruserdata
+
+# Lokale Referenzberichte, Vorlagen, Daten und vertrauliche Arbeitsdateien
+/lokal/
+
+# Generierte Paket- und Website-Ausgaben
+/_pkgdown/
+/*.Rcheck/
+/*.tar.gz
+/doc/
+/Meta/
+/man/figures/logo-draft.png
+/check/
+/coverage.xml

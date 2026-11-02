@@ -1,0 +1,53 @@
+# Planned website address; building this site does not deploy it.
+url: https://sachseka.github.io/eatTechReport/
+destination: _pkgdown
+development:
+  mode: unreleased
+template:
+  bootstrap: 5
+  light-switch: true
+  math-rendering: mathjax
+  bslib:
+    primary: "#B40036"
+    link-color-dark: "#FF8FAC"
+home:
+  title: Technische VERA-Berichte aus R und Quarto
+  description: >
+    PV-Kennzahlen, Kompetenzstufenanteile und Dichtegrafiken für VERA-3
+    sowie Word-Berichte aus redigierbaren Quarto-Textbausteinen.
+navbar:
+  structure:
+    left: [intro, reference, articles, news]
+    right: [search, github, lightswitch]
+  components:
+    intro:
+      text: Einstieg
+      href: articles/einstieg.html
+    articles:
+      text: Anleitungen
+      menu:
+        - text: Leistungskennzahlen und PVs
+          href: articles/leistung.html
+        - text: Word-Bericht und Textredaktion
+          href: articles/textredaktion.html
+reference:
+  - title: Beispieldaten und Eingaben
+    contents:
+      - example_report
+      - example_leistung_input
+      - validate_leistung_input
+  - title: Kennzahlen und Grafiken
+    contents:
+      - summarise_leistung_input
+      - plot_performance
+  - title: Word-Bericht und Textredaktion
+    contents:
+      - render_report
+      - edit_report_texts
+articles:
+  - title: Arbeiten mit eatTechReport
+    navbar: ~
+    contents:
+      - einstieg
+      - leistung
+      - textredaktion

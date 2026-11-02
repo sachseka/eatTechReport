@@ -1,0 +1,122 @@
+---
+title: "Word-Bericht und Textredaktion"
+lang: de
+format:
+  html:
+    minimal: true
+execute:
+  eval: false
+---
+
+Der erste Word-Prototyp stellt die Leistung der Pilotierungsstichprobe dar.
+Die weiteren Kapitel des Technischen Berichts werden schrittweise ergänzt.
+Die folgenden Aufrufe sind für die lokale Anwendung vorgesehen und werden
+beim Website-Build nicht ausgeführt.
+
+## Corporate-Vorlage bereitstellen
+
+Für jeden Word-Bericht, auch mit simulierten Daten, wird die freigegebene
+Corporate-Vorlage benötigt. Der vorgesehene Pfad lautet `lokal/Bericht.dotx`.
+Die Vorlage bleibt privat und wird nicht mit dem Paket ausgeliefert. Auf einem
+anderen Rechner kann der Pfad zur gleichen Vorlage angepasst werden.
+
+Zusätzlich zu R und eatTechReport muss die Quarto-Kommandozeile verfügbar sein.
+Für ein automatisch befülltes Inhaltsverzeichnis einschließlich Seitenzahlen
+verwendet dieser Stand unter Windows außerdem ein installiertes Microsoft Word.
+
+```{r}
+library(eatTechReport)
+demo <- example_report(n_persons = 200)
+
+bericht <- render_report(
+  config = demo$config,
+  data = demo$data,
+  corporate_template = "lokal/Bericht.dotx",
+  output_dir = "lokal/demo-de"
+)
+
+bericht$path
+bericht$archive_dir
+```
+
+Der Prototyp kennzeichnet synthetische Eingaben sichtbar und verwendet
+dieselben Kennzahlen wie `summarise_leistung_input()`. Fehlt die Vorlage,
+endet die Dokumenterzeugung mit einer Fehlermeldung.
+
+## Inhaltsverzeichnis und Seitenzahlen aktualisieren
+
+Quarto erzeugt die Word-Felder für das Inhaltsverzeichnis. Deren sichtbarer
+Inhalt und Seitenzahlen werden anschließend mit Microsoft Word aktualisiert.
+Die Voreinstellung `update_fields = "auto"` übernimmt diesen Schritt unter
+Windows automatisch, wenn Word verfügbar ist. Die Verarbeitung erfolgt ohne
+sichtbares Word-Fenster; das aktualisierte Dokument wird gespeichert, bevor
+die abschließenden Prüfsummen für die Renderablage berechnet werden.
+
+| Einstellung | Verhalten |
+| --- | --- |
+| `update_fields = "auto"` | Verfügbare Word-Automatisierung verwenden; andernfalls die noch ausstehende Feldaktualisierung ausdrücklich melden. |
+| `update_fields = "word"` | Aktualisierung durch Microsoft Word verlangen; ohne diese Voraussetzung mit einem Fehler abbrechen. |
+| `update_fields = "none"` | Den Aktualisierungsschritt ausdrücklich überspringen. |
+
+Der Abschlussstatus ist im Manifest nachvollziehbar:
+
+```{r}
+bericht$manifest$fields_updated
+```
+
+Ohne erfolgreiche Feldaktualisierung ist das automatisch befüllte
+Inhaltsverzeichnis noch nicht fertig. Wer für die Ausgabe zwingend einen
+abgeschlossenen Word-Schritt benötigt, verwendet `update_fields = "word"`.
+
+## Textbausteine bearbeiten
+
+Die Texte lassen sich in einen eigenen lokalen Arbeitsordner kopieren:
+
+```{r}
+edit_report_texts("lokal/redaktion")
+```
+
+Die erzeugten `.qmd`-Dateien werden in RStudio oder VS Code geöffnet. Absätze,
+Überschriften und Erläuterungen lassen sich dort kapitelweise redigieren.
+Bestehende R-Ausdrücke und Codeblöcke verbinden die Texte mit den berechneten
+Ergebnissen; für reine Textkorrekturen bleiben sie unverändert.
+
+```{r}
+bericht <- render_report(
+  config = demo$config,
+  data = demo$data,
+  text_dir = "lokal/redaktion",
+  corporate_template = "lokal/Bericht.dotx",
+  output_dir = "lokal/demo-redigiert"
+)
+```
+
+Der Arbeitsordner enthält redigierbare Quellen. Die installierten
+Standardbausteine werden dabei nicht verändert. Der Quarto-Text beeinflusst
+die Inhalte; die verbindliche Corporate-Vorlage bestimmt die Gestaltung.
+
+## Ausgaben und Renderablage
+
+`render_report()` liefert unter anderem den Dokumentpfad (`path`), die
+Renderablage (`archive_dir`), das Manifest (`manifest`), die Kennzahlen
+(`summaries`) und die Konfiguration (`config`). Die Ablage hält die verwendeten
+Eingaben, Texte und Versionsinformationen für die Nachvollziehbarkeit fest.
+
+Für weitere Entwürfe empfiehlt sich ein neuer Ausgabeordner. Vorhandene
+Ausgaben werden standardmäßig nicht überschrieben. Ein ausdrücklich
+gewünschtes Ersetzen ist über `overwrite = TRUE` möglich. Nach erfolgreichem
+Ersetzen bleibt der vorherige Stand in einem benachbarten Sicherungsordner
+erhalten; dessen Pfad steht in `previous_output_dir`. Ein fehlgeschlagener
+Renderlauf ersetzt den vorhandenen Bericht nicht.
+
+Vorlage, abgeleitete Referenzdateien, Eingaben, redigierte Texte, erzeugte
+Corporate-Dokumente und Renderablagen bleiben unter `lokal/`. Die Ablage ist
+ein technischer Renderstand; fachliche Freigabe, Vorjahresvergleich und
+automatische Ausrufezeichen am rechten Rand werden später ergänzt.
+
+## Umfang der ersten Fassung
+
+Der Prototyp dient dazu, den Leistungsabschnitt und den Weg von R-Eingaben über
+Quarto zum Corporate-DOCX zu prüfen. Ein vollständiger Technischer Bericht,
+der Abgleich mit realen Eingaben und die abschließende Prüfung sämtlicher
+Word-Layoutvarianten stehen noch aus.

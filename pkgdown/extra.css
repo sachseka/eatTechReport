@@ -1,0 +1,8 @@
+.template-home .page-header .logo {
+  content: url("reference/figures/logo-light.png");
+  width: 160px;
+}
+
+[data-bs-theme="dark"] .template-home .page-header .logo {
+  content: url("reference/figures/logo-dark.png");
+}

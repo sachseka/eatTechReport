@@ -1,0 +1,32 @@
+---
+lang: de-DE
+format:
+  docx:
+    reference-doc: corporate-reference.docx
+    toc: true
+    toc-title: Inhalt
+    toc-depth: 2
+    number-sections: true
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: bericht_eingaben
+#| include: false
+input <- readRDS("archive/inputs.rds")
+config <- input$config
+results <- readRDS("archive/summaries.rds")
+display_labels <- readRDS("archive/display-labels.rds")
+decimal <- function(x) formatC(x, format = "f", digits = 1, decimal.mark = ",")
+```
+
+{{< pagebreak >}}
+
+{{< include archive/texts/grundlagen_ueberblick.qmd >}}
+
+{{< include archive/texts/pilotierung_leistung.qmd >}}
+
+{{< include archive/texts/leistung_methoden.qmd >}}
