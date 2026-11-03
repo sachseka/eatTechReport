@@ -111,6 +111,11 @@ plot_performance(ma, scale_id = "MO")
 
 ## Weiterarbeiten
 
+Mit `example_report(scope = "haupttest_struktur")` lassen sich zusätzlich die
+[Haupttest-Auswahl und Module](haupttest.html) darstellen, einschließlich
+Herkunftswellen und Aufgabenreihenfolgen. Die Auswahl wird als eigenes R-Objekt
+geliefert und nicht automatisch aus der Pilotierung abgeleitet.
+
 `example_report()` verwendet standardmäßig `scope = "pilotierung"` und Schema
 `0.3.0-draft`. Für die Leistung allein steht
 `example_report(scope = "pilotierung_leistung")` zur Verfügung; dieser Umfang

@@ -7,7 +7,7 @@
 edit_report_texts(
   path,
   overwrite = FALSE,
-  scope = c("pilotierung", "pilotierung_leistung")
+  scope = c("pilotierung", "pilotierung_leistung", "haupttest_struktur")
 )
 }
 \arguments{
@@ -16,7 +16,8 @@ edit_report_texts(
 \item{overwrite}{Whether existing blocks may be replaced. Defaults to FALSE.}
 
 \item{scope}{Report scope: \code{"pilotierung"} for design, sample and performance,
-or \code{"pilotierung_leistung"} for the performance section only.}
+\code{"pilotierung_leistung"} for the performance section only, or
+\code{"haupttest_struktur"} to also include main-test selection and modules.}
 }
 \value{
 Invisibly, the paths of the copied Quarto files.

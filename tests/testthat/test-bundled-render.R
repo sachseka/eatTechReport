@@ -28,7 +28,7 @@ test_that("Quarto renders a report with the installed layout and no private inpu
   cli <- quarto::quarto_path()
   skip_if(is.null(cli) || !nzchar(cli), "Quarto CLI is not installed")
   input <- example_report("v3_ma_mg_mm", n_persons = 30L, n_pv = 1L,
-                           scope = "pilotierung_leistung",
+                           scope = "haupttest_struktur",
                            authors = c("Ada Beispiel", "B\u00e9la & Beispiel [2]"),
                            affiliation = c("Institut f\u00fcr Beispielstudien", "Universit\u00e4t Musterstadt"))
   output <- tempfile("bundled-render-")
@@ -59,6 +59,13 @@ test_that("Quarto renders a report with the installed layout and no private inpu
   expect_match(xml2::xml_text(doc), "synthetisch", ignore.case = TRUE)
   expect_gt(length(xml2::xml_find_all(doc, "//w:tbl", ns)), 0L)
   expect_gt(length(xml2::xml_find_all(doc, "//w:drawing", ns)), 0L)
+  expect_match(xml2::xml_text(doc), "Auswahl", fixed = TRUE)
+  expect_true(all(c("haupttest_auswahl.qmd", "haupttest_module.qmd") %in%
+                    list.files(file.path(result$archive_dir, "texts"))))
+  expect_identical(readRDS(file.path(result$archive_dir, "inputs.rds"))$data$main_test,
+                    input$data$main_test)
+  expect_identical(readRDS(file.path(result$archive_dir, "summaries.rds"))$main_test,
+                    summarise_report_input(input)$main_test)
   expect_identical(result$manifest$template_file, "eatTechReport.docx")
   expect_identical(result$manifest$report_md5, unname(tools::md5sum(result$path)))
 })

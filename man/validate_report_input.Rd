@@ -21,6 +21,10 @@ of valid item responses. No cases are excluded or imputed by the report.
 Scope \code{pilotierung} uses schema \verb{0.3.0-draft} and requires
 \code{data$population}, \code{data$pvs}, \code{data$design} and \code{data$sample}. The earlier
 performance-only scope \code{pilotierung_leistung} remains supported unchanged.
+Scope \code{haupttest_struktur} uses schema \verb{0.4.0-draft} and additionally requires
+\code{data$main_test}: selected items, modules, ordered item membership and
+documented pilot-wave membership. It extends the draft with main-test
+selection and structure, not item-quality profiles or transformations.
 Sample composition describes the distinct persons in \code{data$population};
 participation and class returns are reported separately. Missing categorical
 values form a separate category and remain in percentage denominators.

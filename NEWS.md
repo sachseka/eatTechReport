@@ -1,5 +1,13 @@
 # eatTechReport 0.0.0.9000
 
+* Add the opt-in `haupttest_struktur` scope (schema `0.4.0-draft`) with main-test
+  selection, pilot-wave provenance and ordered module contents. Support reused
+  items, partial tasks and multiple waves without inflating overall counts.
+  Existing scopes and the default remain unchanged.
+* Add two editable Quarto blocks for main-test selection and modules, synthetic
+  German/mathematics examples, and documentation of the new R input tables.
+* Balance visible space above and below table text while preserving Arial 11
+  and 1.5 line spacing.
 * Add configurable cover authors and a shared affiliation, with visible
   placeholders when unspecified and support for multiple affiliation lines.
 * Centre table text vertically, add cell padding and thin horizontal rules

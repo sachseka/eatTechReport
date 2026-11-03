@@ -9,7 +9,8 @@ Authors@R: c(
     person("Kilian-Kristoph", "Schumann", role = "aut",
         comment = c(ORCID = "0000-0001-9502-6083")))
 Description: Validate and summarise test designs, sample characteristics, valid
-    item-response counts, and plausible values for VERA-3 assessments. Plot
+    item-response counts, plausible values, and main-test selections and modules
+    for VERA-3 assessments. Plot
     performance distributions with proficiency-level percentages and assemble
     editable Quarto sections into Word documents using the bundled
     corporate template. Synthetic examples support development without access

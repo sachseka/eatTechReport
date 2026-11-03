@@ -34,7 +34,7 @@ table_layout_report <- function(wrapped = FALSE) {
   xml2::read_xml(file.path(output, "word/document.xml"))
 }
 
-test_that("data cells have balanced padding, vertical centering and thin row rules", {
+test_that("data cells compensate Word line leading and retain thin row rules", {
   doc <- table_layout_report()
   ns <- word_ns()
   table <- xml2::xml_find_first(doc, "//w:tbl", ns)
@@ -43,7 +43,8 @@ test_that("data cells have balanced padding, vertical centering and thin row rul
   expect_true(all(xml2::xml_attr(xml2::xml_find_all(cells, "w:tcPr/w:vAlign", ns), "w:val", ns) == "center"))
   for (side in c("top", "bottom")) {
     margins <- xml2::xml_find_all(cells, paste0("w:tcPr/w:tcMar/w:", side), ns)
-    expect_identical(xml2::xml_attr(margins, "w:w", ns), rep("60", 6L))
+    expect_identical(xml2::xml_attr(margins, "w:w", ns),
+                     rep(if (side == "top") "130" else "0", 6L))
     expect_true(all(xml2::xml_attr(margins, "w:type", ns) == "dxa"))
   }
   expect_identical(xml2::xml_attr(xml2::xml_find_all(cells, "w:tcPr/w:tcMar/w:left", ns),
@@ -53,6 +54,7 @@ test_that("data cells have balanced padding, vertical centering and thin row rul
   expect_identical(xml2::xml_attr(spacing, "w:after", ns), rep("0", 6L))
   expect_true(all(is.na(xml2::xml_attr(spacing, "w:afterLines", ns))))
   expect_identical(xml2::xml_attr(spacing, "w:line", ns), rep("360", 6L))
+  expect_identical(xml2::xml_attr(spacing, "w:lineRule", ns), rep("auto", 6L))
   header_rule <- xml2::xml_find_all(table, "w:tr[1]/w:tc/w:tcPr/w:tcBorders/w:bottom", ns)
   body_rule <- xml2::xml_find_all(table, "w:tr[2]/w:tc/w:tcPr/w:tcBorders/w:bottom", ns)
   expect_identical(xml2::xml_attr(header_rule, "w:sz", ns), c("4", "4"))

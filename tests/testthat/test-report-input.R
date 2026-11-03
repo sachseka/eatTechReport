@@ -52,3 +52,30 @@ test_that("performance-only edited text directories need no new study blocks", {
                                 winslash = "/"), files)
   expect_error(report_text_files(destination, "pilotierung"), "pilotierung_design_pool")
 })
+
+test_that("main-test structure extends reports without changing pilot results", {
+  for (profile in c("v3_de_lesen_zuhoeren", "v3_ma_mg_mm")) {
+    pilot <- example_report(profile, n_persons = 2L, n_pv = 1L)
+    input <- example_report(profile, n_persons = 2L, n_pv = 1L,
+                              scope = "haupttest_struktur")
+    expect_true(validate_report_input(input))
+    expect_identical(performance_component(input), performance_component(pilot))
+    results <- summarise_report_input(input)
+    expect_identical(results[names(results) != "main_test"], summarise_report_input(pilot))
+    expect_equal(results$main_test$totals$n_items, nrow(input$data$main_test$items))
+    input$data$main_test$module_items$item_id[1L] <- "unknown"
+    expect_error(render_report(input$config, input$data, output_dir = tempfile()), "unbekannt")
+    input$data$main_test <- NULL
+    expect_error(validate_report_input(input), "data erwartet genau")
+  }
+})
+
+test_that("main-test text editing requires both new blocks only for its scope", {
+  destination <- tempfile("main-test-texts-")
+  files <- edit_report_texts(destination, scope = "haupttest_struktur")
+  expect_length(files, 10L)
+  expect_true(all(c("haupttest_auswahl.qmd", "haupttest_module.qmd") %in% basename(files)))
+  expect_length(report_text_files(destination, "pilotierung"), 8L)
+  unlink(file.path(destination, "haupttest_module.qmd"))
+  expect_error(report_text_files(destination, "haupttest_struktur"), "haupttest_module")
+})

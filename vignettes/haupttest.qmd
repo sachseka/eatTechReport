@@ -1,0 +1,112 @@
+---
+title: "Haupttest-Auswahl und Module"
+lang: de
+format:
+  html:
+    minimal: true
+execute:
+  warning: false
+  message: false
+---
+
+Der Umfang `haupttest_struktur` ergänzt die Pilotierungsabschnitte um die
+ausgewählten Aufgaben und Items der Hauptstudie sowie deren Modulzuordnung.
+Er beschreibt auch ihre Herkunft aus einer oder mehreren Pilotierungswellen.
+Die Auswahl erfolgt in der vorgelagerten Auswertung; das Berichtspaket trifft
+keine Auswahlentscheidung anhand automatisch gesetzter Gütekriterien.
+
+## Beispiel und Ergebnisse
+
+```{r}
+library(eatTechReport)
+demo <- example_report(scope = "haupttest_struktur", n_persons = 24)
+validate_report_input(demo)
+haupttest <- summarise_report_input(demo)$main_test
+knitr::kable(haupttest$totals)
+knitr::kable(haupttest$modules)
+```
+
+Diese Daten einschließlich Zeiten, Auswahl und Pilotierungsjahren sind
+**synthetisch**. Das Beispiel enthält wiederverwendete Items, mehrere Module
+derselben Domäne und Items aus einer früheren Pilotierungswelle. Für Mathematik
+steht `example_report("v3_ma_mg_mm", scope = "haupttest_struktur")` bereit;
+alle Leitideen bleiben der Skala `MO` zugeordnet.
+
+Schema `0.4.0-draft` benötigt neben `population`, `pvs`, `design` und `sample`
+den Baustein `main_test`. Die bisherigen Umfänge bleiben unverändert gültig;
+`example_report()` verwendet weiterhin standardmäßig `pilotierung`.
+
+## Eingabetabellen
+
+`data$main_test` enthält genau fünf nicht leere R-Datentabellen. IDs und
+Bezeichnungen sind Zeichenketten. Ein Item steht genau einmal im Inventar;
+Wiederverwendungen werden in den Zuordnungstabellen erfasst.
+
+| Tabelle | Spalten | Bedeutung |
+| --- | --- | --- |
+| `items` | `item_id`, `task_id`, `task_label`, `domain_id` | Ausgewählte Items und ihre Aufgabe. Eine Aufgabe hat eine konsistente Bezeichnung und Domäne. |
+| `modules` | `module_id`, `label`, `module_type`, `position`, `duration_minutes` | Modulbezeichnung, Typ (`base`, `supplement`, `domain`), Darstellungsreihenfolge und vorgegebene Bearbeitungszeit. |
+| `module_items` | `module_id`, `item_id`, `task_position`, `item_position` | Ausgewählte Items je Modul; Aufgabenreihenfolge im Modul und Itemreihenfolge innerhalb der Aufgabe. |
+| `waves` | `wave_id`, `pilot_year`, `label` | Dokumentierte Pilotierungswellen mit Jahr und Bezeichnung. Mehrere Wellen im selben Jahr sind möglich. |
+| `item_waves` | `item_id`, `wave_id` | Eine oder mehrere dokumentierte Pilotierungswellen je ausgewähltem Item. |
+
+Jedes Item benötigt mindestens eine Modul- und eine Wellenzuordnung. Jedes
+angegebene Modul und jede Welle müssen verwendet werden. Die ausgewählten Items
+müssen nicht im Itempool der aktuell beschriebenen Pilotierung vorkommen:
+Wiederverwendungen aus früheren Wellen sind ausdrücklich möglich.
+
+Positionsangaben sind positive ganze Zahlen. `modules$position` ordnet die
+Darstellung der Module im Bericht; sie beschreibt **keine Testheftzusammenstellung**.
+In einem Modul hat jede Aufgabe eine eindeutige Position. Innerhalb der Aufgabe
+haben ihre Items jeweils eindeutige Positionen. Lücken in den Positionen sind
+zulässig. Alle Zeiten werden ausdrücklich geliefert, nicht aus Pilotblöcken
+oder Fachnamen abgeleitet. Die Modulzeiten werden nicht zu einer individuellen
+Testzeit summiert.
+
+Mehrere Module einer Deutsch-Domäne sowie Basis- und Ergänzungsmodule sind
+möglich. Ein Modul kann Items mehrerer Domänen enthalten. Domäne und
+psychometrische Skala werden über `config$domains` verbunden; Module erzeugen
+keine zusätzlichen Skalen.
+
+## Zählregeln
+
+Gesamtzahlen zählen eindeutige Aufgaben- und Item-IDs. Ein Item in zwei Modulen
+wird insgesamt einmal und in jedem dieser Module einmal gezählt. Die
+Aufgabenliste zeigt jeweils die Anzahl der tatsächlich dem Modul zugeordneten
+Items; verschiedene Module dürfen unterschiedliche Teile derselben Aufgabe
+enthalten.
+
+```{r}
+knitr::kable(haupttest$tasks)
+knitr::kable(haupttest$waves)
+```
+
+Wellenzahlen können sich überschneiden, wenn ein Item in mehreren Wellen
+pilotiert wurde. Sie sind dann keine addierbare Zerlegung der Gesamtauswahl.
+Das Ergebnis kennzeichnet diesen Fall mit `source_overlap`; auch im Bericht
+wird auf ihn hingewiesen.
+
+## Redaktion und Word-Ausgabe
+
+```{r}
+#| eval: false
+edit_report_texts("lokal/redaktion-haupttest", scope = "haupttest_struktur")
+bericht <- render_report(
+  config = demo$config,
+  data = demo$data,
+  text_dir = "lokal/redaktion-haupttest",
+  output_dir = "lokal/haupttest-de"
+)
+```
+
+Die zehn Bausteine enthalten `haupttest_auswahl.qmd` und `haupttest_module.qmd`.
+Auswahlbegründungen und weitere Textvariablen stehen zunächst in eckigen
+Klammern. Der Textordner muss alle Bausteine des gewählten Umfangs enthalten.
+Vorhandene redigierte Dateien sollten beim Ergänzen der zwei neuen Dateien
+beibehalten werden. Optional vorhandene lokale Kompetenz- und Methodentexte
+werden weiterhin eingebunden und archiviert.
+
+Itemprofile, verbindliche Umrechnungsformeln, die Zusammenstellung vollständiger
+Haupttesthefte und der fachliche Vorjahresvergleich folgen in späteren Etappen.
+Der gespeicherte Archivstand enthält bereits die vollständigen Eingaben,
+Ergebnisse und verwendeten Textdateien dieser Erweiterung.

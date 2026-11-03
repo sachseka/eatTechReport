@@ -30,7 +30,7 @@ decimal <- function(x) formatC(x, format = "f", digits = 1, decimal.mark = ",")
 ```{r}
 #| label: grundlagen_optionale_bausteine
 #| results: asis
-if (config$scope == "pilotierung" &&
+if (config$scope %in% c("pilotierung", "haupttest_struktur") &&
     file.exists("archive/texts/grundlagen_kompetenzstufen.qmd")) {
   cat(knitr::knit_child("archive/texts/grundlagen_kompetenzstufen.qmd",
                         envir = environment(), quiet = TRUE), sep = "\n")
@@ -41,7 +41,7 @@ if (config$scope == "pilotierung" &&
 #| label: pilotierung_abschnitte
 #| results: asis
 performance_text <- readLines("archive/texts/pilotierung_leistung.qmd", encoding = "UTF-8")
-if (config$scope == "pilotierung") {
+if (config$scope %in% c("pilotierung", "haupttest_struktur")) {
   # Keep the editable chapter heading and insert design/sample before performance.
   start <- grep("^## .*\\{#pilotierung_leistung\\}", performance_text)
   if (length(start) != 1L || start < 2L) {
@@ -69,3 +69,15 @@ cat(knitr::knit_child(text = performance_text,
 {{< pagebreak >}}
 
 {{< include archive/texts/leistung_methoden.qmd >}}
+
+```{r}
+#| label: haupttest_abschnitte
+#| results: asis
+if (config$scope == "haupttest_struktur") {
+  cat("\n\n{{< pagebreak >}}\n\n")
+  for (block in c("haupttest_auswahl.qmd", "haupttest_module.qmd")) {
+    cat(knitr::knit_child(file.path("archive/texts", block),
+                          envir = environment(), quiet = TRUE), sep = "\n")
+  }
+}
+```

@@ -7,14 +7,15 @@
 #' @param path Local directory for the editable text blocks.
 #' @param overwrite Whether existing blocks may be replaced. Defaults to FALSE.
 #' @param scope Report scope: `"pilotierung"` for design, sample and performance,
-#'   or `"pilotierung_leistung"` for the performance section only.
+#'   `"pilotierung_leistung"` for the performance section only, or
+#'   `"haupttest_struktur"` to also include main-test selection and modules.
 #' @return Invisibly, the paths of the copied Quarto files.
 #' @export
 #' @examples
 #' texts <- tempfile("report-texts-")
 #' edit_report_texts(texts)
 edit_report_texts <- function(path, overwrite = FALSE,
-                              scope = c("pilotierung", "pilotierung_leistung")) {
+                              scope = c("pilotierung", "pilotierung_leistung", "haupttest_struktur")) {
   scope <- match.arg(scope)
   check_report_path(path, "path")
   check_report_flag(overwrite, "overwrite")
@@ -35,7 +36,8 @@ edit_report_texts <- function(path, overwrite = FALSE,
 #' Render pilot-study sections with the corporate Word layout
 #'
 #' The renderer covers test design, sample composition and performance for the
-#' pilot-study scope, or the performance section alone. It is not yet a complete
+#' pilot-study scope, or the performance section alone. Scope `haupttest_struktur`
+#' also adds main-test selection and modules. It is not yet a complete
 #' technical report. Inputs follow [example_report()] and are validated before
 #' rendering. Synthetic data and illustrative cuts are explicitly labelled.
 #'
@@ -297,17 +299,20 @@ check_report_flag <- function(value, label) {
 }
 
 report_text_files <- function(text_dir = NULL,
-                              scope = c("pilotierung", "pilotierung_leistung")) {
+                              scope = c("pilotierung", "pilotierung_leistung", "haupttest_struktur")) {
   scope <- match.arg(scope)
   expected <- c("grundlagen_ueberblick.qmd", "pilotierung_leistung.qmd", "leistung_methoden.qmd")
-  if (scope == "pilotierung") expected <- c(expected, study_text_names())
+  if (scope %in% c("pilotierung", "haupttest_struktur")) expected <- c(expected, study_text_names())
+  if (scope == "haupttest_struktur") {
+    expected <- c(expected, "haupttest_auswahl.qmd", "haupttest_module.qmd")
+  }
   if (is.null(text_dir)) text_dir <- system.file("quarto", "texts", package = "eatTechReport")
   check_report_path(text_dir, "text_dir")
   paths <- file.path(text_dir, expected)
   if (!all(file.exists(paths)) || any(dir.exists(paths))) {
     stop("text_dir muss alle Textbausteine enthalten: ", paste(expected, collapse = ", "), call. = FALSE)
   }
-  if (scope == "pilotierung") {
+  if (scope %in% c("pilotierung", "haupttest_struktur")) {
     optional <- file.path(text_dir, c("grundlagen_kompetenzstufen.qmd",
                                       "pilotierung_durchfuehrung.qmd",
                                       "pilotierung_auswertung.qmd"))
@@ -542,13 +547,18 @@ finalise_report_docx <- function(path, report = NULL) {
         if (inherits(cell_props, "xml_missing")) cell_props <- xml2::xml_add_child(cell, "w:tcPr", .where = 0)
         xml2::xml_set_attr(layout_child(cell_props, "vAlign", ns), "w:val", "center")
         margins <- layout_child(cell_props, "tcMar", ns)
+        # Word puts most of the extra 1.5-line leading below Arial's visible
+        # glyphs. Compensate above the text instead of adding equal margins:
+        # 6.5 pt above / 0 pt below optically centers one- and multiline cells
+        # while preserving the report's 11 pt font and 1.5-line spacing.
         for (side in c("top", "bottom")) {
           margin <- layout_child(margins, side, ns)
-          xml2::xml_set_attrs(margin, c("w:w" = "60", "w:type" = "dxa"))
+          xml2::xml_set_attrs(margin, c("w:w" = if (side == "top") "130" else "0",
+                                       "w:type" = "dxa"))
         }
         layout_order_children(margins, c("top", "start", "left", "bottom", "end", "right"))
-        # Balanced cell padding is undermined by inherited paragraph-after
-        # spacing. Keep the report line spacing but remove these extra gaps.
+        # Inherited paragraph-after spacing would add a second gap below.
+        # Keep the report line spacing but remove these extra gaps.
         for (paragraph in xml2::xml_find_all(cell, ".//w:p", ns)) {
           paragraph_props <- layout_child(paragraph, "pPr", ns, first = TRUE)
           spacing <- layout_child(paragraph_props, "spacing", ns)

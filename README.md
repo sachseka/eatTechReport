@@ -17,6 +17,8 @@ Pilotierungsstichprobe**: Eingabeprüfung, Aufgaben- und Itemzahlen,
 Testheftaufbau, Rücklauf, Hintergrundmerkmale, gültige Antwortzahlen,
 PV-Kennzahlen und Dichtegrafiken. Die Word-Ausgabe verwendet die mitgelieferte,
 freigegebene Corporate-Vorlage. Weitere Kapitel werden schrittweise ergänzt.
+Mit `scope = "haupttest_struktur"` kommen die Haupttest-Auswahl, ihre
+Pilotierungswellen sowie Modulübersichten und Aufgabenreihenfolgen hinzu.
 
 ## Installation und erster Einstieg
 
@@ -57,6 +59,15 @@ Für Mathematik steht das Profil `v3_ma_mg_mm` mit der globalen Skala `MO` berei
 verfügbar. Die Leistungsfunktionen können auch vollständige Berichtsobjekte
 verarbeiten; `validate_leistung_input()` prüft dabei den PV-Teil.
 `validate_report_input()` prüft zusätzlich Testdesign und Stichprobe.
+Der erweiterte Umfang `haupttest_struktur` verwendet Schema `0.4.0-draft`
+und prüft außerdem `data$main_test`:
+
+```r
+demo_haupttest <- example_report(scope = "haupttest_struktur")
+haupttest <- summarise_report_input(demo_haupttest)$main_test
+haupttest$modules
+haupttest$tasks
+```
 
 ## Word-Bericht und Textredaktion
 
@@ -95,7 +106,8 @@ Ohne Angaben erscheinen Platzhalter in eckigen Klammern auf dem Deckblatt.
 
 Der Bericht enthält derzeit die Abschnitte Testdesign, Stichprobe und Leistung
 und kennzeichnet synthetische Eingaben sichtbar. Ein vollständiger Technischer
-Bericht mit empirischer Itemgüte und Haupttestkapiteln ist noch nicht umgesetzt.
+Bericht mit empirischer Itemgüte, Itemprofilen und Umrechnungsformeln ist noch
+nicht umgesetzt. Auswahl und Modulstruktur der Hauptstudie sind optional verfügbar.
 Bestehende Ausgaben werden standardmäßig nicht überschrieben.
 
 Die Texte lassen sich als Quarto-Dateien in einen eigenen Arbeitsordner kopieren:
@@ -113,6 +125,8 @@ bericht <- render_report(
 ```
 
 Die Voreinstellung kopiert acht Bausteine für `scope = "pilotierung"`.
+Mit `scope = "haupttest_struktur"` werden zehn Bausteine kopiert, darunter
+`haupttest_auswahl.qmd` und `haupttest_module.qmd`.
 Mit `scope = "pilotierung_leistung"` werden die drei bisherigen Bausteine für
 eine reine Leistungsdarstellung kopiert. Der Textordner muss alle Bausteine
 des beim Rendern verwendeten Umfangs enthalten.
@@ -147,6 +161,8 @@ Der Artikel [Testdesign und Stichprobenbeschreibung](vignettes/pilotierung.qmd)
 erläutert die zusätzlichen R-Objekte `data$design` und `data$sample`.
 [Leistungskennzahlen und Plausible Values](vignettes/leistung.qmd) beschreibt
 die PV-Eingaben und ihre Berechnungsregeln.
+[Haupttest-Auswahl und Module](vignettes/haupttest.qmd) beschreibt das separate
+Haupttestinventar, Wiederverwendungen, Herkunftswellen und Aufgabenreihenfolgen.
 
 ## Dokumentation und Entwicklung
 

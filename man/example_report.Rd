@@ -11,7 +11,7 @@ example_report(
   n_pv = 15L,
   main_year = 2027L,
   pilot_year = 2026L,
-  scope = c("pilotierung", "pilotierung_leistung"),
+  scope = c("pilotierung", "pilotierung_leistung", "haupttest_struktur"),
   authors = NULL,
   affiliation = NULL
 )
@@ -31,7 +31,8 @@ and listening, or \code{"v3_ma_mg_mm"} for globally scaled mathematics.}
 \item{pilot_year}{Pilot year, supplied independently of \code{main_year}.}
 
 \item{scope}{\code{"pilotierung"} includes the implemented pilot-study sections;
-\code{"pilotierung_leistung"} returns the earlier performance-only example.}
+\code{"pilotierung_leistung"} returns the earlier performance-only example;
+\code{"haupttest_struktur"} also includes main-test selection and module structure.}
 
 \item{authors}{Character vector of report authors in display order.
 NULL uses visible placeholders. Stored in \code{config$report$authors}.}
@@ -43,6 +44,7 @@ supplies separate lines. NULL uses a visible placeholder. Stored in
 \value{
 A \code{config} and \code{data} list. The pilot-study scope uses schema
 \verb{0.3.0-draft} and adds \code{design} and \code{sample} to the performance input tables.
+The extended scope uses schema \verb{0.4.0-draft} and also adds \code{main_test}.
 }
 \description{
 A convenient entry point for synthetic report inputs. By default this includes

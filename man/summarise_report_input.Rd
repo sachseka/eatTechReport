@@ -16,6 +16,9 @@ pool counts, blocks, booklets and their slots. Sample includes overall and
 state-level participation, characteristics and valid-response summaries
 separated by pilot and anchor roles. Uncollected characteristics are NULL;
 percentages for empty populations and undefined sample SDs are NA.
+Scope \code{haupttest_struktur} additionally returns \code{main_test} with distinct
+overall/domain counts, module counts, ordered tasks and pilot-wave counts.
+Wave counts can overlap; module durations are not added to a test duration.
 }
 \description{
 Build the common numerical source for editable text, tables and graphics.

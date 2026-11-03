@@ -2,15 +2,19 @@
 # Full reports validate their design and sample through validate_report_input().
 performance_component <- function(input) {
   if (is.list(input) && is.list(input$config) &&
-      identical(input$config$scope, "pilotierung")) {
-    if (!identical(input$config$schema_version, "0.3.0-draft")) {
-      stop("scope = 'pilotierung' erwartet schema_version = '0.3.0-draft'.", call. = FALSE)
+      isTRUE(input$config$scope %in% c("pilotierung", "haupttest_struktur"))) {
+    has_main_test <- identical(input$config$scope, "haupttest_struktur")
+    schema <- if (has_main_test) "0.4.0-draft" else "0.3.0-draft"
+    if (!identical(input$config$schema_version, schema)) {
+      stop("scope = '", input$config$scope, "' erwartet schema_version = '",
+           schema, "'.", call. = FALSE)
     }
     fields <- c("population", "pvs", "design", "sample")
+    if (has_main_test) fields <- c(fields, "main_test")
     if (!is.list(input$data) || is.data.frame(input$data) ||
         is.null(names(input$data)) || anyDuplicated(names(input$data)) ||
         !setequal(names(input$data), fields)) {
-      stop("data erwartet genau: population, pvs, design, sample.", call. = FALSE)
+      stop("data erwartet genau: ", paste(fields, collapse = ", "), ".", call. = FALSE)
     }
     input$config$scope <- "pilotierung_leistung"
     input$config$schema_version <- "0.2.0-draft"
@@ -30,6 +34,10 @@ performance_component <- function(input) {
 #' @details Scope `pilotierung` uses schema `0.3.0-draft` and requires
 #'   `data$population`, `data$pvs`, `data$design` and `data$sample`. The earlier
 #'   performance-only scope `pilotierung_leistung` remains supported unchanged.
+#'   Scope `haupttest_struktur` uses schema `0.4.0-draft` and additionally requires
+#'   `data$main_test`: selected items, modules, ordered item membership and
+#'   documented pilot-wave membership. It extends the draft with main-test
+#'   selection and structure, not item-quality profiles or transformations.
 #'   Sample composition describes the distinct persons in `data$population`;
 #'   participation and class returns are reported separately. Missing categorical
 #'   values form a separate category and remain in percentage denominators.
@@ -42,9 +50,12 @@ performance_component <- function(input) {
 #' @export
 validate_report_input <- function(input) {
   validate_leistung_input(input)
-  if (identical(input$config$scope, "pilotierung")) {
+  if (input$config$scope %in% c("pilotierung", "haupttest_struktur")) {
     validate_design_data(input$data$design, input$config)
     validate_sample_data(input$data$sample, input)
+  }
+  if (identical(input$config$scope, "haupttest_struktur")) {
+    validate_main_test_data(input$data$main_test, input$config)
   }
   invisible(TRUE)
 }
@@ -62,6 +73,9 @@ validate_report_input <- function(input) {
 #'   state-level participation, characteristics and valid-response summaries
 #'   separated by pilot and anchor roles. Uncollected characteristics are NULL;
 #'   percentages for empty populations and undefined sample SDs are NA.
+#'   Scope `haupttest_struktur` additionally returns `main_test` with distinct
+#'   overall/domain counts, module counts, ordered tasks and pilot-wave counts.
+#'   Wave counts can overlap; module durations are not added to a test duration.
 #' @seealso [example_report()], [validate_report_input()]
 #' @examples
 #' results <- summarise_report_input(example_report())
@@ -71,9 +85,12 @@ validate_report_input <- function(input) {
 summarise_report_input <- function(input) {
   validate_report_input(input)
   result <- summarise_leistung_input(input)
-  if (identical(input$config$scope, "pilotierung")) {
+  if (input$config$scope %in% c("pilotierung", "haupttest_struktur")) {
     result$design <- summarise_design_data(input$data$design, input$config)
     result$sample <- summarise_sample_data(input$data$sample, input)
+  }
+  if (identical(input$config$scope, "haupttest_struktur")) {
+    result$main_test <- summarise_main_test_data(input$data$main_test, input$config)
   }
   result
 }

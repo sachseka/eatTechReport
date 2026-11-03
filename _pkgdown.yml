@@ -30,6 +30,8 @@ navbar:
           href: articles/pilotierung.html
         - text: Leistungskennzahlen und PVs
           href: articles/leistung.html
+        - text: Haupttest-Auswahl und Module
+          href: articles/haupttest.html
         - text: Word-Bericht und Textredaktion
           href: articles/textredaktion.html
 reference:
@@ -54,5 +56,6 @@ articles:
     contents:
       - einstieg
       - pilotierung
+      - haupttest
       - leistung
       - textredaktion

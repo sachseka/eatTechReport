@@ -51,7 +51,8 @@ A list of class \code{eat_report} with \code{path}, \code{archive_dir}, \code{ma
 }
 \description{
 The renderer covers test design, sample composition and performance for the
-pilot-study scope, or the performance section alone. It is not yet a complete
+pilot-study scope, or the performance section alone. Scope \code{haupttest_struktur}
+also adds main-test selection and modules. It is not yet a complete
 technical report. Inputs follow \code{\link[=example_report]{example_report()}} and are validated before
 rendering. Synthetic data and illustrative cuts are explicitly labelled.
 }

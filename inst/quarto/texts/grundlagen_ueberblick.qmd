@@ -5,8 +5,7 @@ Aufgabenentwicklung und -erprobung und fasst wichtige Ergebnisse der
 Datenauswertung für die Vergleichsarbeiten in der 3. Jahrgangsstufe (VERA-3)
 im Fach `r if (config$report$subject == "de") "Deutsch" else "Mathematik"`
 im Schuljahr `r config$report$main_year - 1`/`r substr(config$report$main_year, 3, 4)`
-zusammen. Die Kapitel zu den Testmodulen der Hauptstudie werden in einem
-weiteren Bearbeitungsschritt ergänzt.
+zusammen.
 
 ```{r}
 #| label: grundlagen_fachueberblick
@@ -30,7 +29,7 @@ if (config$report$subject == "de") {
 #| results: asis
 if (config$report$data_origin == "synthetic") {
   cat("**Arbeitsfassung mit synthetischen Beispieldaten:** Die Angaben zur ",
-      "Pilotierungsstudie und zur Leistungsverteilung dienen der Erprobung der ",
+      "Pilotierungsstudie, zur Leistungsverteilung und gegebenenfalls zur Hauptstudie dienen der Erprobung der ",
       "Berichtserstellung. Auch die in den Leistungsgrafiken verwendeten ",
       "Stufengrenzen sind vorläufige Beispielwerte.\n\n", sep = "")
 }

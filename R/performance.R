@@ -357,9 +357,11 @@ summarise_leistung_input <- function(input) {
 #'
 #' @inheritParams example_leistung_input
 #' @param scope `"pilotierung"` includes the implemented pilot-study sections;
-#'   `"pilotierung_leistung"` returns the earlier performance-only example.
+#'   `"pilotierung_leistung"` returns the earlier performance-only example;
+#'   `"haupttest_struktur"` also includes main-test selection and module structure.
 #' @return A `config` and `data` list. The pilot-study scope uses schema
 #'   `0.3.0-draft` and adds `design` and `sample` to the performance input tables.
+#'   The extended scope uses schema `0.4.0-draft` and also adds `main_test`.
 #' @seealso [render_report()]
 #' @examples
 #' demo <- example_report(profile = "v3_ma_mg_mm", seed = 42)
@@ -368,18 +370,22 @@ summarise_leistung_input <- function(input) {
 example_report <- function(profile = "v3_de_lesen_zuhoeren", seed = 42L,
                            n_persons = 24L, n_pv = 15L,
                            main_year = 2027L, pilot_year = 2026L,
-                           scope = c("pilotierung", "pilotierung_leistung"),
+                           scope = c("pilotierung", "pilotierung_leistung", "haupttest_struktur"),
                            authors = NULL, affiliation = NULL) {
   scope <- match.arg(scope)
   input <- example_leistung_input(profile = profile, seed = seed,
                                   n_persons = n_persons, n_pv = n_pv,
                                   main_year = main_year, pilot_year = pilot_year,
                                   authors = authors, affiliation = affiliation)
-  if (scope == "pilotierung") {
+  if (scope %in% c("pilotierung", "haupttest_struktur")) {
     input$config$scope <- scope
     input$config$schema_version <- "0.3.0-draft"
     input$data$design <- example_design_data(input$config)
     input$data$sample <- example_sample_data(input)
+    if (scope == "haupttest_struktur") {
+      input$config$schema_version <- "0.4.0-draft"
+      input$data$main_test <- example_main_test_data(input$config)
+    }
     validate_report_input(input)
   }
   input
