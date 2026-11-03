@@ -62,7 +62,7 @@ study_design_tables <- function(design, max_positions = 4L) {
         present <- !is.na(index)
         cell[present] <- paste0(at_position$block_label[index[present]], " \u00b7 ",
                                  study_number(at_position$duration_minutes[index[present]]),
-                                 " Min.")
+                                 "\u00a0min")
         table[[paste("Position", study_number(position, 0L))]] <- cell
       }
       table

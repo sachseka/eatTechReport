@@ -151,7 +151,9 @@ divers und keine Angabe. Deklarierte Kategorien bleiben auch bei Anzahl null
 sichtbar.
 
 Altersmittelwert und Stichprobenstandardabweichung beruhen auf gültigen
-Altersangaben; gültiges und fehlendes N werden zusätzlich ausgewiesen.
+Altersangaben. Im Bericht wird der Anteil fehlender Altersangaben in Prozent
+der Auswertungspopulation ausgewiesen; gültiges und fehlendes N bleiben in den
+R-Ergebnissen für die Nachvollziehbarkeit verfügbar.
 Ohne gültiges Alter bleibt der Mittelwert fehlend, bei weniger als zwei
 gültigen Werten auch die Standardabweichung.
 

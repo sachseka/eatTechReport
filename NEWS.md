@@ -1,5 +1,11 @@
 # eatTechReport 0.0.0.9000
 
+* Add configurable cover authors and a shared affiliation, with visible
+  placeholders when unspecified and support for multiple affiliation lines.
+* Centre table text vertically, add cell padding and thin horizontal rules
+  beneath headers and between data rows, retaining strong outer rules.
+* Display minutes as `min`, use umlauts in report text, and report missing
+  age information as a percentage of the analysis population.
 * Bundle the approved corporate Word template. `render_report()` uses it by
   default with `corporate_template = NULL`; an explicit DOTX or DOCX path remains
   optional. Private source reports, data and editorial text remain local.

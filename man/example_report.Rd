@@ -11,7 +11,9 @@ example_report(
   n_pv = 15L,
   main_year = 2027L,
   pilot_year = 2026L,
-  scope = c("pilotierung", "pilotierung_leistung")
+  scope = c("pilotierung", "pilotierung_leistung"),
+  authors = NULL,
+  affiliation = NULL
 )
 }
 \arguments{
@@ -30,6 +32,13 @@ and listening, or \code{"v3_ma_mg_mm"} for globally scaled mathematics.}
 
 \item{scope}{\code{"pilotierung"} includes the implemented pilot-study sections;
 \code{"pilotierung_leistung"} returns the earlier performance-only example.}
+
+\item{authors}{Character vector of report authors in display order.
+NULL uses visible placeholders. Stored in \code{config$report$authors}.}
+
+\item{affiliation}{Shared affiliation for the authors. A character vector
+supplies separate lines. NULL uses a visible placeholder. Stored in
+\code{config$report$affiliation}.}
 }
 \value{
 A \code{config} and \code{data} list. The pilot-study scope uses schema

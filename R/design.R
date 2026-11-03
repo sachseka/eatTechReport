@@ -217,7 +217,7 @@ example_design_data <- function(config) {
         assignment_unit = if (i %% 2L) "person" else "class",
         assignment_description = if (i %% 2L)
           "Im synthetischen Beispiel werden die Heftversionen innerhalb der Klassen verteilt."
-        else "Im synthetischen Beispiel erhaelt jede Klasse eine gemeinsame Heftversion.",
+        else "Im synthetischen Beispiel erh\u00e4lt jede Klasse eine gemeinsame Heftversion.",
         stringsAsFactors = FALSE)
     }
   } else if (identical(config$report$subject, "ma")) {
@@ -250,7 +250,7 @@ example_design_data <- function(config) {
     }
     rules[[1L]] <- data.frame(
       design_id = "MA", label = "Mathematik", assignment_unit = "class",
-      assignment_description = "Im synthetischen Beispiel erhaelt jede Klasse eine gemeinsame Heftversion.",
+      assignment_description = "Im synthetischen Beispiel erh\u00e4lt jede Klasse eine gemeinsame Heftversion.",
       stringsAsFactors = FALSE)
   } else stop("Beispieldesign unterstuetzt subject = 'de' oder 'ma'.", call. = FALSE)
   out <- lapply(list(items = items, blocks = blocks, block_items = links,

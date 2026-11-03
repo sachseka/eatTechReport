@@ -10,7 +10,9 @@ example_leistung_input(
   n_persons = 24L,
   n_pv = 15L,
   main_year = 2027L,
-  pilot_year = 2026L
+  pilot_year = 2026L,
+  authors = NULL,
+  affiliation = NULL
 )
 }
 \arguments{
@@ -26,6 +28,13 @@ and listening, or \code{"v3_ma_mg_mm"} for globally scaled mathematics.}
 \item{main_year}{Main assessment year recorded in the configuration.}
 
 \item{pilot_year}{Pilot year, supplied independently of \code{main_year}.}
+
+\item{authors}{Character vector of report authors in display order.
+NULL uses visible placeholders. Stored in \code{config$report$authors}.}
+
+\item{affiliation}{Shared affiliation for the authors. A character vector
+supplies separate lines. NULL uses a visible placeholder. Stored in
+\code{config$report$affiliation}.}
 }
 \value{
 A list with \code{config} and \code{data}. \code{data$population} specifies the

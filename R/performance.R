@@ -10,6 +10,11 @@
 #' @param n_pv Number of plausible values per person and scale, at least one.
 #' @param main_year Main assessment year recorded in the configuration.
 #' @param pilot_year Pilot year, supplied independently of `main_year`.
+#' @param authors Character vector of report authors in display order.
+#'   NULL uses visible placeholders. Stored in `config$report$authors`.
+#' @param affiliation Shared affiliation for the authors. A character vector
+#'   supplies separate lines. NULL uses a visible placeholder. Stored in
+#'   `config$report$affiliation`.
 #'
 #' @return A list with `config` and `data`. `data$population` specifies the
 #'   expected person-scale pairs independently of the long `data$pvs` table.
@@ -29,7 +34,8 @@ example_leistung_input <- function(profile = "v3_de_lesen_zuhoeren",
                                   n_persons = 24L,
                                   n_pv = 15L,
                                   main_year = 2027L,
-                                  pilot_year = 2026L) {
+                                  pilot_year = 2026L,
+                                  authors = NULL, affiliation = NULL) {
   profiles <- c("v3_de_lesen_zuhoeren", "v3_ma_mg_mm")
   if (!is.character(profile) || length(profile) != 1L ||
       is.na(profile) || !profile %in% profiles) {
@@ -92,7 +98,9 @@ example_leistung_input <- function(profile = "v3_de_lesen_zuhoeren",
     schema_version = "0.2.0-draft",
     scope = "pilotierung_leistung",
     report = list(study = "vera3", subject = subject, main_year = as.integer(main_year),
-                  pilot_year = as.integer(pilot_year), data_origin = "synthetic"),
+                  pilot_year = as.integer(pilot_year), data_origin = "synthetic",
+                  authors = if (is.null(authors)) c("[Autorin/Autor 1]", "[Autorin/Autor 2]") else authors,
+                  affiliation = if (is.null(affiliation)) "[Affiliation]" else affiliation),
     domains = domains,
     focus_domains = focus_domains,
     performance = list(population = "all", weighted = FALSE, subgroups = FALSE),
@@ -174,8 +182,10 @@ validate_leistung_input <- function(input) {
       !identical(config$scope, "pilotierung_leistung")) {
     fail("Erwartet werden schema_version = '0.2.0-draft' und scope = 'pilotierung_leistung'.")
   }
-  exact_names(config$report, c("study", "subject", "main_year", "pilot_year", "data_origin"),
+  cover_fields <- intersect(c("authors", "affiliation"), names(config$report))
+  exact_names(config$report, c("study", "subject", "main_year", "pilot_year", "data_origin", cover_fields),
               "config$report")
+  for (field in cover_fields) strings(config$report[[field]], paste0("config$report$", field))
   if (!identical(config$report$study, "vera3") ||
       !is.character(config$report$subject) || length(config$report$subject) != 1L ||
       is.na(config$report$subject) || !config$report$subject %in% c("de", "ma")) {
@@ -358,11 +368,13 @@ summarise_leistung_input <- function(input) {
 example_report <- function(profile = "v3_de_lesen_zuhoeren", seed = 42L,
                            n_persons = 24L, n_pv = 15L,
                            main_year = 2027L, pilot_year = 2026L,
-                           scope = c("pilotierung", "pilotierung_leistung")) {
+                           scope = c("pilotierung", "pilotierung_leistung"),
+                           authors = NULL, affiliation = NULL) {
   scope <- match.arg(scope)
   input <- example_leistung_input(profile = profile, seed = seed,
                                   n_persons = n_persons, n_pv = n_pv,
-                                  main_year = main_year, pilot_year = pilot_year)
+                                  main_year = main_year, pilot_year = pilot_year,
+                                  authors = authors, affiliation = affiliation)
   if (scope == "pilotierung") {
     input$config$scope <- scope
     input$config$schema_version <- "0.3.0-draft"

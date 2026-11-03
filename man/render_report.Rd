@@ -15,7 +15,10 @@ render_report(
 )
 }
 \arguments{
-\item{config}{Report configuration from \code{\link[=example_report]{example_report()}}.}
+\item{config}{Report configuration from \code{\link[=example_report]{example_report()}}. The cover uses
+\code{config$report$authors} (names in display order) and
+\code{config$report$affiliation} (shared affiliation, optionally multiple lines).
+Earlier inputs without these fields receive visible placeholders.}
 
 \item{data}{Input tables including population, PV values and, for the
 pilot-study scope, design and sample information.}

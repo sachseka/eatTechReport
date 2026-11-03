@@ -28,7 +28,9 @@ test_that("Quarto renders a report with the installed layout and no private inpu
   cli <- quarto::quarto_path()
   skip_if(is.null(cli) || !nzchar(cli), "Quarto CLI is not installed")
   input <- example_report("v3_ma_mg_mm", n_persons = 30L, n_pv = 1L,
-                           scope = "pilotierung_leistung")
+                           scope = "pilotierung_leistung",
+                           authors = c("Ada Beispiel", "B\u00e9la & Beispiel [2]"),
+                           affiliation = c("Institut f\u00fcr Beispielstudien", "Universit\u00e4t Musterstadt"))
   output <- tempfile("bundled-render-")
   expect_warning(result <- render_report(input$config, input$data,
                                           output_dir = output, update_fields = "none"),
@@ -45,6 +47,15 @@ test_that("Quarto renders a report with the installed layout and no private inpu
   expect_match(xml2::xml_text(title), "3. JahrgangsstufeMathematik", fixed = TRUE)
   expect_length(xml2::xml_find_all(title, ".//w:br", ns), 2L)
   expect_match(xml2::xml_text(doc), "Technischer Bericht", fixed = TRUE)
+  author <- xml2::xml_find_first(doc, "//w:p[w:pPr/w:pStyle/@w:val='ReportAuthors']", ns)
+  affiliation <- xml2::xml_find_first(doc, "//w:p[w:pPr/w:pStyle/@w:val='ReportAffiliation']", ns)
+  expect_identical(xml2::xml_text(author), "Ada Beispiel & B\u00e9la & Beispiel [2]")
+  expect_identical(xml2::xml_text(affiliation), paste(input$config$report$affiliation, collapse = ""))
+  expect_length(xml2::xml_find_all(affiliation, ".//w:br", ns), 1L)
+  expect_identical(xml2::xml_attr(xml2::xml_find_first(author, "preceding-sibling::*[1]/w:pPr/w:pStyle", ns),
+                                 "w:val", ns),
+                   xml2::xml_attr(xml2::xml_find_first(styles, "w:style[w:name/@w:val='Subtitle']", ns),
+                                   "w:styleId", ns))
   expect_match(xml2::xml_text(doc), "synthetisch", ignore.case = TRUE)
   expect_gt(length(xml2::xml_find_all(doc, "//w:tbl", ns)), 0L)
   expect_gt(length(xml2::xml_find_all(doc, "//w:drawing", ns)), 0L)

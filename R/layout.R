@@ -111,6 +111,8 @@ layout_style_role <- function(names) {
   keys <- tolower(gsub("[ _-]", "", names[!is.na(names)]))
   if (any(keys %in% c("title", "titel", "titeldeckblatt"))) return("title")
   if (any(keys %in% c("subtitle", "untertitel", "untertitel1", "subtiteldeckblatt"))) return("subtitle")
+  if (any(keys == "reportauthors")) return("coverauthors")
+  if (any(keys == "reportaffiliation")) return("coveraffiliation")
   if (any(keys %in% c("caption", "tablecaption", "imagecaption", "beschriftung"))) return("caption")
   if (any(keys %in% c("tocheading", "titelinhaltsverzeichnis",
                      "inhaltsverzeichnisberschrift1", "inhaltsverzeichnis\u00fcberschrift1"))) return("heading1")
@@ -123,6 +125,7 @@ layout_role_size <- function(role) {
   if (role == "title") return(44)
   if (role == "subtitle") return(36)
   if (role == "caption") return(22)
+  if (role %in% c("coverauthors", "coveraffiliation")) return(22)
   if (grepl("^heading[1-9]$", role)) {
     level <- as.integer(sub("heading", "", role))
     return(c(32, 26, 24, rep(22, 6))[level])
@@ -184,6 +187,14 @@ layout_paragraph_properties <- function(props, ns, role = "") {
     xml2::xml_set_attr(layout_child(props, "contextualSpacing", ns), "w:val", "0")
   } else if (role %in% c("title", "subtitle")) {
     xml2::xml_set_attr(layout_child(props, "jc", ns), "w:val", "left")
+  } else if (role %in% c("coverauthors", "coveraffiliation")) {
+    layout_set_attributes(spacing, c("w:before" = if (role == "coverauthors") "480" else "0",
+                                    "w:after" = if (role == "coverauthors") "120" else "0",
+                                    "w:beforeAutospacing" = "0", "w:afterAutospacing" = "0"), ns)
+    xml2::xml_set_attr(layout_child(props, "jc", ns), "w:val", "left")
+    xml2::xml_set_attr(layout_child(props, "keepLines", ns), "w:val", "1")
+    xml2::xml_set_attr(layout_child(props, "keepNext", ns), "w:val",
+                      if (role == "coverauthors") "1" else "0")
   }
   layout_order_children(props, c("pStyle", "keepNext", "keepLines", "pageBreakBefore",
                                 "framePr", "widowControl", "numPr", "suppressLineNumbers",

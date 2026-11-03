@@ -5,14 +5,15 @@ characteristics <- results$sample$characteristics
 age <- characteristics$age
 if (is.null(age)) {
   cat("Das Alter wurde für diesen Durchgang nicht erhoben.\n\n")
+} else if (age$n_valid + age$n_missing == 0L) {
+  cat("Die Auswertungspopulation enthält keine Personen; für das Alter sind keine Kennwerte oder Fehlwertanteile berechenbar.\n\n")
 } else if (age$n_valid == 0L) {
-  cat("Für das Alter liegen keine gültigen Angaben vor (keine Angabe: ",
-      age$n_missing, " Personen).\n\n", sep = "")
+  cat("Für das Alter liegen keine gültigen Angaben vor (fehlende Angaben: 100,0 %).\n\n")
 } else {
+  missing_percent <- 100 * age$n_missing / (age$n_valid + age$n_missing)
   cat("Das mittlere Alter der Stichprobe betrug *M* = ", eatTechReport:::study_number(age$mean),
       " Jahre (*SD* = ", eatTechReport:::study_number(age$sd),
-      "; gültige Angaben: *N* = ", age$n_valid, "). ",
-      "Für ", age$n_missing, " Schülerinnen und Schüler lag keine gültige Altersangabe vor.\n\n", sep = "")
+      "; fehlende Angaben: ", eatTechReport:::study_number(missing_percent), " %).\n\n", sep = "")
   if (!is.finite(age$sd)) cat("Die Standardabweichung ist bei weniger als zwei gültigen Altersangaben nicht berechenbar.\n\n")
 }
 ```

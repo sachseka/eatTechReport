@@ -83,6 +83,16 @@ bericht$path
 bericht$manifest$fields_updated
 ```
 
+Autoren und gemeinsame Affiliation vor dem Rendern in der Berichtskonfiguration setzen:
+
+```r
+demo$config$report$authors <- c("Erika Muster", "Max Muster")
+demo$config$report$affiliation <- "Institut für Beispielstudien an der Universität Musterstadt"
+```
+
+Alternativ können beide Angaben direkt an `example_report()` übergeben werden.
+Ohne Angaben erscheinen Platzhalter in eckigen Klammern auf dem Deckblatt.
+
 Der Bericht enthält derzeit die Abschnitte Testdesign, Stichprobe und Leistung
 und kennzeichnet synthetische Eingaben sichtbar. Ein vollständiger Technischer
 Bericht mit empirischer Itemgüte und Haupttestkapiteln ist noch nicht umgesetzt.

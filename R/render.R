@@ -51,7 +51,10 @@ edit_report_texts <- function(path, overwrite = FALSE,
 #' example `lokal/demo-de`. This snapshot is not a signed-off release archive;
 #' change comparison and margin markers are not implemented yet.
 #'
-#' @param config Report configuration from [example_report()].
+#' @param config Report configuration from [example_report()]. The cover uses
+#'   `config$report$authors` (names in display order) and
+#'   `config$report$affiliation` (shared affiliation, optionally multiple lines).
+#'   Earlier inputs without these fields receive visible placeholders.
 #' @param data Input tables including population, PV values and, for the
 #'   pilot-study scope, design and sample information.
 #' @param corporate_template Optional path to a corporate DOTX or DOCX template.
@@ -187,7 +190,7 @@ render_report <- function(config, data,
   )
   report_path <- file.path(output_dir, "report.docx")
   if (!file.exists(report_path)) stop("Quarto hat keine DOCX-Datei erzeugt.", call. = FALSE)
-  finalise_report_docx(report_path)
+  finalise_report_docx(report_path, report = config$report)
   fields_updated <- FALSE
   if (fields_requested) {
     update_docx_fields(report_path, file.path(archive_dir, "word-fields.log"))
@@ -476,7 +479,7 @@ prepare_corporate_reference <- function(template, reference) {
   invisible(reference)
 }
 
-finalise_report_docx <- function(path) {
+finalise_report_docx <- function(path, report = NULL) {
   directory <- tempfile(".report-parts-", tmpdir = dirname(path))
   on.exit(remove_word_parts(directory, dirname(path)), add = TRUE)
   extract_word_package(path, directory)
@@ -485,13 +488,17 @@ finalise_report_docx <- function(path) {
   doc <- xml2::read_xml(document_file)
   styles_file <- file.path(directory, "word/styles.xml")
   styles <- if (file.exists(styles_file)) xml2::read_xml(styles_file) else NULL
+  if (!is.null(report)) {
+    add_report_cover_authors(doc, styles, report, ns)
+    xml2::write_xml(styles, styles_file)
+  }
   contents <- xml2::xml_find_first(doc, "//w:sdt[.//w:instrText[contains(., 'TOC')]]", ns)
   if (!inherits(contents, "xml_missing")) {
     page_break <- xml2::read_xml(paste0('<w:p xmlns:w="', ns[["w"]],
                                       '"><w:r><w:br w:type="page"/></w:r></w:p>'))
     xml2::xml_add_sibling(contents, page_break, .where = "before")
   }
-  # Tables: strong outer horizontal rules, repeated header row, no verticals.
+  # Tables: strong outer rules, light horizontal separators, no verticals.
   for (table in xml2::xml_find_all(doc, "//w:tbl", ns)) {
     space_report_table(table, styles, ns)
     # Quarto wraps a caption and its data table in an outer layout table. Only
@@ -523,9 +530,9 @@ finalise_report_docx <- function(path) {
     borders <- xml2::xml_add_child(props, "w:tblBorders")
     for (side in c("top", "left", "bottom", "right", "insideH", "insideV")) {
       border <- xml2::xml_add_child(borders, paste0("w:", side))
-      xml2::xml_set_attr(border, "w:val", if (side %in% c("top", "bottom")) "single" else "nil")
-      xml2::xml_set_attr(border, "w:sz", "12")
-      xml2::xml_set_attr(border, "w:color", "000000")
+      xml2::xml_set_attr(border, "w:val", if (side %in% c("top", "bottom", "insideH")) "single" else "nil")
+      xml2::xml_set_attr(border, "w:sz", if (side == "insideH") "4" else "12")
+      xml2::xml_set_attr(border, "w:color", if (side == "insideH") "B3B3B3" else "000000")
     }
     # Cell borders take precedence over table borders in Word. Set the outer
     # rules on the actual cells too, so inherited thin rules cannot win.
@@ -533,13 +540,33 @@ finalise_report_docx <- function(path) {
       for (cell in xml2::xml_find_all(rows[[i]], "w:tc", ns)) {
         cell_props <- xml2::xml_find_first(cell, "w:tcPr", ns)
         if (inherits(cell_props, "xml_missing")) cell_props <- xml2::xml_add_child(cell, "w:tcPr", .where = 0)
+        xml2::xml_set_attr(layout_child(cell_props, "vAlign", ns), "w:val", "center")
+        margins <- layout_child(cell_props, "tcMar", ns)
+        for (side in c("top", "bottom")) {
+          margin <- layout_child(margins, side, ns)
+          xml2::xml_set_attrs(margin, c("w:w" = "60", "w:type" = "dxa"))
+        }
+        layout_order_children(margins, c("top", "start", "left", "bottom", "end", "right"))
+        # Balanced cell padding is undermined by inherited paragraph-after
+        # spacing. Keep the report line spacing but remove these extra gaps.
+        for (paragraph in xml2::xml_find_all(cell, ".//w:p", ns)) {
+          paragraph_props <- layout_child(paragraph, "pPr", ns, first = TRUE)
+          spacing <- layout_child(paragraph_props, "spacing", ns)
+          xml2::xml_set_attrs(spacing, c("w:before" = "0", "w:after" = "0",
+                                        "w:beforeAutospacing" = "0", "w:afterAutospacing" = "0"))
+          xml2::xml_set_attr(spacing, "w:beforeLines", NULL, ns)
+          xml2::xml_set_attr(spacing, "w:afterLines", NULL, ns)
+        }
         xml2::xml_remove(xml2::xml_find_all(cell_props, "w:tcBorders", ns))
         cell_borders <- xml2::xml_add_child(cell_props, "w:tcBorders")
         for (side in c("top", "left", "bottom", "right")) {
           outer <- (side == "top" && i == 1L) || (side == "bottom" && i == length(rows))
+          horizontal <- side %in% c("top", "bottom")
+          under_header <- (side == "bottom" && i == 1L) || (side == "top" && i == 2L)
           border <- xml2::xml_add_child(cell_borders, paste0("w:", side))
-          xml2::xml_set_attrs(border, c("w:val" = if (outer) "single" else "nil",
-                                      "w:sz" = "12", "w:color" = "000000"))
+          xml2::xml_set_attrs(border, c("w:val" = if (horizontal) "single" else "nil",
+                                      "w:sz" = if (outer) "12" else "4",
+                                      "w:color" = if (outer || under_header) "000000" else "B3B3B3"))
         }
       }
     }

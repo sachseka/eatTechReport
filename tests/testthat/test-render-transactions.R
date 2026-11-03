@@ -9,10 +9,27 @@ render_fixture <- function() {
        input = example_report("v3_ma_mg_mm", n_persons = 2L, n_pv = 1L))
 }
 
-fake_quarto_render <- function(input, output_file, ...) {
+fake_quarto_render <- function(input, output_file, metadata, ...) {
   directory <- dirname(input)
-  file.copy(file.path(directory, "corporate-reference.docx"),
-            file.path(directory, output_file))
+  parts <- tempfile("fake-quarto-parts-")
+  extract_word_package(file.path(directory, "corporate-reference.docx"), parts)
+  ns <- word_ns()
+  styles <- xml2::read_xml(file.path(parts, "word/styles.xml"))
+  doc <- xml2::read_xml(file.path(parts, "word/document.xml"))
+  body <- xml2::xml_find_first(doc, "w:body", ns)
+  for (name in c("Subtitle", "Title")) {
+    style <- xml2::xml_find_first(styles, paste0("w:style[w:name/@w:val='", name, "']"), ns)
+    paragraph <- xml2::read_xml(paste0('<w:p xmlns:w="', ns[["w"]], '"/>'))
+    props <- xml2::xml_add_child(paragraph, "w:pPr")
+    xml2::xml_set_attr(xml2::xml_add_child(props, "w:pStyle"), "w:val",
+                        xml2::xml_attr(style, "w:styleId", ns))
+    run <- xml2::xml_add_child(paragraph, "w:r")
+    text_node <- xml2::xml_add_child(run, "w:t")
+    xml2::xml_text(text_node) <- metadata[[tolower(name)]]
+    xml2::xml_add_child(body, paragraph, .where = 0)
+  }
+  xml2::write_xml(doc, file.path(parts, "word/document.xml"))
+  pack_word_package(parts, file.path(directory, output_file))
   invisible(NULL)
 }
 

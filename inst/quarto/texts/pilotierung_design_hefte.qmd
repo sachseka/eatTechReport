@@ -21,8 +21,8 @@ for (part in eatTechReport:::study_design_tables(results$design)) {
     "Testheft" = b$booklet_id,
     "Testblöcke" = b$n_blocks,
     "Items" = b$n_items,
-    "Bearbeitungszeit (Min.)" = eatTechReport:::study_number(b$test_minutes),
-    "Gesamtdauer (Min.)" = eatTechReport:::study_number(b$total_minutes),
+    "Bearbeitungszeit (min)" = eatTechReport:::study_number(b$test_minutes),
+    "Gesamtdauer (min)" = eatTechReport:::study_number(b$total_minutes),
     check.names = FALSE
   )
   cat(eatTechReport:::study_table_markdown(durations, c("l", "r", "r", "r", "r"),

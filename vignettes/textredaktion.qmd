@@ -49,6 +49,31 @@ bericht$archive_dir
 Der Prototyp kennzeichnet synthetische Eingaben sichtbar und verwendet
 dieselben Kennzahlen wie `summarise_report_input()`.
 
+## Autoren und Affiliation auf dem Deckblatt
+
+Namen und gemeinsame Affiliation sind Berichtseingaben. Sie werden unabhängig
+von den Paketautoren in der DESCRIPTION gesetzt:
+
+```{r}
+demo <- example_report(
+  authors = c("Erika Muster", "Max Muster"),
+  affiliation = c("Institut für Beispielstudien", "Universität Musterstadt")
+)
+
+# Auch nachträglich in der Konfiguration editierbar:
+demo$config$report$authors <- c("Erika Muster", "Max Muster")
+demo$config$report$affiliation <- "Institut für Beispielstudien an der Universität Musterstadt"
+```
+
+Die Autoren erscheinen in der angegebenen Reihenfolge unter „Technischer
+Bericht“, danach die Affiliation. Mehrere Einträge in `affiliation` ergeben
+mehrere Zeilen. Namen und Institutionen werden als wörtlicher Text behandelt.
+Ohne Angaben bleiben sichtbare Platzhalter in eckigen Klammern stehen.
+
+Die Tabellen verwenden vertikal zentrierten Text und Innenabstände oberhalb
+und unterhalb des Textes. Kräftige Außenlinien begrenzen die Tabelle;
+dünne horizontale Linien trennen Kopf- und Datenzeilen.
+
 ## Inhaltsverzeichnis und Seitenzahlen aktualisieren
 
 Quarto erzeugt die Word-Felder für das Inhaltsverzeichnis. Deren sichtbarer
