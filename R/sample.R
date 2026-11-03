@@ -47,13 +47,13 @@ example_sample_data <- function(input) {
       "Im synthetischen Beispiel bezeichnet Nvalid die Anzahl eindeutig",
       "zugeordneter, bewertbarer Antworten aus der Auswertungspopulation",
       "der jeweiligen Skala. Nicht vorgelegte Items und ausgelassene oder",
-      "sonstige nicht bewertbare Antworten werden in diesem Beispiel nicht mitgezählt."
+      "sonstige nicht bewertbare Antworten werden in diesem Beispiel nicht mitgez\u00e4hlt."
     ),
     characteristics = list(
       age = list(label = "Alter (Jahre)", values = values(ages)),
-      gender = categorical("Geschlecht", c("männlich", "weiblich", "divers")),
+      gender = categorical("Geschlecht", c("m\u00e4nnlich", "weiblich", "divers")),
       family_language = categorical("Familiensprache", c("Deutsch", "andere Sprache")),
-      changed_conditions = categorical("Veränderte Testbedingungen", c("ja", "nein"))
+      changed_conditions = categorical("Ver\u00e4nderte Testbedingungen", c("ja", "nein"))
     )
   )
 }
@@ -173,8 +173,8 @@ validate_sample_data <- function(sample, input) {
       if (length(variable$categories) == 0L || "keine Angabe" %in% variable$categories) {
         fail(paste0(label, "$categories braucht mindestens eine Kategorie; 'keine Angabe' wird aus NA erzeugt."))
       }
-      if (id == "gender" && !identical(variable$categories, c("männlich", "weiblich", "divers"))) {
-        fail("Geschlechtskategorien muessen in dieser Reihenfolge männlich, weiblich und divers heissen; NA ergibt keine Angabe.")
+      if (id == "gender" && !identical(variable$categories, c("m\u00e4nnlich", "weiblich", "divers"))) {
+        fail("Geschlechtskategorien muessen in dieser Reihenfolge m\u00e4nnlich, weiblich und divers heissen; NA ergibt keine Angabe.")
       }
       if (!is.character(value) || any(!is.na(value) & !value %in% variable$categories)) {
         fail(paste0(label, "$value braucht ausschliesslich deklarierte Kategorien oder NA; Codes werden nicht automatisch umgedeutet."))
@@ -245,7 +245,7 @@ summarise_sample_data <- function(sample, input) {
 
 summarise_sample_characteristics <- function(characteristics, analysis_persons, states) {
   ids <- analysis_persons$person_id
-  result <- setNames(vector("list", length(characteristics)), names(characteristics))
+  result <- stats::setNames(vector("list", length(characteristics)), names(characteristics))
   age <- characteristics$age
   if (!is.null(age)) {
     values <- age$values$value[match(ids, age$values$person_id)]

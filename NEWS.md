@@ -11,6 +11,8 @@
   anchor statistics appear in a separate Word footnote.
 * Add five editable Quarto blocks and an article covering the new inputs.
   `edit_report_texts()` now selects the blocks for the requested report scope.
+* Allocate table widths explicitly for item pools, booklet positions and sample
+  counts so long labels leave enough space for identifiers and numeric headings.
 * Add cross-platform R CMD check and Codecov workflows, with additional tests
   for report generation, archived results, and safe recovery after failures.
 * Include author ORCIDs and workflow/coverage badges in the documentation.

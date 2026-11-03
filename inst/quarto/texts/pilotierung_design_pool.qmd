@@ -19,7 +19,8 @@ pool_table <- data.frame(
   "Items" = pool$n_items,
   check.names = FALSE
 )
-cat(eatTechReport:::study_table_markdown(pool_table, c("l", "l", "r", "r")))
+cat(eatTechReport:::study_table_markdown(pool_table, c("l", "l", "r", "r"),
+                                       widths = c(50, 20, 17, 13)))
 ```
 
 Aufgaben und Items werden im Gesamtpool jeweils einmal gezählt, auch wenn sie

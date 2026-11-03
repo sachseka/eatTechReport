@@ -24,7 +24,8 @@ state_table <- data.frame(
   "Anteil Auswertung (%)" = eatTechReport:::study_number(c(state$analysis_percent, 100)),
   check.names = FALSE
 )
-cat(eatTechReport:::study_table_markdown(state_table, c("l", rep("r", 5))))
+cat(eatTechReport:::study_table_markdown(state_table, c("l", rep("r", 5)),
+                                       widths = c(24, 14, 16, 16, 16, 14)))
 if (total$n_not_analysed > 0L) {
   cat("Von den Teilnehmenden gehen ", total$n_not_analysed,
       " Personen nicht in die Auswertungspopulation ein.\n\n", sep = "")

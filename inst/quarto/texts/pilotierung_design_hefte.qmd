@@ -17,7 +17,8 @@ for (part in eatTechReport:::study_design_tables(results$design)) {
   cat("Zuweisungseinheit: ", assignment_labels[[rule$assignment_unit]], ". ",
       eatTechReport:::report_markdown_text(rule$assignment_description), "\n\n", sep = "")
   for (position_table in part$parts) {
-    cat(eatTechReport:::study_table_markdown(position_table))
+    cat(eatTechReport:::study_table_markdown(position_table,
+          widths = c(16, rep(84 / (ncol(position_table) - 1), ncol(position_table) - 1))))
   }
   b <- part$booklets
   durations <- data.frame(

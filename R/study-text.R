@@ -8,16 +8,33 @@ study_number <- function(value, digits = 1L) {
   out
 }
 
-study_table_markdown <- function(data, align = NULL) {
+study_table_markdown <- function(data, align = NULL, widths = NULL) {
   if (is.null(align)) align <- vapply(data, function(value) if (is.numeric(value)) "r" else "l", character(1))
+  if (length(align) == 1L) align <- rep(align, ncol(data))
+  if (!is.null(widths) && (!is.numeric(widths) || length(widths) != ncol(data) ||
+                           any(!is.finite(widths) | widths <= 0))) {
+    stop("widths muss je Spalte eine positive endliche Zahl enthalten.", call. = FALSE)
+  }
   data[] <- lapply(data, function(value) {
     value <- as.character(value)
     value[is.na(value)] <- "\u2014"
     report_markdown_text(value)
   })
   names(data) <- report_markdown_text(names(data))
-  paste(c("", knitr::kable(data, format = "pipe", align = align,
-                            row.names = FALSE), "", ""), collapse = "\n")
+  table <- knitr::kable(data, format = "pipe", align = align, row.names = FALSE)
+  if (!is.null(widths)) {
+    # Pandoc uses separator lengths as relative widths for wide pipe tables.
+    # Explicit widths prevent long labels from squeezing count/ID columns.
+    sizes <- pmax(3L, round(100 * widths / sum(widths)))
+    separators <- vapply(seq_along(sizes), function(i) {
+      colons <- if (align[i] == "c") 2L else 1L
+      paste0(if (align[i] %in% c("l", "c")) ":" else "",
+             strrep("-", sizes[i] - colons),
+             if (align[i] %in% c("r", "c")) ":" else "")
+    }, character(1))
+    table[2L] <- paste0("|", paste(separators, collapse = "|"), "|")
+  }
+  paste(c("", table, "", ""), collapse = "\n")
 }
 
 # Split wide designs into successive position groups. A large position number
