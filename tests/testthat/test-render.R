@@ -120,10 +120,94 @@ test_that("table postprocessing uses horizontal rules and repeated headings", {
   doc <- xml2::read_xml(file.path(result, "word/document.xml"))
   border <- xml2::xml_find_first(doc, "//w:tblBorders/w:insideV", word_ns())
   expect_identical(xml2::xml_attr(border, "w:val", word_ns()), "nil")
+  outer_rules <- xml2::xml_find_all(doc, "//w:tblBorders/w:top | //w:tblBorders/w:bottom", word_ns())
+  expect_identical(xml2::xml_attr(outer_rules, "w:sz", word_ns()), c("12", "12"))
+  expect_identical(xml2::xml_attr(outer_rules, "w:color", word_ns()), c("000000", "000000"))
   expect_length(xml2::xml_find_all(doc, "//w:trPr/w:tblHeader", word_ns()), 1L)
   expect_identical(xml2::xml_attr(xml2::xml_find_all(doc, "//w:tbl/w:tr//w:keepNext", word_ns()),
                                  "w:val", word_ns()), c("1", "0"))
   expect_length(xml2::xml_find_all(doc, "//w:trPr/w:cantSplit", word_ns()), 2L)
+})
+
+test_that("table gaps preserve heading spacing and separate adjacent tables only once", {
+  ns <- word_ns()
+  styles <- xml2::read_xml(paste0('<w:styles xmlns:w="', ns[["w"]], '">',
+    '<w:style w:type="paragraph" w:styleId="HeadingBase"><w:pPr><w:spacing w:after="240"/></w:pPr></w:style>',
+    '<w:style w:type="paragraph" w:styleId="Heading"><w:basedOn w:val="HeadingBase"/></w:style>',
+    '</w:styles>'))
+  doc <- xml2::read_xml(paste0('<w:body xmlns:w="', ns[["w"]], '">',
+    '<w:p><w:pPr><w:pStyle w:val="Heading"/><w:keepNext/></w:pPr><w:r><w:t>Caption</w:t></w:r></w:p>',
+    '<w:tbl/><w:tbl/>',
+    '<w:p><w:pPr><w:spacing w:before="20"/></w:pPr><w:r><w:t>Following text</w:t></w:r></w:p>',
+    '</w:body>'))
+  format_tables <- function() {
+    for (table in xml2::xml_find_all(doc, "w:tbl", ns)) space_report_table(table, styles, ns)
+  }
+  format_tables()
+  paragraphs <- xml2::xml_find_all(doc, "w:p", ns)
+  expect_length(paragraphs, 3L)
+  expect_identical(xml2::xml_attr(xml2::xml_find_first(paragraphs[[1L]], "w:pPr/w:spacing", ns),
+                                 "w:after", ns), "240")
+  expect_length(xml2::xml_find_all(paragraphs[[1L]], "w:pPr/w:keepNext", ns), 1L)
+  separator <- xml2::xml_find_first(paragraphs[[2L]], "w:pPr/w:spacing", ns)
+  expect_identical(xml2::xml_attr(separator, "w:line", ns), "120")
+  expect_identical(xml2::xml_attr(separator, "w:lineRule", ns), "exact")
+  expect_identical(xml2::xml_attr(xml2::xml_find_first(paragraphs[[3L]], "w:pPr/w:spacing", ns),
+                                 "w:before", ns), "120")
+  first_pass <- as.character(doc)
+  format_tables()
+  expect_identical(as.character(doc), first_pass)
+  expect_identical(xml2::xml_text(doc), "CaptionFollowing text")
+})
+
+test_that("caption containers stay unruled while inner data tables retain their layout", {
+  template <- tempfile(fileext = ".dotx")
+  synthetic_word_template(template)
+  directory <- tempfile("caption-table-fixture-")
+  extract_word_package(template, directory)
+  ns <- word_ns()
+  doc_path <- file.path(directory, "word/document.xml")
+  doc <- xml2::read_xml(doc_path)
+  body <- xml2::xml_find_first(doc, "w:body", ns)
+  for (n in c(2L, 10L)) {
+    rows <- paste0('<w:tr><w:tc><w:p><w:r><w:t>Row ', seq_len(n),
+                   '</w:t></w:r></w:p></w:tc></w:tr>', collapse = "")
+    wrapper <- xml2::read_xml(paste0('<w:tbl xmlns:w="', ns[["w"]], '">',
+      '<w:tblPr><w:tblBorders><w:top w:val="single"/></w:tblBorders></w:tblPr>',
+      '<w:tr><w:trPr><w:cantSplit/><w:tblHeader/></w:trPr><w:tc>',
+      '<w:tcPr><w:shd w:fill="F2F2F2"/></w:tcPr>',
+      '<w:p><w:pPr><w:pStyle w:val="ImageCaption"/></w:pPr>',
+      '<w:r><w:t>Synthetic table caption</w:t></w:r></w:p>',
+      '<w:tbl>', rows, '</w:tbl><w:p/>',
+      '</w:tc></w:tr></w:tbl>'))
+    xml2::xml_add_child(body, wrapper, .where = 0)
+  }
+  xml2::write_xml(doc, doc_path)
+  report <- tempfile(fileext = ".docx")
+  pack_word_package(directory, report)
+  finalise_report_docx(report)
+  result <- tempfile("caption-table-result-")
+  extract_word_package(report, result)
+  doc <- xml2::read_xml(file.path(result, "word/document.xml"))
+  wrappers <- xml2::xml_find_all(doc, "//w:tbl[.//w:tbl]", ns)
+  expect_length(wrappers, 2L)
+  expect_true(all(xml2::xml_attr(xml2::xml_find_all(wrappers, "w:tblPr/w:tblBorders/*", ns),
+                                "w:val", ns) == "nil"))
+  expect_length(xml2::xml_find_all(wrappers, "w:tr/w:trPr/w:tblHeader | w:tr/w:trPr/w:cantSplit", ns), 0L)
+  expect_identical(xml2::xml_attr(xml2::xml_find_all(wrappers, "w:tr/w:tc/w:tcPr/w:shd", ns),
+                                 "w:fill", ns), c("auto", "auto"))
+  captions <- xml2::xml_find_all(wrappers, "w:tr/w:tc/w:p[w:r/w:t='Synthetic table caption']", ns)
+  expect_identical(xml2::xml_attr(xml2::xml_find_all(captions, "w:pPr/w:keepNext", ns),
+                                 "w:val", ns), c("1", "1"))
+  expect_length(xml2::xml_find_all(doc, "//w:tblBorders/w:top[@w:val='single']", ns), 2L)
+  expect_length(xml2::xml_find_all(doc, "//w:tblBorders/w:bottom[@w:val='single']", ns), 2L)
+  expect_length(xml2::xml_find_all(doc, "//w:trPr/w:tblHeader", ns), 2L)
+  leaf_tables <- xml2::xml_find_all(doc, "//w:tbl[not(.//w:tbl)]", ns)
+  row_counts <- vapply(leaf_tables, function(table) length(xml2::xml_find_all(table, "w:tr", ns)), integer(1))
+  long_table <- leaf_tables[[which(row_counts == 10L)]]
+  expect_length(xml2::xml_find_all(long_table, ".//w:cantSplit | .//w:keepNext", ns), 0L)
+  expect_identical(xml2::xml_attr(xml2::xml_find_all(leaf_tables, "w:tr[1]/w:tc/w:tcPr/w:shd", ns),
+                                 "w:fill", ns), c("F2F2F2", "F2F2F2"))
 })
 
 test_that("long tables can flow across pages and the contents field starts a new page", {

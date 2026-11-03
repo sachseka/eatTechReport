@@ -1,21 +1,17 @@
-### Aufbau und Zuweisung der Testhefte {#pilotierung_design_hefte}
-
-Der Itempool ist auf `r results$design$totals$n_blocks` Blöcke verteilt.
-Insgesamt stehen `r results$design$totals$n_booklets` Testhefte zur Verfügung.
-Die folgenden Übersichten zeigen die Reihenfolge und vorgesehene Dauer der
-Blöcke, Instruktionen und Pausen. Bei längeren Heften setzt sich die
-Positionsfolge in der nächsten Tabelle fort. Ein Gedankenstrich bezeichnet
-eine nicht belegte Position.
+Die Testaufgaben wurden zunächst zu
+`r results$design$totals$n_blocks` Blöcken zusammengefasst und anschließend
+verschiedenen Testheften zugewiesen, sodass einzelne Schülerinnen und Schüler
+nur Teilmengen des gesamten Itempools bearbeiteten. Insgesamt kamen
+`r results$design$totals$n_booklets` Testhefte zum Einsatz. Die folgenden
+Tabellen zeigen den Aufbau der Testhefte und die vorgesehenen Bearbeitungszeiten.
 
 ```{r}
 #| label: pilotierung_design_hefttabellen
 #| results: asis
-assignment_labels <- c(person = "Personen", class = "Klassen", school = "Schulen")
 for (part in eatTechReport:::study_design_tables(results$design)) {
   rule <- part$rule
   cat("\n\n**", eatTechReport:::report_markdown_text(rule$label), "**\n\n", sep = "")
-  cat("Zuweisungseinheit: ", assignment_labels[[rule$assignment_unit]], ". ",
-      eatTechReport:::report_markdown_text(rule$assignment_description), "\n\n", sep = "")
+  cat(eatTechReport:::report_markdown_text(rule$assignment_description), "\n\n", sep = "")
   for (position_table in part$parts) {
     cat(eatTechReport:::study_table_markdown(position_table,
           widths = c(16, rep(84 / (ncol(position_table) - 1), ncol(position_table) - 1))))
@@ -33,11 +29,13 @@ for (part in eatTechReport:::study_design_tables(results$design)) {
 }
 ```
 
-Die Bearbeitungszeit umfasst die Testblöcke; die Gesamtdauer schließt zusätzlich
-die ausgewiesenen Instruktionen und Pausen ein. Die Itemanzahl je Heft zählt
-unterschiedliche Items.
+*Anmerkung.* Die Bearbeitungszeit bezieht sich auf die Testaufgaben. In der
+Gesamtdauer sind zusätzlich Instruktionen und Pausen enthalten. Bei längeren
+Testheften wird die Abfolge in der nächsten Tabelle fortgesetzt; ein
+Gedankenstrich bezeichnet eine nicht belegte Position.
 
-Die Blockübersicht weist die enthaltenen Pilot- und Ankeritems aus:
+Die folgende Übersicht zeigt die Verteilung der Pilotierungsitems und
+Ankeritems auf die einzelnen Blöcke.
 
 ```{r}
 #| label: pilotierung_design_blocktabelle
@@ -46,7 +44,7 @@ b <- results$design$blocks
 block_table <- data.frame(
   "Block" = b$label,
   "Bereiche" = b$domain_ids,
-  "Pilotitems" = b$n_pilot,
+  "Pilotierungsitems" = b$n_pilot,
   "Ankeritems" = b$n_anchor,
   check.names = FALSE
 )

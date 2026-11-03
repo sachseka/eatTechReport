@@ -55,7 +55,10 @@ edit_report_texts <- function(path, overwrite = FALSE,
 #'   pilot-study scope, design and sample information.
 #' @param corporate_template Path to the mandatory corporate DOTX template.
 #' @param text_dir Optional directory containing all editable Quarto blocks
-#'   created by [edit_report_texts()]. NULL uses the package blocks.
+#'   created by [edit_report_texts()]. For the pilot-study scope, optional local
+#'   blocks `grundlagen_kompetenzstufen.qmd`, `pilotierung_durchfuehrung.qmd`
+#'   and `pilotierung_auswertung.qmd` are also rendered and archived when present.
+#'   NULL uses the package blocks.
 #' @param output_dir Private local directory for the report and its snapshot.
 #' @param overwrite Allow replacement of an earlier eatTechReport rendering in
 #'   this directory. The earlier directory is retained as a sibling backup after
@@ -295,6 +298,15 @@ report_text_files <- function(text_dir = NULL,
   if (!all(file.exists(paths)) || any(dir.exists(paths))) {
     stop("text_dir muss alle Textbausteine enthalten: ", paste(expected, collapse = ", "), call. = FALSE)
   }
+  if (scope == "pilotierung") {
+    optional <- file.path(text_dir, c("grundlagen_kompetenzstufen.qmd",
+                                      "pilotierung_durchfuehrung.qmd",
+                                      "pilotierung_auswertung.qmd"))
+    if (any(dir.exists(optional))) {
+      stop("Optionale Textbausteine muessen Dateien sein, keine Verzeichnisse.", call. = FALSE)
+    }
+    paths <- c(paths, optional[file.exists(optional)])
+  }
   paths
 }
 
@@ -463,14 +475,23 @@ finalise_report_docx <- function(path) {
   ns <- word_ns()
   document_file <- file.path(directory, "word/document.xml")
   doc <- xml2::read_xml(document_file)
+  styles_file <- file.path(directory, "word/styles.xml")
+  styles <- if (file.exists(styles_file)) xml2::read_xml(styles_file) else NULL
   contents <- xml2::xml_find_first(doc, "//w:sdt[.//w:instrText[contains(., 'TOC')]]", ns)
   if (!inherits(contents, "xml_missing")) {
     page_break <- xml2::read_xml(paste0('<w:p xmlns:w="', ns[["w"]],
                                       '"><w:r><w:br w:type="page"/></w:r></w:p>'))
     xml2::xml_add_sibling(contents, page_break, .where = "before")
   }
-  # Tables: sparse horizontal rules, repeated header row, no vertical borders.
+  # Tables: strong outer horizontal rules, repeated header row, no verticals.
   for (table in xml2::xml_find_all(doc, "//w:tbl", ns)) {
+    space_report_table(table, styles, ns)
+    # Quarto wraps a caption and its data table in an outer layout table. Only
+    # the inner data table receives rules, repeated headings and header shading.
+    if (length(xml2::xml_find_all(table, ".//w:tbl", ns))) {
+      clear_report_layout_table(table, ns)
+      next
+    }
     rows <- xml2::xml_find_all(table, "w:tr", ns)
     if (length(rows) <= 8L) {
       for (i in seq_along(rows)) {
@@ -495,8 +516,8 @@ finalise_report_docx <- function(path) {
     for (side in c("top", "left", "bottom", "right", "insideH", "insideV")) {
       border <- xml2::xml_add_child(borders, paste0("w:", side))
       xml2::xml_set_attr(border, "w:val", if (side %in% c("top", "bottom")) "single" else "nil")
-      xml2::xml_set_attr(border, "w:sz", "4")
-      xml2::xml_set_attr(border, "w:color", "808080")
+      xml2::xml_set_attr(border, "w:sz", "12")
+      xml2::xml_set_attr(border, "w:color", "000000")
     }
     first_row <- xml2::xml_find_first(table, "w:tr", ns)
     row_props <- xml2::xml_find_first(first_row, "w:trPr", ns)
@@ -523,6 +544,102 @@ finalise_report_docx <- function(path) {
   }
   pack_word_package(directory, path)
   invisible(path)
+}
+
+clear_report_layout_table <- function(table, ns) {
+  props <- xml2::xml_find_first(table, "w:tblPr", ns)
+  if (inherits(props, "xml_missing")) props <- xml2::xml_add_child(table, "w:tblPr", .where = 0)
+  xml2::xml_remove(xml2::xml_find_all(props, "w:tblBorders | w:shd", ns))
+  borders <- xml2::xml_add_child(props, "w:tblBorders")
+  for (side in c("top", "left", "bottom", "right", "insideH", "insideV")) {
+    border <- xml2::xml_add_child(borders, paste0("w:", side))
+    xml2::xml_set_attr(border, "w:val", "nil")
+  }
+  # A long inner table must still be allowed to break across pages. Repeating
+  # the single wrapper row would repeat its entire caption and data table.
+  xml2::xml_remove(xml2::xml_find_all(table, "w:tr/w:trPr/w:tblHeader | w:tr/w:trPr/w:cantSplit", ns))
+  for (cell in xml2::xml_find_all(table, "w:tr/w:tc", ns)) {
+    cell_props <- xml2::xml_find_first(cell, "w:tcPr", ns)
+    if (inherits(cell_props, "xml_missing")) cell_props <- xml2::xml_add_child(cell, "w:tcPr", .where = 0)
+    xml2::xml_remove(xml2::xml_find_all(cell_props, "w:tcBorders | w:shd", ns))
+    shade <- xml2::xml_add_child(cell_props, "w:shd")
+    xml2::xml_set_attrs(shade, c("w:val" = "clear", "w:fill" = "auto"))
+    for (paragraph in xml2::xml_find_all(cell, "w:p[following-sibling::w:tbl]", ns)) {
+      pprops <- xml2::xml_find_first(paragraph, "w:pPr", ns)
+      if (inherits(pprops, "xml_missing")) pprops <- xml2::xml_add_child(paragraph, "w:pPr", .where = 0)
+      xml2::xml_remove(xml2::xml_find_all(pprops, "w:keepNext", ns))
+      keep <- xml2::xml_add_child(pprops, "w:keepNext")
+      xml2::xml_set_attr(keep, "w:val", "1")
+    }
+  }
+  invisible(table)
+}
+
+# Apply spacing to the neighbouring text paragraphs, outside the table borders.
+# Respect larger inherited heading/caption spacing and keep pagination settings.
+space_report_table <- function(table, styles, ns, points = 6) {
+  before <- xml2::xml_find_first(table, "preceding-sibling::*[1]", ns)
+  after <- xml2::xml_find_first(table, "following-sibling::*[1]", ns)
+  if (!inherits(after, "xml_missing") && xml2::xml_name(after) == "tbl") {
+    separator <- xml2::read_xml(paste0('<w:p xmlns:w="', ns[["w"]], '"/>'))
+    xml2::xml_add_sibling(table, separator, .where = "after")
+    after <- xml2::xml_find_first(table, "following-sibling::*[1]", ns)
+  }
+  for (side in c("before", "after")) {
+    paragraph <- if (side == "before") before else after
+    if (inherits(paragraph, "xml_missing") || xml2::xml_name(paragraph) != "p") next
+    props <- xml2::xml_find_first(paragraph, "w:pPr", ns)
+    if (inherits(props, "xml_missing")) props <- xml2::xml_add_child(paragraph, "w:pPr", .where = 0)
+    spacing <- xml2::xml_find_first(props, "w:spacing", ns)
+    if (inherits(spacing, "xml_missing")) spacing <- xml2::xml_add_child(props, "w:spacing")
+    # Pandoc separates successive tables with an empty paragraph. Make that a
+    # single six-point gap rather than adding two margins around a blank line.
+    between_tables <- length(xml2::xml_find_all(paragraph,
+      "preceding-sibling::*[1][self::w:tbl] | following-sibling::*[1][self::w:tbl]", ns)) == 2L
+    has_content <- nzchar(trimws(xml2::xml_text(paragraph))) ||
+      length(xml2::xml_find_all(paragraph, ".//w:br | .//w:drawing | .//w:object | .//w:fldChar", ns)) > 0L
+    if (between_tables && !has_content) {
+      xml2::xml_set_attrs(spacing, c("w:before" = "0", "w:after" = "0",
+                                    "w:line" = as.character(points * 20), "w:lineRule" = "exact"))
+    } else {
+      attribute <- if (side == "before") "after" else "before"
+      existing <- report_paragraph_spacing(paragraph, styles, attribute, ns)
+      xml2::xml_set_attr(spacing, paste0("w:", attribute), as.character(max(points * 20, existing)))
+      xml2::xml_set_attr(spacing, paste0("w:", attribute, "Autospacing"), "0")
+    }
+    contextual <- xml2::xml_find_first(props, "w:contextualSpacing", ns)
+    if (inherits(contextual, "xml_missing")) contextual <- xml2::xml_add_child(props, "w:contextualSpacing")
+    xml2::xml_set_attr(contextual, "w:val", "0")
+  }
+  invisible(table)
+}
+
+report_paragraph_spacing <- function(paragraph, styles, side, ns) {
+  read_spacing <- function(node) {
+    value <- xml2::xml_attr(xml2::xml_find_first(node, "w:pPr/w:spacing", ns), paste0("w:", side), ns)
+    suppressWarnings(as.numeric(value))
+  }
+  value <- read_spacing(paragraph)
+  if (!is.na(value)) return(value)
+  if (is.null(styles)) return(0)
+  entries <- xml2::xml_find_all(styles, "w:style[@w:type='paragraph']", ns)
+  ids <- xml2::xml_attr(entries, "w:styleId", ns)
+  id <- xml2::xml_attr(xml2::xml_find_first(paragraph, "w:pPr/w:pStyle", ns), "w:val", ns)
+  if (is.na(id)) {
+    id <- xml2::xml_attr(xml2::xml_find_first(styles, "w:style[@w:type='paragraph'][@w:default='1']", ns), "w:styleId", ns)
+  }
+  visited <- character()
+  while (!is.na(id) && id %in% ids && !id %in% visited) {
+    visited <- c(visited, id)
+    style <- entries[[match(id, ids)]]
+    value <- read_spacing(style)
+    if (!is.na(value)) return(value)
+    id <- xml2::xml_attr(xml2::xml_find_first(style, "w:basedOn", ns), "w:val", ns)
+  }
+  value <- xml2::xml_attr(xml2::xml_find_first(styles, "w:docDefaults/w:pPrDefault/w:pPr/w:spacing", ns),
+                          paste0("w:", side), ns)
+  value <- suppressWarnings(as.numeric(value))
+  if (is.na(value)) 0 else value
 }
 
 remove_word_parts <- function(directory, parent) {

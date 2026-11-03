@@ -1,17 +1,24 @@
 ## Testdesign {#pilotierung_design}
 
-### Aufgaben und Items {#pilotierung_design_pool}
-
-Der eingesetzte Itempool umfasst `r results$design$totals$n_tasks` Aufgaben mit
-insgesamt `r results$design$totals$n_items` Items. Eine Aufgabe kann mehrere
-einzeln auswertbare Items enthalten. Pilotitems und Ankeritems werden in der
-folgenden Übersicht getrennt ausgewiesen.
+```{r}
+#| label: pilotierung_design_pool_text
+#| results: asis
+inventory <- input$data$design$items
+pilot_inventory <- inventory[inventory$role == "pilot", , drop = FALSE]
+cat("Für den VERA-Durchgang im Schuljahr ", config$report$main_year - 1, "/",
+    substr(config$report$main_year, 3, 4), " wurden ",
+    length(unique(pilot_inventory$task_id)), " Aufgaben mit ", nrow(pilot_inventory),
+    " Items pilotiert. Die folgende Tabelle gibt einen Überblick über die ",
+    "Aufgaben und Items in den einzelnen Kompetenzbereichen",
+    if (config$report$subject == "ma") " (Leitideen)" else "",
+    ". Die zusätzlich eingesetzten Ankeritems werden gesondert ausgewiesen.\n\n", sep = "")
+```
 
 ```{r}
 #| label: pilotierung_design_pool_tabelle
 #| results: asis
 pool <- results$design$pool
-roles <- c(pilot = "Pilotitems", anchor = "Ankeritems")
+roles <- c(pilot = "Pilotierungsitems", anchor = "Ankeritems")
 pool_table <- data.frame(
   "Bereich" = paste0(pool$domain_label, " (", pool$domain_id, ")"),
   "Rolle" = unname(roles[pool$role]),
@@ -23,20 +30,14 @@ cat(eatTechReport:::study_table_markdown(pool_table, c("l", "l", "r", "r"),
                                        widths = c(50, 20, 17, 13)))
 ```
 
-Aufgaben und Items werden im Gesamtpool jeweils einmal gezählt, auch wenn sie
-in mehreren Blöcken oder Testheften vorkommen. Eine Aufgabe kann Items aus
-mehreren Tabellenzeilen enthalten; ihre Gesamtanzahl ist deshalb nicht
-notwendigerweise die Summe der Aufgabenanzahlen dieser Zeilen.
+*Anmerkung.* Eine Aufgabe kann mehrere Items umfassen. Aufgaben und Items, die
+in mehreren Testheften eingesetzt wurden, werden jeweils nur einmal gezählt.
 
 ```{r}
 #| label: pilotierung_design_fach
 #| results: asis
 if (config$report$subject == "ma") {
-  cat("Die Angaben zum Basis- beziehungsweise Ergänzungsmodul bezeichnen den ",
-      "vorgesehenen Einsatz der Blöcke im Haupttest. Die Leistungsdarstellung ",
-      "erfolgt für Mathematik gemeinsam auf der Skala MO.\n\n", sep = "")
-} else {
-  cat("Die Testhefte und ihre Zuweisung werden im Folgenden für die ",
-      "jeweiligen Teildesigns beschrieben.\n\n", sep = "")
+  cat("Für das spätere Basismodul und für die Ergänzungsmodule wurden ",
+      "separate Blöcke von Testaufgaben zusammengestellt.\n\n", sep = "")
 }
 ```

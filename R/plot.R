@@ -81,10 +81,10 @@ plot_performance <- function(input, scale_id, bandwidth = NULL) {
                             decimal.mark = ","), " %")
   )
   format_number <- function(x) formatC(x, format = "f", digits = 1, decimal.mark = ",")
-  subtitle <- paste0("N = ", descriptives$n_persons,
-                      "  |  M = ", format_number(descriptives$mean),
-                      "  |  SD = ", format_number(descriptives$sd),
-                      "  |  ", descriptives$n_pv, " PVs")
+  subtitle <- bquote(italic(N) == .(descriptives$n_persons) ~ " | " ~
+                       italic(M) == .(format_number(descriptives$mean)) ~ " | " ~
+                       italic(SD) == .(format_number(descriptives$sd)) ~ " | " ~
+                       .(descriptives$n_pv) ~ "PVs")
   caption <- "Alle F\u00e4lle, ungewichtet. Anteile je PV berechnet und anschlie\u00dfend gemittelt."
   if (input$config$report$data_origin == "synthetic") {
     caption <- paste0("Synthetisches Beispiel; illustrative Stufengrenzen.\n", caption)

@@ -1,5 +1,3 @@
-### Zusammensetzung der Auswertungspopulation {#pilotierung_stichprobe_merkmale}
-
 ```{r}
 #| label: pilotierung_stichprobe_alter
 #| results: asis
@@ -11,18 +9,17 @@ if (is.null(age)) {
   cat("Für das Alter liegen keine gültigen Angaben vor (keine Angabe: ",
       age$n_missing, " Personen).\n\n", sep = "")
 } else {
-  cat("Das mittlere Alter beträgt ", eatTechReport:::study_number(age$mean),
-      " Jahre (Standardabweichung = ", eatTechReport:::study_number(age$sd),
-      "; gültige Angaben: ", age$n_valid, "; keine Angabe: ", age$n_missing,
-      ").\n\n", sep = "")
+  cat("Das mittlere Alter der Stichprobe betrug *M* = ", eatTechReport:::study_number(age$mean),
+      " Jahre (*SD* = ", eatTechReport:::study_number(age$sd),
+      "; gültige Angaben: *N* = ", age$n_valid, "). ",
+      "Für ", age$n_missing, " Schülerinnen und Schüler lag keine gültige Altersangabe vor.\n\n", sep = "")
   if (!is.finite(age$sd)) cat("Die Standardabweichung ist bei weniger als zwei gültigen Altersangaben nicht berechenbar.\n\n")
 }
 ```
 
-Die folgenden Angaben beschreiben Geschlecht, Familiensprache und veränderte
-Testbedingungen. Die Kategorie „keine Angabe“ ist in den Prozentnenner
-eingeschlossen. Die Anteile beziehen sich somit auf alle Personen der
-Auswertungspopulation.
+Die folgenden Tabellen zeigen die Zusammensetzung der Stichprobe nach
+Geschlecht und Familiensprache sowie den Anteil der Schülerinnen und Schüler,
+die unter veränderten Testbedingungen teilnahmen.
 
 ```{r}
 #| label: pilotierung_stichprobe_kategorien
@@ -52,16 +49,19 @@ for (variable in names(category_names)) {
 #| results: asis
 language <- characteristics$family_language_by_state
 if (!is.null(language)) {
-  cat("**Familiensprache nach Land**\n\n",
-      "Die Prozentanteile beziehen sich jeweils auf die Auswertungspopulation ",
-      "des Landes einschließlich fehlender Angaben. Für Länder ohne ",
-      "Auswertungspersonen werden keine Prozentanteile berechnet; dies ist ",
-      "durch einen Gedankenstrich gekennzeichnet.\n\n", sep = "")
+  cat("Die Verteilung der Angaben zur Familiensprache in den einzelnen ",
+      "Ländern ist in der folgenden Tabelle dargestellt.\n\n", sep = "")
   for (language_table in eatTechReport:::study_language_tables(language)) {
-    cat(eatTechReport:::study_table_markdown(language_table, c("l", rep("r", ncol(language_table) - 1L))))
+    widths <- if (ncol(language_table) > 4L) {
+      c(20, 12, rep(68 / (ncol(language_table) - 2), ncol(language_table) - 2))
+    } else NULL
+    cat(eatTechReport:::study_table_markdown(language_table,
+          c("l", rep("r", ncol(language_table) - 1L)), widths = widths))
   }
 }
 ```
 
-Rundungsbedingt können sich ausgewiesene Prozentanteile geringfügig von
-100,0 % unterscheiden.
+*Anmerkung.* Fehlende Angaben sind als eigene Kategorie ausgewiesen und in den
+Prozentangaben enthalten. Für Länder ohne ausgewertete Schülerinnen und Schüler
+werden keine Prozentanteile angegeben (–). Rundungsbedingt können die Anteile
+in der Summe geringfügig von 100,0 % abweichen.

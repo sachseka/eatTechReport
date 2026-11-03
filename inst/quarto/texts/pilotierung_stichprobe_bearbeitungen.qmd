@@ -1,11 +1,3 @@
-### Bearbeitungen der Items {#pilotierung_stichprobe_bearbeitungen}
-
-Die folgenden Kennwerte beschreiben die Anzahl gültiger beziehungsweise
-bewertbarer Antworten je Pilotitem (`Nvalid`). Die Anzahl der vorgelegten Items
-ist davon zu unterscheiden. Es gilt folgende Auswertungsregel:
-
-`r eatTechReport:::report_markdown_text(results$sample$response_definition)`
-
 ```{r}
 #| label: pilotierung_stichprobe_bearbeitungszahlen
 #| results: asis
@@ -18,17 +10,19 @@ pilot <- response_summary[response_summary$role == "pilot", , drop = FALSE]
 anchor <- response_summary[response_summary$role == "anchor", , drop = FALSE]
 sentences <- eatTechReport:::study_response_sentences(pilot, config)
 if (length(sentences)) {
-  cat(paste(sentences, collapse = "\n\n"), "\n\n", sep = "")
+  cat(paste(sentences, collapse = "\n\n"), sep = "")
+  if (nrow(anchor)) cat("[^ankeritem_bearbeitungen]")
+  cat("\n\n")
 } else {
-  cat("Der Itempool enthält keine Pilotitems.\n\n")
+  cat("Der Itempool enthält keine Pilotierungsitems.\n\n")
+  if (nrow(anchor)) cat("Die Bearbeitungszahlen der Ankeritems sind gesondert ausgewiesen.[^ankeritem_bearbeitungen]\n\n")
 }
 if (nrow(anchor)) {
-  cat("Die entsprechenden Kennwerte der Ankeritems sind gesondert ausgewiesen.[^ankeritem_bearbeitungen]\n\n")
-  cat("[^ankeritem_bearbeitungen]: ",
+  cat("[^ankeritem_bearbeitungen]: Ausgenommen sind die zur Verlinkung eingesetzten Ankeritems. ",
       paste(eatTechReport:::study_response_sentences(anchor, config), collapse = " "),
-      " Es gelten dieselbe Definition gültiger Antworten und dieselben skalenbezogenen Auswertungspopulationen wie für die Pilotitems.\n\n", sep = "")
+      "\n\n", sep = "")
 }
 ```
 
-Jedes Item geht einmal in diese Zusammenfassung ein. Ein mehrfacher Einsatz in
-Testheften erhöht daher nicht die Anzahl der zusammengefassten Items.
+*Anmerkung zur Zählung.* Die Angaben beziehen sich auf gültige beziehungsweise
+bewertbare Antworten. `r eatTechReport:::report_markdown_text(results$sample$response_definition)`

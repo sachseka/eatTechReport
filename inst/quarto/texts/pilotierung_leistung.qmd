@@ -1,16 +1,22 @@
 # Informationen zur Pilotierungsstudie `r config$report$pilot_year` {#pilotierung_titel}
 
+Primäres Ziel der Pilotierung war es, psychometrische Informationen über die
+entwickelten Aufgaben zu erhalten, um hochwertige Items für die Hauptstudie
+auswählen zu können.
+
 ## Leistung der Pilotierungsstichprobe {#pilotierung_leistung}
 
-Die folgenden Darstellungen zeigen die Leistungsverteilung je auswertbarer
-Skala. Die Prozentangaben beziehen sich auf die beobachteten PV-Werte und sind
-unabhängig von der Glättung der Dichte. Ein Wert genau auf einer Stufengrenze
-gehört zur höheren Kompetenzstufe.
+Die folgenden Abbildungen und Tabellen geben einen Überblick über die
+Leistung der Pilotierungsstichprobe. Dargestellt sind die Leistungsverteilungen,
+die Anteile der Schülerinnen und Schüler auf den Kompetenzstufen sowie
+Mittelwert (*M*) und Standardabweichung (*SD*). Die Angaben beziehen sich
+jeweils auf die ausgewerteten Schülerinnen und Schüler (*N*).
 
 ```{r}
 #| label: pilotierung_leistung_skalen
 #| results: asis
 for (scale_id in names(config$scales)) {
+  if (scale_id != names(config$scales)[1L]) cat("\n\n{{< pagebreak >}}\n\n")
   scale <- config$scales[[scale_id]]
   label <- display_labels$scales[[scale_id]]
   descriptives <- results$descriptives[results$descriptives$scale_id == scale_id, ]
@@ -19,10 +25,10 @@ for (scale_id in names(config$scales)) {
   cat("![Leistungsverteilung: ", label, "](figures/", scale_id,
       ".png){width=15.5cm}\n\n", sep = "")
   overview <- data.frame(
-    "Personen (N)" = descriptives$n_persons,
+    "*N*" = descriptives$n_persons,
     "Anzahl PVs" = descriptives$n_pv,
-    "Mittelwert" = decimal(descriptives$mean),
-    "Standardabweichung" = decimal(descriptives$sd), check.names = FALSE
+    "*M*" = decimal(descriptives$mean),
+    "*SD*" = decimal(descriptives$sd), check.names = FALSE
   )
   cat(knitr::kable(overview, format = "pipe", align = "rrrr"), sep = "\n")
   cat("\n\n")
@@ -41,6 +47,6 @@ for (scale_id in names(config$scales)) {
 }
 ```
 
-N bezeichnet die Anzahl der Personen je Skala und nicht die Anzahl der
-PV-Werte. Rundungsbedingt können sich ausgewiesene Prozentanteile geringfügig
+*N* bezeichnet die Anzahl der Schülerinnen und Schüler je Skala. Rundungsbedingt
+können sich ausgewiesene Prozentanteile geringfügig
 von 100,0 % unterscheiden.

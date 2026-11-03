@@ -1,25 +1,37 @@
 # Allgemeine Informationen {#grundlagen_ueberblick}
 
-Dieser Berichtsteil beschreibt
-`r if (config$scope == "pilotierung") "das Testdesign, die Stichprobe und die Leistung der Pilotierungsstichprobe" else "die Leistung der Pilotierungsstichprobe"`
-im Fach
-`r if (config$report$subject == "de") "Deutsch" else "Mathematik"` für den
-Haupttestdurchgang `r config$report$main_year`. Die Leistungsdarstellung umfasst die Verteilung auf der
-500er-Berichtsskala, die Anteile auf den Kompetenzstufen und deskriptive Kennwerte.
-Weitere Kapitel des Technischen Berichts sind in dieser Entwicklungsfassung
-noch nicht enthalten.
+Der vorliegende Technische Bericht beschreibt das Vorgehen bei der
+Aufgabenentwicklung und -erprobung und fasst wichtige Ergebnisse der
+Datenauswertung für die Vergleichsarbeiten in der 3. Jahrgangsstufe (VERA-3)
+im Fach `r if (config$report$subject == "de") "Deutsch" else "Mathematik"`
+im Schuljahr `r config$report$main_year - 1`/`r substr(config$report$main_year, 3, 4)`
+zusammen. Die Kapitel zu den Testmodulen der Hauptstudie werden in einem
+weiteren Bearbeitungsschritt ergänzt.
+
+```{r}
+#| label: grundlagen_fachueberblick
+#| results: asis
+if (config$report$subject == "de") {
+  areas <- paste0("„", eatTechReport:::report_markdown_text(config$domains$label), "“")
+  cat("Im Rahmen von VERA-3 Deutsch ist die Überprüfung der Kompetenzbereiche ",
+      paste(areas, collapse = " und "), " vorgesehen.\n\n", sep = "")
+} else {
+  areas <- config$domains$label[match(config$focus_domains, config$domains$domain_id)]
+  cat("Für VERA-3 Mathematik werden ein Basismodul mit Aufgaben zu allen fünf ",
+      "Leitideen und leistungsbezogene Ergänzungsmodule bereitgestellt. Im ",
+      "vorliegenden Durchgang beziehen sich die Ergänzungsmodule auf die ",
+      "Leitideen ", paste0("„", eatTechReport:::report_markdown_text(areas), "“", collapse = " und "),
+      ". Die Auswertung erfolgt auf Grundlage des Globalmodells mathematischer Kompetenz.\n\n", sep = "")
+}
+```
 
 ```{r}
 #| label: bericht_datenherkunft
 #| results: asis
 if (config$report$data_origin == "synthetic") {
-  cat("**Synthetisches Beispiel:** Alle Daten und Zahlenangaben sind illustrative Beispieldaten. ",
-      "Das Pilotierungsjahr ist eine Demoannahme; die eingezeichneten Cuts ",
-      "sind ausschließlich illustrative Grenzwerte. Diese Fassung enthält ",
-      "keine empirischen Aussagen über eine tatsächliche Pilotierungsstudie.\n\n", sep = "")
+  cat("**Arbeitsfassung mit synthetischen Beispieldaten:** Die Angaben zur ",
+      "Pilotierungsstudie und zur Leistungsverteilung dienen der Erprobung der ",
+      "Berichtserstellung. Auch die in den Leistungsgrafiken verwendeten ",
+      "Stufengrenzen sind vorläufige Beispielwerte.\n\n", sep = "")
 }
 ```
-
-Die Auswertung berücksichtigt alle angegebenen Fälle je Skala ohne Gewichtung
-und ohne Untergruppen. Vollständige PV-Sätze sind Voraussetzung. In Mathematik
-werden sämtliche Leitideen auf der gemeinsamen Skala MO ausgewertet.

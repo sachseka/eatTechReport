@@ -21,6 +21,7 @@ study_table_markdown <- function(data, align = NULL, widths = NULL) {
     report_markdown_text(value)
   })
   names(data) <- report_markdown_text(names(data))
+  names(data) <- gsub("\\b(N|M|SD)\\b", "*\\1*", names(data), perl = TRUE)
   table <- knitr::kable(data, format = "pipe", align = align, row.names = FALSE)
   if (!is.null(widths)) {
     # Pandoc uses separator lengths as relative widths for wide pipe tables.
@@ -95,16 +96,23 @@ study_language_tables <- function(data, max_categories = 3L) {
 
 study_response_sentences <- function(rows, config) {
   if (!nrow(rows)) return(character())
-  role_labels <- c(pilot = "Pilotitems", anchor = "Ankeritems")
   vapply(seq_len(nrow(rows)), function(i) {
     row <- rows[i, , drop = FALSE]
     label <- if ("domain_id" %in% names(row)) {
       domain_label <- config$domains$label[match(row$domain_id, config$domains$domain_id)]
-      paste0(domain_label, " (", row$domain_id, ")")
-    } else if (identical(config$report$subject, "ma")) "Mathematik" else "Gesamt"
-    paste0(report_markdown_text(label), ": ", study_number(row$n_items, 0L), " ",
-           unname(role_labels[row$role]), "; Minimum = ", study_number(row$min, 0L),
-           ", *Median* = ", study_number(row$median),
-           ", Maximum = ", study_number(row$max, 0L), ".")
+      paste0(" im Kompetenzbereich \u201e", report_markdown_text(domain_label), "\u201c")
+    } else ""
+    if (row$role == "anchor") {
+      paste0("F\u00fcr die Ankeritems", label, " lagen pro Item ",
+             study_number(row$min, 0L), " bis ", study_number(row$max, 0L),
+             " Antworten von Sch\u00fclerinnen und Sch\u00fclern (*Median* = ",
+             study_number(row$median), ") vor.")
+    } else {
+      paste0("Durch das oben beschriebene Testdesign lagen f\u00fcr die im Jahr ",
+             config$report$pilot_year, " pilotierten Aufgaben", label,
+             " pro Item ", study_number(row$min, 0L), " bis ", study_number(row$max, 0L),
+             " Antworten von Sch\u00fclerinnen und Sch\u00fclern (*Median* = ",
+             study_number(row$median), ") vor.")
+    }
   }, character(1), USE.NAMES = FALSE)
 }

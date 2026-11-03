@@ -28,6 +28,16 @@ decimal <- function(x) formatC(x, format = "f", digits = 1, decimal.mark = ",")
 {{< include archive/texts/grundlagen_ueberblick.qmd >}}
 
 ```{r}
+#| label: grundlagen_optionale_bausteine
+#| results: asis
+if (config$scope == "pilotierung" &&
+    file.exists("archive/texts/grundlagen_kompetenzstufen.qmd")) {
+  cat(knitr::knit_child("archive/texts/grundlagen_kompetenzstufen.qmd",
+                        envir = environment(), quiet = TRUE), sep = "\n")
+}
+```
+
+```{r}
 #| label: pilotierung_abschnitte
 #| results: asis
 performance_text <- readLines("archive/texts/pilotierung_leistung.qmd", encoding = "UTF-8")
@@ -43,7 +53,14 @@ if (config$scope == "pilotierung") {
     cat(knitr::knit_child(file.path("archive/texts", block),
                           envir = environment(), quiet = TRUE), sep = "\n")
   }
+  for (block in c("pilotierung_durchfuehrung.qmd", "pilotierung_auswertung.qmd")) {
+    path <- file.path("archive/texts", block)
+    if (file.exists(path)) {
+      cat(knitr::knit_child(path, envir = environment(), quiet = TRUE), sep = "\n")
+    }
+  }
   performance_text <- performance_text[start:length(performance_text)]
+  cat("\n\n{{< pagebreak >}}\n\n")
 }
 cat(knitr::knit_child(text = performance_text,
                       envir = environment(), quiet = TRUE), sep = "\n")

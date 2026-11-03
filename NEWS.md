@@ -1,5 +1,12 @@
 # eatTechReport 0.0.0.9000
 
+* Add strong black outer table rules and spacing between tables and surrounding
+  text. Display statistical symbols M, N and SD in italics in tables and plots.
+* Revise pilot-study prose and valid-response summaries to follow the established
+  technical-report style; use Pilotierungsitems consistently.
+* Support optional local Quarto chapters for competence descriptions, study
+  administration and analysis, including them in the rendering archive without
+  distributing private source texts.
 * Extend `example_report()` and Word output with test design and sample sections.
   The default `pilotierung` scope uses schema `0.3.0-draft`; the earlier
   `pilotierung_leistung` scope remains available explicitly.

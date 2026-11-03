@@ -109,6 +109,26 @@ Der Arbeitsordner enthält redigierbare Quellen. Die installierten
 Standardbausteine werden dabei nicht verändert. Der Quarto-Text beeinflusst
 die Inhalte; die verbindliche Corporate-Vorlage bestimmt die Gestaltung.
 
+Für Kapiteltexte aus dem eigenen Arbeitsbestand können im selben Ordner drei
+weitere Quarto-Dateien angelegt werden:
+
+| Optionale Datei | Position im Bericht |
+| --- | --- |
+| `grundlagen_kompetenzstufen.qmd` | Nach den allgemeinen Informationen, vor Kapitel 2. |
+| `pilotierung_durchfuehrung.qmd` | Nach der Stichprobenbeschreibung. |
+| `pilotierung_auswertung.qmd` | Nach der Durchführung, vor der Leistungsdarstellung. |
+
+Diese Dateien werden beim Umfang `pilotierung` automatisch eingefügt und mit
+dem Renderstand archiviert. Nicht vorhandene Dateien werden ausgelassen.
+Andere Dateien im Redaktionsordner werden nicht übernommen. Die zusätzlichen
+Kapitel können auf dieselben Objekte `config`, `input` und `results` zugreifen
+wie die mitgelieferten Bausteine. Private Originaltexte bleiben im lokalen
+Redaktionsordner; sie sind kein Bestandteil des Pakets oder der Website.
+
+Historische Kompetenzbeschreibungen müssen ihre Modellversion, Stufen und
+Grenzwerte behalten, solange eine fachlich bestätigte neue Zuordnung fehlt.
+Eine Änderung der Stufenbezeichnungen allein ersetzt diese Zuordnung nicht.
+
 Für den früheren Leistungsumfang werden drei Bausteine benötigt:
 
 ```{r}

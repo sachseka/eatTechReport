@@ -52,7 +52,8 @@ example_sample_data <- function(input) {
     characteristics = list(
       age = list(label = "Alter (Jahre)", values = values(ages)),
       gender = categorical("Geschlecht", c("m\u00e4nnlich", "weiblich", "divers")),
-      family_language = categorical("Familiensprache", c("Deutsch", "andere Sprache")),
+      family_language = categorical("Familiensprache", c("immer Deutsch",
+        "Deutsch und eine andere Sprache", "meistens eine andere Sprache")),
       changed_conditions = categorical("Ver\u00e4nderte Testbedingungen", c("ja", "nein"))
     )
   )

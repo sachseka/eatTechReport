@@ -23,7 +23,10 @@ pilot-study scope, design and sample information.}
 \item{corporate_template}{Path to the mandatory corporate DOTX template.}
 
 \item{text_dir}{Optional directory containing all editable Quarto blocks
-created by \code{\link[=edit_report_texts]{edit_report_texts()}}. NULL uses the package blocks.}
+created by \code{\link[=edit_report_texts]{edit_report_texts()}}. For the pilot-study scope, optional local
+blocks \code{grundlagen_kompetenzstufen.qmd}, \code{pilotierung_durchfuehrung.qmd}
+and \code{pilotierung_auswertung.qmd} are also rendered and archived when present.
+NULL uses the package blocks.}
 
 \item{output_dir}{Private local directory for the report and its snapshot.}
 

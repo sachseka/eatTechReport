@@ -1,14 +1,16 @@
 ## Stichprobe {#pilotierung_stichprobe}
 
-### Teilnahme und Auswertung {#pilotierung_stichprobe_ruecklauf}
-
-Für die Pilotierungsstudie wurden `r results$sample$totals$n_requested_classes`
-Klassen angefragt. Teilgenommen haben
-`r results$sample$totals$n_participants` Schülerinnen und Schüler aus
-`r results$sample$totals$n_participating_classes` Klassen. Die
-Auswertungspopulation umfasst `r results$sample$totals$n_analysis_persons`
-Personen. Die folgende Tabelle unterscheidet die Teilnahme von der
-Auswertungspopulation und zeigt deren Verteilung auf die Länder.
+Die insgesamt realisierte Stichprobe umfasste in der Pilotierungsstudie
+`r config$report$pilot_year` im Fach
+`r if (config$report$subject == "de") "Deutsch" else "Mathematik"`
+`r results$sample$totals$n_participating_classes` Klassen der dritten
+Jahrgangsstufe aus `r sum(results$sample$by_state$n_participating_classes > 0)`
+deutschen Ländern (angeforderte Stichprobe:
+`r results$sample$totals$n_requested_classes` Klassen). Insgesamt nahmen
+`r results$sample$totals$n_participants` Schülerinnen und Schüler teil.
+In die Auswertung gingen die Daten von
+*N* = `r results$sample$totals$n_analysis_persons` Schülerinnen und Schülern ein.
+Die Verteilung der Stichprobe auf die Länder ist in der folgenden Tabelle dargestellt.
 
 ```{r}
 #| label: pilotierung_stichprobe_laendertabelle
@@ -32,8 +34,6 @@ if (total$n_not_analysed > 0L) {
 }
 ```
 
-Die Prozentanteile beziehen sich auf die gesamte Auswertungspopulation.
-Eine Person wird dabei einmal gezählt, auch wenn sie in mehreren Skalen
-ausgewertet wird. Die skalenbezogenen Fallzahlen sind bei der
-Leistungsdarstellung angegeben. Die Zusammensetzung der Stichprobe wird im
-folgenden Abschnitt für die Auswertungspopulation beschrieben.
+*Anmerkung.* Die Prozentangaben beziehen sich auf die insgesamt ausgewerteten
+Schülerinnen und Schüler. Die nachfolgende Stichprobenbeschreibung bezieht
+sich ebenfalls auf diese Gruppe.
