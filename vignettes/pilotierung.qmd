@@ -206,4 +206,5 @@ kein verbindliches Schema für neue Deutsch- und Mathematikdaten.
 Für reale Berichte werden `data_origin = "observed"`, fachlich freigegebene
 Cuts und die tatsächlichen Design- und Stichprobenangaben geliefert. Der
 [Word-Bericht mit editierbaren Quarto-Texten](textredaktion.html) verwendet
-weiterhin die verbindliche lokale Corporate-Vorlage.
+automatisch die mitgelieferte, freigegebene Corporate-Vorlage. Ein zusätzlicher
+Vorlagenpfad ist dafür nicht erforderlich.

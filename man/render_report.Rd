@@ -2,12 +2,12 @@
 % Please edit documentation in R/render.R
 \name{render_report}
 \alias{render_report}
-\title{Render pilot-study sections with the mandatory corporate Word template}
+\title{Render pilot-study sections with the corporate Word layout}
 \usage{
 render_report(
   config,
   data,
-  corporate_template = "lokal/Bericht.dotx",
+  corporate_template = NULL,
   text_dir = NULL,
   output_dir,
   overwrite = FALSE,
@@ -20,7 +20,8 @@ render_report(
 \item{data}{Input tables including population, PV values and, for the
 pilot-study scope, design and sample information.}
 
-\item{corporate_template}{Path to the mandatory corporate DOTX template.}
+\item{corporate_template}{Optional path to a corporate DOTX or DOCX template.
+NULL uses the layout included with the package.}
 
 \item{text_dir}{Optional directory containing all editable Quarto blocks
 created by \code{\link[=edit_report_texts]{edit_report_texts()}}. For the pilot-study scope, optional local
@@ -52,8 +53,9 @@ technical report. Inputs follow \code{\link[=example_report]{example_report()}} 
 rendering. Synthetic data and illustrative cuts are explicitly labelled.
 }
 \details{
-The private corporate DOTX is required for every report. Its styles, page
-geometry, headers and footers are used to prepare a local DOCX reference.
+The package includes the corporate DOCX layout. Alternatively, supply a
+corporate DOTX or DOCX file. Its styles, page geometry, headers and footers
+are used to prepare a local DOCX reference with the report typography.
 Template body text is not imported. Missing Pandoc styles are derived from
 corporate styles. Quarto must be installed separately.
 
@@ -67,7 +69,6 @@ change comparison and margin markers are not implemented yet.
 \dontrun{
 demo <- example_report()
 result <- render_report(demo$config, demo$data,
-                        corporate_template = "lokal/Bericht.dotx",
                         output_dir = "lokal/demo-de")
 result$path
 }

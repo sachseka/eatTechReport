@@ -25,7 +25,8 @@ for (part in eatTechReport:::study_design_tables(results$design)) {
     "Gesamtdauer (Min.)" = eatTechReport:::study_number(b$total_minutes),
     check.names = FALSE
   )
-  cat(eatTechReport:::study_table_markdown(durations, c("l", "r", "r", "r", "r")))
+  cat(eatTechReport:::study_table_markdown(durations, c("l", "r", "r", "r", "r"),
+                                         widths = c(16, 18, 12, 28, 26)))
 }
 ```
 

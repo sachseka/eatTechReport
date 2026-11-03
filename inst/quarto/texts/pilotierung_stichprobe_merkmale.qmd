@@ -53,7 +53,7 @@ if (!is.null(language)) {
       "Ländern ist in der folgenden Tabelle dargestellt.\n\n", sep = "")
   for (language_table in eatTechReport:::study_language_tables(language)) {
     widths <- if (ncol(language_table) > 4L) {
-      c(20, 12, rep(68 / (ncol(language_table) - 2), ncol(language_table) - 2))
+      c(22, 18, rep(60 / (ncol(language_table) - 2), ncol(language_table) - 2))
     } else NULL
     cat(eatTechReport:::study_table_markdown(language_table,
           c("l", rep("r", ncol(language_table) - 1L)), widths = widths))

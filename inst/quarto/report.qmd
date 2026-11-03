@@ -66,4 +66,6 @@ cat(knitr::knit_child(text = performance_text,
                       envir = environment(), quiet = TRUE), sep = "\n")
 ```
 
+{{< pagebreak >}}
+
 {{< include archive/texts/leistung_methoden.qmd >}}

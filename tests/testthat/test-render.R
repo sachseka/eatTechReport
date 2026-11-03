@@ -127,6 +127,10 @@ test_that("table postprocessing uses horizontal rules and repeated headings", {
   expect_identical(xml2::xml_attr(xml2::xml_find_all(doc, "//w:tbl/w:tr//w:keepNext", word_ns()),
                                  "w:val", word_ns()), c("1", "0"))
   expect_length(xml2::xml_find_all(doc, "//w:trPr/w:cantSplit", word_ns()), 2L)
+  expect_length(xml2::xml_find_all(doc, "//w:tr[1]/w:tc/w:tcPr/w:tcBorders/w:top[@w:sz='12'][@w:val='single']",
+                                   word_ns()), 1L)
+  expect_length(xml2::xml_find_all(doc, "//w:tr[last()]/w:tc/w:tcPr/w:tcBorders/w:bottom[@w:sz='12'][@w:val='single']",
+                                   word_ns()), 1L)
 })
 
 test_that("table gaps preserve heading spacing and separate adjacent tables only once", {
@@ -158,6 +162,8 @@ test_that("table gaps preserve heading spacing and separate adjacent tables only
   format_tables()
   expect_identical(as.character(doc), first_pass)
   expect_identical(xml2::xml_text(doc), "CaptionFollowing text")
+  expect_identical(xml2::xml_attr(xml2::xml_find_first(doc, "w:p[1]/w:pPr/w:keepNext", ns),
+                                 "w:val", ns), "1")
 })
 
 test_that("caption containers stay unruled while inner data tables retain their layout", {
@@ -199,6 +205,8 @@ test_that("caption containers stay unruled while inner data tables retain their 
   captions <- xml2::xml_find_all(wrappers, "w:tr/w:tc/w:p[w:r/w:t='Synthetic table caption']", ns)
   expect_identical(xml2::xml_attr(xml2::xml_find_all(captions, "w:pPr/w:keepNext", ns),
                                  "w:val", ns), c("1", "1"))
+  expect_identical(xml2::xml_attr(xml2::xml_find_all(captions, "w:pPr/w:spacing", ns),
+                                 "w:after", ns), c("40", "40"))
   expect_length(xml2::xml_find_all(doc, "//w:tblBorders/w:top[@w:val='single']", ns), 2L)
   expect_length(xml2::xml_find_all(doc, "//w:tblBorders/w:bottom[@w:val='single']", ns), 2L)
   expect_length(xml2::xml_find_all(doc, "//w:trPr/w:tblHeader", ns), 2L)

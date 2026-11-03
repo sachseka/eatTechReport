@@ -32,15 +32,16 @@ edit_report_texts <- function(path, overwrite = FALSE,
   invisible(normalizePath(targets, winslash = "/"))
 }
 
-#' Render pilot-study sections with the mandatory corporate Word template
+#' Render pilot-study sections with the corporate Word layout
 #'
 #' The renderer covers test design, sample composition and performance for the
 #' pilot-study scope, or the performance section alone. It is not yet a complete
 #' technical report. Inputs follow [example_report()] and are validated before
 #' rendering. Synthetic data and illustrative cuts are explicitly labelled.
 #'
-#' The private corporate DOTX is required for every report. Its styles, page
-#' geometry, headers and footers are used to prepare a local DOCX reference.
+#' The package includes the corporate DOCX layout. Alternatively, supply a
+#' corporate DOTX or DOCX file. Its styles, page geometry, headers and footers
+#' are used to prepare a local DOCX reference with the report typography.
 #' Template body text is not imported. Missing Pandoc styles are derived from
 #' corporate styles. Quarto must be installed separately.
 #'
@@ -53,7 +54,8 @@ edit_report_texts <- function(path, overwrite = FALSE,
 #' @param config Report configuration from [example_report()].
 #' @param data Input tables including population, PV values and, for the
 #'   pilot-study scope, design and sample information.
-#' @param corporate_template Path to the mandatory corporate DOTX template.
+#' @param corporate_template Optional path to a corporate DOTX or DOCX template.
+#'   NULL uses the layout included with the package.
 #' @param text_dir Optional directory containing all editable Quarto blocks
 #'   created by [edit_report_texts()]. For the pilot-study scope, optional local
 #'   blocks `grundlagen_kompetenzstufen.qmd`, `pilotierung_durchfuehrung.qmd`
@@ -76,26 +78,31 @@ edit_report_texts <- function(path, overwrite = FALSE,
 #' \dontrun{
 #' demo <- example_report()
 #' result <- render_report(demo$config, demo$data,
-#'                         corporate_template = "lokal/Bericht.dotx",
 #'                         output_dir = "lokal/demo-de")
 #' result$path
 #' }
 render_report <- function(config, data,
-                          corporate_template = "lokal/Bericht.dotx",
+                          corporate_template = NULL,
                           text_dir = NULL, output_dir, overwrite = FALSE,
                           update_fields = c("auto", "word", "none")) {
   update_fields <- match.arg(update_fields)
   input <- list(config = config, data = data)
   validate_report_input(input)
+  if (is.null(corporate_template)) {
+    corporate_template <- system.file("templates", "eatTechReport.docx", package = "eatTechReport")
+    if (!nzchar(corporate_template)) {
+      stop("Die Corporate-Vorlage fehlt in der Paketinstallation.", call. = FALSE)
+    }
+  }
   check_report_path(corporate_template, "corporate_template")
   check_report_path(output_dir, "output_dir")
   check_report_flag(overwrite, "overwrite")
   if (!file.exists(corporate_template) || dir.exists(corporate_template)) {
     stop("Die verbindliche Corporate-Vorlage fehlt: ", corporate_template,
-         ". Es gibt keine Ersatzgestaltung.", call. = FALSE)
+         ".", call. = FALSE)
   }
-  if (tolower(tools::file_ext(corporate_template)) != "dotx") {
-    stop("corporate_template muss auf die freigegebene DOTX-Vorlage verweisen.", call. = FALSE)
+  if (!tolower(tools::file_ext(corporate_template)) %in% c("dotx", "docx")) {
+    stop("corporate_template muss auf eine DOTX- oder DOCX-Vorlage verweisen.", call. = FALSE)
   }
   sources <- report_text_files(text_dir, scope = config$scope)
   if (!requireNamespace("knitr", quietly = TRUE) || !requireNamespace("rmarkdown", quietly = TRUE)) {
@@ -160,8 +167,8 @@ render_report <- function(config, data,
   saveRDS(display_labels, file.path(archive_dir, "display-labels.rds"), version = 3)
   for (scale_id in names(config$scales)) {
     ggplot2::ggsave(file.path(asset_path, paste0(scale_id, ".png")),
-                    plot = plot_performance(input, scale_id),
-                    width = 6.2, height = 3.7, units = "in", dpi = 200, bg = "white")
+                    plot = plot_performance(input, scale_id, font_family = "Arial"),
+                    width = 15.5, height = 9.4, units = "cm", dpi = 200, bg = "white")
   }
   main_source <- system.file("quarto", "report.qmd", package = "eatTechReport")
   if (!nzchar(main_source)) stop("Die Quarto-Hauptdatei fehlt in der Paketinstallation.", call. = FALSE)
@@ -170,10 +177,9 @@ render_report <- function(config, data,
     stop("Die Quarto-Hauptdatei konnte nicht kopiert werden.", call. = FALSE)
   }
   subject <- if (config$report$subject == "de") "Deutsch" else "Mathematik"
-  title <- paste("Technischer Bericht VERA-3", config$report$main_year, "\u2013", subject)
-  scope_label <- if (config$scope == "pilotierung") "Pilotierungsstudie" else "Leistungsbaustein"
-  subtitle <- paste(scope_label, "\u00b7", if (config$report$data_origin == "synthetic")
-    "Synthetisches Beispiel" else "Entwicklungsfassung")
+  title <- paste(c(paste("Vergleichsarbeiten", config$report$main_year),
+                   "3. Jahrgangsstufe", subject), collapse = "  \n")
+  subtitle <- "Technischer Bericht"
   quarto::quarto_render(
     input = source, output_format = "docx", output_file = "report.docx",
     metadata = list(title = title, subtitle = subtitle),
@@ -338,7 +344,7 @@ pack_word_package <- function(directory, path) {
             include_directories = FALSE, mode = "mirror")
 }
 
-# Kept inside the output directory: these files contain private corporate assets.
+# Work on a copy: externally supplied templates may contain private material.
 prepare_corporate_reference <- function(template, reference) {
   directory <- tempfile(".corporate-parts-", tmpdir = dirname(reference))
   on.exit(remove_word_parts(directory, dirname(reference)), add = TRUE)
@@ -346,9 +352,10 @@ prepare_corporate_reference <- function(template, reference) {
   content_file <- file.path(directory, "[Content_Types].xml")
   content <- xml2::read_xml(content_file)
   main <- xml2::xml_find_first(content, "//*[local-name()='Override'][@PartName='/word/document.xml']")
-  if (!identical(xml2::xml_attr(main, "ContentType"),
-                 "application/vnd.openxmlformats-officedocument.wordprocessingml.template.main+xml")) {
-    stop("Die Corporate-Datei ist keine Word-DOTX-Vorlage.", call. = FALSE)
+  supported <- paste0("application/vnd.openxmlformats-officedocument.wordprocessingml.",
+                      c("template", "document"), ".main+xml")
+  if (!xml2::xml_attr(main, "ContentType") %in% supported) {
+    stop("Die Corporate-Datei ist keine Word-DOTX- oder DOCX-Vorlage.", call. = FALSE)
   }
   xml2::xml_set_attr(main, "ContentType",
                      "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml")
@@ -432,7 +439,7 @@ prepare_corporate_reference <- function(template, reference) {
   # properties, but their placeholder text is never copied.
   for (i in seq_along(c("Title", "Subtitle"))) {
     target <- find_style(c("Title", "Subtitle")[[i]])
-    cover <- cover_style(i, c("Title", "Subtitel_Zwischenseite")[[i]])
+    cover <- cover_style(i, c("Title", "Subtitle")[[i]])
     if (is.null(cover) || is.null(target)) next
     if (!identical(xml2::xml_path(cover), xml2::xml_path(target))) {
       xml2::xml_remove(xml2::xml_find_all(target, "w:pPr|w:rPr", ns))
@@ -464,6 +471,7 @@ prepare_corporate_reference <- function(template, reference) {
   xml2::xml_remove(children[-length(children)])
   xml2::xml_add_child(body, "w:p", .where = 0)
   xml2::write_xml(doc, document_file)
+  apply_report_layout(directory)
   pack_word_package(directory, reference)
   invisible(reference)
 }
@@ -519,6 +527,22 @@ finalise_report_docx <- function(path) {
       xml2::xml_set_attr(border, "w:sz", "12")
       xml2::xml_set_attr(border, "w:color", "000000")
     }
+    # Cell borders take precedence over table borders in Word. Set the outer
+    # rules on the actual cells too, so inherited thin rules cannot win.
+    for (i in seq_along(rows)) {
+      for (cell in xml2::xml_find_all(rows[[i]], "w:tc", ns)) {
+        cell_props <- xml2::xml_find_first(cell, "w:tcPr", ns)
+        if (inherits(cell_props, "xml_missing")) cell_props <- xml2::xml_add_child(cell, "w:tcPr", .where = 0)
+        xml2::xml_remove(xml2::xml_find_all(cell_props, "w:tcBorders", ns))
+        cell_borders <- xml2::xml_add_child(cell_props, "w:tcBorders")
+        for (side in c("top", "left", "bottom", "right")) {
+          outer <- (side == "top" && i == 1L) || (side == "bottom" && i == length(rows))
+          border <- xml2::xml_add_child(cell_borders, paste0("w:", side))
+          xml2::xml_set_attrs(border, c("w:val" = if (outer) "single" else "nil",
+                                      "w:sz" = "12", "w:color" = "000000"))
+        }
+      }
+    }
     first_row <- xml2::xml_find_first(table, "w:tr", ns)
     row_props <- xml2::xml_find_first(first_row, "w:trPr", ns)
     if (inherits(row_props, "xml_missing")) row_props <- xml2::xml_add_child(first_row, "w:trPr", .where = 0)
@@ -533,6 +557,12 @@ finalise_report_docx <- function(path) {
       xml2::xml_set_attr(shade, "w:fill", "F2F2F2")
     }
   }
+  for (props in xml2::xml_find_all(doc, "//w:tcPr", ns)) {
+    layout_order_children(props, c("cnfStyle", "tcW", "gridSpan", "hMerge", "vMerge",
+                                   "tcBorders", "shd", "noWrap", "tcMar", "textDirection",
+                                   "tcFitText", "vAlign", "hideMark", "headers", "cellIns",
+                                   "cellDel", "cellMerge", "tcPrChange"))
+  }
   xml2::write_xml(doc, document_file)
   settings_file <- file.path(directory, "word/settings.xml")
   if (file.exists(settings_file)) {
@@ -542,6 +572,7 @@ finalise_report_docx <- function(path) {
     xml2::xml_set_attr(update, "w:val", "true")
     xml2::write_xml(settings, settings_file)
   }
+  apply_report_layout(directory)
   pack_word_package(directory, path)
   invisible(path)
 }
@@ -576,7 +607,7 @@ clear_report_layout_table <- function(table, ns) {
 }
 
 # Apply spacing to the neighbouring text paragraphs, outside the table borders.
-# Respect larger inherited heading/caption spacing and keep pagination settings.
+# Keep heading spacing; captions sit close to their table.
 space_report_table <- function(table, styles, ns, points = 6) {
   before <- xml2::xml_find_first(table, "preceding-sibling::*[1]", ns)
   after <- xml2::xml_find_first(table, "following-sibling::*[1]", ns)
@@ -598,13 +629,21 @@ space_report_table <- function(table, styles, ns, points = 6) {
       "preceding-sibling::*[1][self::w:tbl] | following-sibling::*[1][self::w:tbl]", ns)) == 2L
     has_content <- nzchar(trimws(xml2::xml_text(paragraph))) ||
       length(xml2::xml_find_all(paragraph, ".//w:br | .//w:drawing | .//w:object | .//w:fldChar", ns)) > 0L
+    if (side == "before" && has_content) {
+      keep <- xml2::xml_find_first(props, "w:keepNext", ns)
+      if (inherits(keep, "xml_missing")) keep <- xml2::xml_add_child(props, "w:keepNext")
+      xml2::xml_set_attr(keep, "w:val", "1")
+    }
     if (between_tables && !has_content) {
       xml2::xml_set_attrs(spacing, c("w:before" = "0", "w:after" = "0",
                                     "w:line" = as.character(points * 20), "w:lineRule" = "exact"))
     } else {
       attribute <- if (side == "before") "after" else "before"
       existing <- report_paragraph_spacing(paragraph, styles, attribute, ns)
-      xml2::xml_set_attr(spacing, paste0("w:", attribute), as.character(max(points * 20, existing)))
+      style_id <- xml2::xml_attr(xml2::xml_find_first(props, "w:pStyle", ns), "w:val", ns)
+      is_caption <- side == "before" && !is.na(style_id) && grepl("caption", style_id, ignore.case = TRUE)
+      gap <- if (is_caption) 40 else max(points * 20, existing)
+      xml2::xml_set_attr(spacing, paste0("w:", attribute), as.character(gap))
       xml2::xml_set_attr(spacing, paste0("w:", attribute, "Autospacing"), "0")
     }
     contextual <- xml2::xml_find_first(props, "w:contextualSpacing", ns)

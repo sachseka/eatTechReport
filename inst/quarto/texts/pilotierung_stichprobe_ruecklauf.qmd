@@ -20,14 +20,14 @@ total <- results$sample$totals
 state_table <- data.frame(
   "Land" = c(state$label, "Gesamt"),
   "Klassen angefragt" = c(state$n_requested_classes, total$n_requested_classes),
-  "Klassen teilgenommen" = c(state$n_participating_classes, total$n_participating_classes),
-  "Personen teilgenommen" = c(state$n_participants, total$n_participants),
-  "Personen ausgewertet" = c(state$n_analysis_persons, total$n_analysis_persons),
-  "Anteil Auswertung (%)" = eatTechReport:::study_number(c(state$analysis_percent, 100)),
+  "Klassen Teilnahme" = c(state$n_participating_classes, total$n_participating_classes),
+  "Personen Teilnahme" = c(state$n_participants, total$n_participants),
+  "Personen Auswertung" = c(state$n_analysis_persons, total$n_analysis_persons),
+  "Anteil (%)" = eatTechReport:::study_number(c(state$analysis_percent, 100)),
   check.names = FALSE
 )
 cat(eatTechReport:::study_table_markdown(state_table, c("l", rep("r", 5)),
-                                       widths = c(24, 14, 16, 16, 16, 14)))
+                                       widths = c(23, 15, 16, 16, 18, 12)))
 if (total$n_not_analysed > 0L) {
   cat("Von den Teilnehmenden gehen ", total$n_not_analysed,
       " Personen nicht in die Auswertungspopulation ein.\n\n", sep = "")

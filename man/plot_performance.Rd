@@ -4,7 +4,7 @@
 \alias{plot_performance}
 \title{Plot the performance distribution and competence-level shares}
 \usage{
-plot_performance(input, scale_id, bandwidth = NULL)
+plot_performance(input, scale_id, bandwidth = NULL, font_family = "sans")
 }
 \arguments{
 \item{input}{A list with \code{config} and \code{data}, as returned by
@@ -15,6 +15,9 @@ plot_performance(input, scale_id, bandwidth = NULL)
 \item{bandwidth}{A positive smoothing bandwidth in reporting-scale units.
 If \code{NULL}, use the mean of \code{\link[stats:bandwidth]{stats::bw.nrd0()}} calculated separately for
 each PV. The same bandwidth is then used for all PVs of this scale.}
+
+\item{font_family}{A single, nonempty font-family name. The device-neutral
+default is \code{"sans"}; Word reports use \code{"Arial"} explicitly.}
 }
 \value{
 A ggplot object. Attributes \code{population_percentages} and

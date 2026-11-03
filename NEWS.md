@@ -1,5 +1,11 @@
 # eatTechReport 0.0.0.9000
 
+* Bundle the approved corporate Word template. `render_report()` uses it by
+  default with `corporate_template = NULL`; an explicit DOTX or DOCX path remains
+  optional. Private source reports, data and editorial text remain local.
+* Use Arial at 11 pt or larger, 1.5 line spacing and more space before headings.
+  Set heading levels 1–4 to 16/13/12/11 pt, the three-line cover title to 22 pt
+  and its subtitle to 18 pt. Reduce the gap between table captions and tables.
 * Add strong black outer table rules and spacing between tables and surrounding
   text. Display statistical symbols M, N and SD in italics in tables and plots.
 * Revise pilot-study prose and valid-response summaries to follow the established
@@ -35,10 +41,10 @@
   reporting scale.
 * Plot PV distributions with common smoothing and the same proficiency-level
   percentages used in the summary tables.
-* Render editable Quarto pilot-study sections to Word using the mandatory
-  locally supplied corporate template, and save a reproducibility snapshot.
+* Render editable Quarto pilot-study sections to Word using the approved
+  corporate template, and save a reproducibility snapshot.
   Successful reruns retain the previous output as a backup. With Microsoft Word
   on Windows, update the contents and page-number fields automatically.
 * Add function documentation, synthetic website examples, package tests, and
-  light/dark logo variants. Private templates, data, and rendered corporate
+  light/dark logo variants. Private source files, data, and rendered corporate
   documents are excluded from package builds and website examples.

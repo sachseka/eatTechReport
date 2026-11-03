@@ -14,12 +14,19 @@ schrittweise ergänzt.
 Die folgenden Aufrufe sind für die lokale Anwendung vorgesehen und werden
 beim Website-Build nicht ausgeführt.
 
-## Corporate-Vorlage bereitstellen
+## Mitgelieferte Corporate-Vorlage verwenden
 
-Für jeden Word-Bericht, auch mit simulierten Daten, wird die freigegebene
-Corporate-Vorlage benötigt. Der vorgesehene Pfad lautet `lokal/Bericht.dotx`.
-Die Vorlage bleibt privat und wird nicht mit dem Paket ausgeliefert. Auf einem
-anderen Rechner kann der Pfad zur gleichen Vorlage angepasst werden.
+Die freigegebene Corporate-Vorlage wird mit dem Paket ausgeliefert. Die
+Voreinstellung `corporate_template = NULL` verwendet sie automatisch, auch
+für Berichte mit simulierten Daten. Im Quellpaket liegt die Vorlage unter
+`inst/templates/eatTechReport.docx`. Ein eigener Pfad zu einer freigegebenen
+DOTX- oder DOCX-Datei kann bei Bedarf über `corporate_template` übergeben werden.
+
+Das Layout verwendet Arial mit mindestens 11 pt und 1,5-fachem Zeilenabstand.
+Überschriften der Ebenen 1 bis 4 erhalten 16, 13, 12 beziehungsweise 11 pt
+und Abstand zum vorausgehenden Text. Auf dem Deckblatt steht der dreizeilige
+Titel in 22 pt, der Untertitel in 18 pt. Tabellenbeschriftungen stehen nah an
+der zugehörigen Tabelle; der Abstand zum übrigen Fließtext bleibt erhalten.
 
 Zusätzlich zu R und eatTechReport muss die Quarto-Kommandozeile verfügbar sein.
 Für ein automatisch befülltes Inhaltsverzeichnis einschließlich Seitenzahlen
@@ -32,7 +39,6 @@ demo <- example_report(n_persons = 200)
 bericht <- render_report(
   config = demo$config,
   data = demo$data,
-  corporate_template = "lokal/Bericht.dotx",
   output_dir = "lokal/demo-de"
 )
 
@@ -41,8 +47,7 @@ bericht$archive_dir
 ```
 
 Der Prototyp kennzeichnet synthetische Eingaben sichtbar und verwendet
-dieselben Kennzahlen wie `summarise_report_input()`. Fehlt die Vorlage,
-endet die Dokumenterzeugung mit einer Fehlermeldung.
+dieselben Kennzahlen wie `summarise_report_input()`.
 
 ## Inhaltsverzeichnis und Seitenzahlen aktualisieren
 
@@ -100,7 +105,6 @@ bericht <- render_report(
   config = demo$config,
   data = demo$data,
   text_dir = "lokal/redaktion",
-  corporate_template = "lokal/Bericht.dotx",
   output_dir = "lokal/demo-redigiert"
 )
 ```
@@ -156,7 +160,8 @@ Ersetzen bleibt der vorherige Stand in einem benachbarten Sicherungsordner
 erhalten; dessen Pfad steht in `previous_output_dir`. Ein fehlgeschlagener
 Renderlauf ersetzt den vorhandenen Bericht nicht.
 
-Vorlage, abgeleitete Referenzdateien, Eingaben, redigierte Texte, erzeugte
+Die freigegebene Layoutvorlage ist Bestandteil des Pakets. Altberichte,
+abgeleitete Referenzdateien, reale Eingaben, redigierte Texte, erzeugte
 Corporate-Dokumente und Renderablagen bleiben unter `lokal/`. Die Ablage ist
 ein technischer Renderstand; fachliche Freigabe, Vorjahresvergleich und
 automatische Ausrufezeichen am rechten Rand werden später ergänzt.

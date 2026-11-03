@@ -183,8 +183,20 @@ test_that("missing Quarto and invalid file arguments fail before output creation
   expect_false(dir.exists(fixture$output))
   expect_error(render_fixture_report(fixture, overwrite = NA), "TRUE oder FALSE")
   expect_error(edit_report_texts(NA_character_), "Dateipfad")
-  renamed <- sub("dotx$", "docx", fixture$template)
+  renamed <- sub("dotx$", "txt", fixture$template)
   file.copy(fixture$template, renamed)
   fixture$template <- renamed
-  expect_error(render_fixture_report(fixture), "DOTX-Vorlage")
+  expect_error(render_fixture_report(fixture), "DOTX- oder DOCX-Vorlage")
+})
+
+test_that("the bundled layout is the default without a local template", {
+  fixture <- render_fixture()
+  local_render_boundaries()
+  result <- suppressWarnings(render_report(fixture$input$config, fixture$input$data,
+                                            output_dir = fixture$output))
+  bundled <- system.file("templates", "eatTechReport.docx", package = "eatTechReport")
+  expect_true(file.exists(bundled))
+  expect_identical(result$manifest$template_file, "eatTechReport.docx")
+  expect_identical(result$manifest$template_md5, unname(tools::md5sum(bundled)))
+  expect_true(file.exists(result$path))
 })

@@ -15,8 +15,8 @@ Auswertungsergebnissen und redigierbaren Quarto-Textbausteinen. Der aktuelle
 Paketstand umfasst **Testdesign, Stichprobenbeschreibung und Leistung der
 Pilotierungsstichprobe**: Eingabeprüfung, Aufgaben- und Itemzahlen,
 Testheftaufbau, Rücklauf, Hintergrundmerkmale, gültige Antwortzahlen,
-PV-Kennzahlen und Dichtegrafiken. Die Word-Ausgabe verwendet die verbindliche
-Corporate-Vorlage. Weitere Kapitel werden schrittweise ergänzt.
+PV-Kennzahlen und Dichtegrafiken. Die Word-Ausgabe verwendet die mitgelieferte,
+freigegebene Corporate-Vorlage. Weitere Kapitel werden schrittweise ergänzt.
 
 ## Installation und erster Einstieg
 
@@ -61,9 +61,11 @@ verarbeiten; `validate_leistung_input()` prüft dabei den PV-Teil.
 ## Word-Bericht und Textredaktion
 
 Für die Dokumenterzeugung wird zusätzlich [Quarto](https://quarto.org/) benötigt.
-Die freigegebene Corporate-Vorlage liegt lokal unter `lokal/Bericht.dotx`.
-Sie wird mit keinem Paket ausgeliefert. Demo und reale Daten verwenden dieselbe
-Gestaltung.
+Die freigegebene Corporate-Vorlage wird mit dem Paket ausgeliefert und automatisch
+verwendet (`corporate_template = NULL`). Im Quellpaket liegt sie unter
+`inst/templates/eatTechReport.docx`. Demo und reale Daten verwenden dieselbe
+Gestaltung mit Arial ab 11 pt und 1,5-fachem Zeilenabstand. Bei Bedarf kann
+`corporate_template` auf eine andere freigegebene DOTX- oder DOCX-Datei verweisen.
 
 Für die automatische Aktualisierung von Inhaltsverzeichnis und Seitenzahlen
 verwendet dieser Stand unter Windows zusätzlich ein installiertes Microsoft
@@ -75,7 +77,6 @@ erzeugt, aber die noch ausstehende Feldaktualisierung ausdrücklich gemeldet.
 bericht <- render_report(
   config = demo$config,
   data = demo$data,
-  corporate_template = "lokal/Bericht.dotx",
   output_dir = "lokal/demo-de"
 )
 bericht$path
@@ -106,8 +107,9 @@ Mit `scope = "pilotierung_leistung"` werden die drei bisherigen Bausteine für
 eine reine Leistungsdarstellung kopiert. Der Textordner muss alle Bausteine
 des beim Rendern verwendeten Umfangs enthalten.
 
-Vorlage, reale Eingaben, redigierte Texte, Corporate-Berichte und ihre
-Archivdateien bleiben lokal. Der Renderer legt einen nachvollziehbaren
+Reale Eingaben, Altberichte, redigierte Texte, Corporate-Berichte und ihre
+Archivdateien bleiben lokal. Die freigegebene Layoutvorlage ist Bestandteil
+des Pakets. Der Renderer legt einen nachvollziehbaren
 Arbeitsstand ab; fachliche Vorjahresvergleiche und Randmarkierungen folgen später.
 
 ## Eingaben und fachliche Regeln
@@ -141,8 +143,8 @@ die PV-Eingaben und ihre Berechnungsregeln.
 GitHub Actions prüft das Paket auf Windows, macOS und Linux sowie mit R-release,
 R-devel und R-oldrel-1. Ein eigener Workflow misst die R-Testabdeckung mit `covr`
 und übermittelt den Bericht an Codecov. Die Tests verwenden ausschließlich
-synthetische Daten und Word-XML-Beispiele; private Vorlagen und Microsoft Word
-sind keine Voraussetzung für diese Prüfungen.
+synthetische Daten und Word-XML-Beispiele; Microsoft Word ist keine
+Voraussetzung für diese Prüfungen.
 
 Codecov ist für das öffentliche Repository eingerichtet. Der Upload verwendet
 [OIDC-Authentifizierung](https://github.com/codecov/codecov-action#using-oidc)
@@ -164,8 +166,8 @@ pkgdown::build_site(preview = FALSE)
 
 Das Ausgabeziel ist `_pkgdown/`. Interne Arbeitsunterlagen werden außerhalb
 des Repositories unter `lokal/planung/` gepflegt.
-Website-Beispiele greifen nicht auf die private Word-Vorlage oder reale Daten
-zu. Der Website-Build veröffentlicht nichts.
+Website-Beispiele greifen nicht auf private Dateien oder reale Daten zu.
+Der Website-Build veröffentlicht nichts.
 
 Unter Windows außerhalb von RStudio benötigt R gegebenenfalls den Pfad zum
 mit Quarto gelieferten Pandoc. Liegen Projekt und temporärer Ordner auf

@@ -52,7 +52,9 @@ test_that("constant PVs and empty outer intervals remain visible and labelled", 
   built <- ggplot2::ggplot_build(plot)
   labels <- built$data[[5L]]$label
   expect_length(labels, 5L)
-  expect_match(labels[1L], "Ia\n0,0 %", fixed = TRUE)
-  expect_match(labels[5L], "IV\n0,0 %", fixed = TRUE)
+  expect_identical(labels, c("Ia", "Ib", "II", "III", "IV"))
+  percent_labels <- built$data[[6L]]$label
+  expect_match(percent_labels[1L], 'plain("0,0")', fixed = TRUE)
+  expect_match(percent_labels[5L], 'plain("0,0")', fixed = TRUE)
   expect_equal(attr(plot, "population_percentages")$percent, c(0, 0, 100, 0, 0))
 })

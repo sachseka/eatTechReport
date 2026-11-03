@@ -27,7 +27,7 @@ pool_table <- data.frame(
   check.names = FALSE
 )
 cat(eatTechReport:::study_table_markdown(pool_table, c("l", "l", "r", "r"),
-                                       widths = c(50, 20, 17, 13)))
+                                       widths = c(44, 26, 17, 13)))
 ```
 
 *Anmerkung.* Eine Aufgabe kann mehrere Items umfassen. Aufgaben und Items, die

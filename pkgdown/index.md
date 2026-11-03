@@ -12,8 +12,8 @@ Der aktuelle Entwicklungsstand umfasst **Testdesign, Stichprobe und Leistung**:
 Aufgaben- und Itemzahlen, variable Testheftpläne, Rücklauf und
 Stichprobenzusammensetzung, gültige Antwortzahlen sowie Plausible Values auf
 der 500er-Berichtsskala. Daraus entstehen ungewichtete Kennzahlen,
-Kompetenzstufenanteile, Dichtegrafiken und Word-Abschnitte nach der lokalen
-Corporate-Vorlage. Ein vollständiger Technischer Bericht mit den weiteren
+Kompetenzstufenanteile, Dichtegrafiken und Word-Abschnitte nach der mitgelieferten,
+freigegebenen Corporate-Vorlage. Ein vollständiger Technischer Bericht mit den weiteren
 Methoden-, Itemgüte- und Haupttestkapiteln folgt schrittweise.
 
 ## Direkt ausprobieren
@@ -31,7 +31,8 @@ plot_performance(demo, scale_id = "DL")
 
 Die Beispiele verwenden synthetische Designs, Stichproben und Werte sowie
 illustrative Grenzwerte.
-Kennzahlen und Grafiken lassen sich ohne Word-Vorlage ausprobieren.
+Kennzahlen und Grafiken lassen sich direkt ausprobieren. Die Vorlage für
+Word-Berichte ist bereits im Paket enthalten.
 
 - [Einstieg](articles/einstieg.html): Beispieldaten erzeugen, prüfen und darstellen.
 - [Testdesign und Stichprobe](articles/pilotierung.html): R-Eingaben für
@@ -44,9 +45,11 @@ Kennzahlen und Grafiken lassen sich ohne Word-Vorlage ausprobieren.
 
 ## Lokal und nachvollziehbar
 
-Die freigegebene Vorlage `lokal/Bericht.dotx` ist für jeden Word-Bericht
-verbindlich. Sie bleibt ebenso lokal wie reale Eingaben und erzeugte
-Corporate-Dokumente. Die Beispiele dieser Website verwenden ausschließlich
+Die freigegebene Layoutvorlage ist Bestandteil des Pakets und wird mit
+`corporate_template = NULL` automatisch verwendet. Ein eigener Pfad zu einer
+freigegebenen DOTX- oder DOCX-Datei ist optional. Reale Eingaben, Altberichte,
+redigierte Texte und erzeugte Corporate-Dokumente bleiben lokal.
+Die Beispiele dieser Website verwenden ausschließlich
 synthetische Daten; der Website-Build erzeugt keine Word-Berichte.
 
 Das Paket schätzt keine PVs aus Itemantworten. Es prüft und verarbeitet bereits
