@@ -10,7 +10,8 @@ deutschen Ländern (angeforderte Stichprobe:
 `r results$sample$totals$n_participants` Schülerinnen und Schüler teil.
 In die Auswertung gingen die Daten von
 *N* = `r results$sample$totals$n_analysis_persons` Schülerinnen und Schülern ein.
-Die Verteilung der Stichprobe auf die Länder ist in der folgenden Tabelle dargestellt.
+@tbl-stichprobe-laender zeigt die Verteilung der angefragten und teilnehmenden
+Klassen sowie der teilnehmenden und ausgewerteten Schülerinnen und Schüler auf die Länder.
 
 ```{r}
 #| label: pilotierung_stichprobe_laendertabelle
@@ -26,6 +27,7 @@ state_table <- data.frame(
   "Anteil (%)" = eatTechReport:::study_number(c(state$analysis_percent, 100)),
   check.names = FALSE
 )
+cat("\n\nTable: Zusammensetzung der Stichprobe nach Ländern. {#tbl-stichprobe-laender}\n\n")
 cat(eatTechReport:::study_table_markdown(state_table, c("l", rep("r", 5)),
                                        widths = c(23, 15, 16, 16, 18, 12)))
 if (total$n_not_analysed > 0L) {

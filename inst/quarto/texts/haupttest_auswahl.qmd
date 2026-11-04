@@ -4,24 +4,17 @@
 
 Für die Hauptstudie `r config$report$main_year` wurden insgesamt
 `r results$main_test$totals$n_tasks` Aufgaben mit
-`r results$main_test$totals$n_items` Items ausgewählt. Die folgende Tabelle
-zeigt die Verteilung auf die Kompetenzbereiche.
+`r results$main_test$totals$n_items` Items ausgewählt.
 
 ```{r}
-#| label: haupttest_auswahl_tabellen
+#| label: haupttest_auswahl_text
 #| results: asis
-main_test_tables <- eatTechReport:::main_test_tables(results$main_test, config)
-cat("\n\nTable: Ausgewählte Aufgaben und Items nach Kompetenzbereich. {#tbl-haupttest-auswahl}\n\n")
-cat(eatTechReport:::study_table_markdown(main_test_tables$pool,
-      c("l", "l", "r", "r"), widths = c(57, 13, 17, 13)))
-```
-
-*Anmerkung.* Aufgaben und Items, die in mehreren Modulen vorkommen, werden
-in dieser Übersicht jeweils einmal gezählt.
-
-```{r}
-#| label: haupttest_auswahl_skalierung
-#| results: asis
+for (i in seq_len(nrow(results$main_test$pool))) {
+  row <- results$main_test$pool[i, ]
+  domain <- config$domains$label[match(row$domain_id, config$domains$domain_id)]
+  cat("Auf den Kompetenzbereich „", eatTechReport:::report_markdown_text(domain),
+      "“ entfallen ", row$n_tasks, " Aufgaben mit ", row$n_items, " Items.\n\n", sep = "")
+}
 if (config$report$subject == "ma") {
   cat("Die Skalierung erfolgt für Mathematik insgesamt (MO). Die Zuordnung ",
       "zu den Leitideen beschreibt den Inhalt der Aufgaben.\n\n", sep = "")
@@ -30,43 +23,23 @@ if (config$report$subject == "ma") {
 
 [Kriterien und Begründung der Aufgabenauswahl ergänzen.]
 
-Die für die Hauptstudie ausgewählten Items stammen aus den folgenden
-Pilotierungen. Ausgewiesen sind jeweils die Aufgaben und Items, die in der
-betreffenden Pilotierung eingesetzt wurden und in die Hauptstudie eingehen.
-
 ```{r}
 #| label: haupttest_auswahl_herkunft
 #| results: asis
-cat("\n\nTable: Herkunft der ausgewählten Aufgaben und Items. {#tbl-haupttest-herkunft}\n\n")
-cat(eatTechReport:::study_table_markdown(main_test_tables$waves,
-      c("l", "r", "r", "r"), widths = c(54, 16, 17, 13)))
-if (results$main_test$source_overlap) {
-  cat("\n\n*Anmerkung.* Einzelne Items wurden in mehreren Pilotierungen ",
-      "eingesetzt und sind daher in mehreren Zeilen enthalten. Die Zahlen ",
-      "dürfen nicht zu einer Gesamtzahl addiert werden.\n\n", sep = "")
-} else {
-  cat("\n\n*Anmerkung.* Items sind jeweils einer Pilotierung zugeordnet. ",
-      "Aufgaben können Items aus mehreren Pilotierungen enthalten und ",
-      "daher in mehreren Zeilen gezählt werden.\n\n", sep = "")
+for (i in seq_len(nrow(results$main_test$waves))) {
+  row <- results$main_test$waves[i, ]
+  cat("In der Pilotierungsstudie ", row$pilot_year, " („",
+      eatTechReport:::report_markdown_text(row$label), "“) wurden davon ",
+      row$n_tasks, " Aufgaben mit ", row$n_items, " Items erprobt.\n\n", sep = "")
 }
-```
-
-[Besonderheiten bei der Zusammenstellung der Hauptstudie ergänzen.]
-
-```{r}
-#| label: haupttest_auswahl_stufengrafiken
-#| results: asis
-item_figures <- eatTechReport:::main_test_figure_plan(config, results$main_test)
-if (length(item_figures$selection)) {
-  cat("\n\nDie folgenden Abbildungen zeigen, wie sich die ausgewählten Items ",
-      "auf die Kompetenzstufen verteilen. Jedes Item wird je Skala einmal gezählt, ",
-      "auch wenn es in mehreren Modulen eingesetzt wird.\n\n", sep = "")
-  for (figure in item_figures$selection) {
-    cat("\n\n![Verteilung der ausgewählten Items auf die Kompetenzstufen: ",
-        eatTechReport:::report_markdown_text(figure$label), ".](figures/",
-        figure$file, "){#", figure$id, " width=15.5cm}\n\n", sep = "")
-  }
+if (results$main_test$source_overlap) {
+  cat("Einzelne Items wurden in mehreren Pilotierungen eingesetzt. Die Zahlen dürfen ",
+      "deshalb nicht zu einer Gesamtzahl addiert werden.\n\n", sep = "")
 } else {
-  cat("\n\n[Stufenzuordnung der ausgewählten Items für die Kompetenzstufengrafiken ergänzen.]\n\n")
+  cat("Items sind jeweils einer Pilotierung zugeordnet. Aufgaben können Items aus mehreren ",
+      "Pilotierungen enthalten und daher mehrfach gezählt werden.\n\n", sep = "")
+}
+if (is.null(results$main_test$item_levels)) {
+  cat("[Stufenzuordnung der ausgewählten Items für die Kompetenzstufengrafiken ergänzen.]\n\n")
 }
 ```

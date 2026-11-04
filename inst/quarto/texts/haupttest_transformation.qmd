@@ -28,6 +28,6 @@ bereits in den gelieferten Koeffizienten enthalten sein. Die Umrechnung darf
 nur auf Werte der zugehörigen Skala und Ausgangsmetrik angewandt werden.
 
 Die Plausible Values für die Beschreibung der Pilotierungsstichprobe liegen
-bereits auf der 500er-Berichtsskala vor. Sie werden für die Leistungskennwerte,
+bereits auf der 500er-Berichtsskala vor. Sie werden für die Kompetenzkennwerte,
 Dichtegrafiken und Kompetenzstufenanteile unverändert verwendet und nicht
 erneut umgerechnet.

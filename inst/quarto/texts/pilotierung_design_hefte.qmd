@@ -2,58 +2,37 @@ Die Testaufgaben wurden zunächst zu
 `r results$design$totals$n_blocks` Blöcken zusammengefasst und anschließend
 verschiedenen Testheften zugewiesen, sodass einzelne Schülerinnen und Schüler
 nur Teilmengen des gesamten Itempools bearbeiteten. Insgesamt kamen
-`r results$design$totals$n_booklets` Testhefte zum Einsatz. Die folgenden
-Tabellen zeigen den Aufbau der Testhefte und die vorgesehenen Bearbeitungszeiten.
+`r results$design$totals$n_booklets` Testhefte zum Einsatz.
 
 ```{r}
 #| label: pilotierung_design_hefttabellen
 #| results: asis
-for (part in eatTechReport:::study_design_tables(results$design)) {
+design_parts <- eatTechReport:::study_design_tables(results$design)
+for (i in seq_along(design_parts)) {
+  part <- design_parts[[i]]
   rule <- part$rule
-  cat("\n\n**", eatTechReport:::report_markdown_text(rule$label), "**\n\n", sep = "")
-  cat(eatTechReport:::report_markdown_text(rule$assignment_description), "\n\n", sep = "")
-  for (position_table in part$parts) {
-    cat(eatTechReport:::study_table_markdown(position_table,
-          widths = c(16, rep(84 / (ncol(position_table) - 1), ncol(position_table) - 1))))
+  cat("\n\n", eatTechReport:::report_markdown_text(rule$assignment_description), "\n\n", sep = "")
+  for (j in seq_along(part$parts)) {
+    id <- paste0("tbl-pilotierung-design-", i, "-", j)
+    continuation <- if (length(part$parts) > 1L) paste0(" (Teil ", j, " von ", length(part$parts), ")") else ""
+    title <- if (config$report$subject == "ma") {
+      paste0("Modularisiertes Testdesign der Pilotierungsstudie ", config$report$pilot_year)
+    } else paste0("Teildesign der Pilotierungsstudie ", config$report$pilot_year,
+                  " für den Kompetenzbereich „", rule$label, "“")
+    cat("\n\n@", id, " zeigt die Abfolge der Testblöcke", continuation, ".\n\n", sep = "")
+    cat("\n\nTable: ", eatTechReport:::report_markdown_text(paste0(title, continuation)),
+        ". {#", id, "}\n\n", sep = "")
+    cat(eatTechReport:::study_design_table_markdown(part$parts[[j]]))
   }
-  b <- part$booklets
-  durations <- data.frame(
-    "Testheft" = b$booklet_id,
-    "Testblöcke" = b$n_blocks,
-    "Items" = b$n_items,
-    "Bearbeitungszeit (min)" = eatTechReport:::study_number(b$test_minutes),
-    "Gesamtdauer (min)" = eatTechReport:::study_number(b$total_minutes),
-    check.names = FALSE
-  )
-  cat(eatTechReport:::study_table_markdown(durations, c("l", "r", "r", "r", "r"),
-                                         widths = c(16, 18, 12, 28, 26)))
+  cat("\n\n::: {custom-style=\"TableNote\"}\n\n*Anmerkungen.* ",
+      "Die Spalten geben die Reihenfolge der Testblöcke wieder. ",
+      "Dunkel hinterlegte Zellen kennzeichnen ausdrücklich als Normierungsblöcke angegebene Blöcke. ",
+      "Ein Gedankenstrich bezeichnet einen nicht belegten Block. ", sep = "")
+  if (any(part$slots$kind == "pause")) {
+    cat("Die schmale Leerspalte trennt die Blöcke vor und nach der Pause. ")
+  }
+  if (config$report$subject == "ma") cat("BM = Basismodul; EM = Ergänzungsmodul. ")
+  cat(eatTechReport:::report_markdown_text(eatTechReport:::study_design_timing_note(part)),
+      "\n\n:::\n\n", sep = "")
 }
-```
-
-*Anmerkung.* Die Bearbeitungszeit bezieht sich auf die Testaufgaben. In der
-Gesamtdauer sind zusätzlich Instruktionen und Pausen enthalten. Bei längeren
-Testheften wird die Abfolge in der nächsten Tabelle fortgesetzt; ein
-Gedankenstrich bezeichnet eine nicht belegte Position.
-
-Die folgende Übersicht zeigt die Verteilung der Pilotierungsitems und
-Ankeritems auf die einzelnen Blöcke.
-
-```{r}
-#| label: pilotierung_design_blocktabelle
-#| results: asis
-b <- results$design$blocks
-block_table <- data.frame(
-  "Block" = b$label,
-  "Bereiche" = b$domain_ids,
-  "Pilotierungsitems" = b$n_pilot,
-  "Ankeritems" = b$n_anchor,
-  check.names = FALSE
-)
-if (config$report$subject == "ma") {
-  module_labels <- c(none = "ohne Zuordnung", base = "Basismodul", supplement = "Ergänzungsmodul")
-  block_table <- cbind(block_table[1:2],
-                       "Vorgesehener Einsatz" = unname(module_labels[b$module]),
-                       block_table[3:4])
-}
-cat(eatTechReport:::study_table_markdown(block_table))
 ```

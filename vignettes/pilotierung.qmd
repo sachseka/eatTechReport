@@ -11,7 +11,7 @@ execute:
 
 Die Pilotierungsabschnitte verbinden das Aufgaben- und Iteminventar mit dem
 Testheftaufbau, dem Klassenrücklauf, der Stichprobenzusammensetzung und den
-Leistungskennzahlen. Tabellen und Quarto-Texte verwenden dieselben berechneten
+Kompetenzkennwerte. Tabellen und Quarto-Texte verwenden dieselben berechneten
 Ergebnisse. Die fachliche Fallauswahl erfolgt in der vorgelagerten Auswertung;
 das Berichtspaket entfernt keine Personen aus der angegebenen Population.
 
@@ -38,16 +38,16 @@ eine Demoannahme für das Pilotierungsjahr.** Die Beispiel-Cuts sind keine
 freigegebenen Kompetenzstufengrenzen.
 
 `example_report()` erzeugt standardmäßig den Umfang `scope = "pilotierung"`
-mit Schema `0.3.0-draft`. Dazu gehören Testdesign, Stichprobe und Leistung.
+mit Schema `0.3.0-draft`. Dazu gehören Testdesign, Stichprobe und Kompetenz.
 Ein durchgängiger Beispielbericht bis zum Literaturverzeichnis steht mit
 `scope = "bericht"` bereit; die zusätzlichen Eingaben beschreibt
 [Haupttest-Auswahl und Module](haupttest.html).
-Reine Leistungseingaben bleiben mit `example_leistung_input()`
+Reine Kompetenzeingaben bleiben mit `example_leistung_input()`
 oder `example_report(scope = "pilotierung_leistung")` verfügbar; sie verwenden
 weiterhin Schema `0.2.0-draft`.
 
 `data$population` und `data$pvs` folgen dem Vertrag im Artikel
-[Leistungskennzahlen und Plausible Values](leistung.html). Die zusätzlichen
+[Kompetenzkennwerte und Plausible Values](leistung.html). Die zusätzlichen
 Angaben stehen als R-Objekte unter `data$design` und `data$sample`.
 
 ## Aufgaben, Items, Blöcke und Testhefte
@@ -58,7 +58,7 @@ geliefert, auch wenn ein Quellsystem dafür Zahlen verwendet.
 | Tabelle | Spalten | Bedeutung und Schlüssel |
 | --- | --- | --- |
 | `items` | `item_id`, `task_id`, `domain_id`, `role` | Ein Item der beschriebenen Pilotierung je `item_id`; `task_id` verbindet die Items einer Aufgabe. Die Rolle ist `pilot` oder `anchor`. |
-| `blocks` | `block_id`, `label`, `module` | Ein Block je `block_id`; `module` ist `none`, `base` oder `supplement`. |
+| `blocks` | `block_id`, `label`, `module`; optional `is_norming` | Ein Block je `block_id`; `module` ist `none`, `base` oder `supplement`. `is_norming` kennzeichnet ausdrücklich Normierungsblöcke. |
 | `block_items` | `block_id`, `item_id` | Eine eindeutige Block-Item-Zuordnung. Dasselbe Item darf in mehreren Blöcken vorkommen. |
 | `booklets` | `booklet_id`, `design_id` | Ein Testheft je `booklet_id`; `design_id` verweist auf sein Teildesign. |
 | `booklet_slots` | `booklet_id`, `position`, `kind`, `block_id`, `duration_minutes` | Eine eindeutige Heftposition; `kind` ist `block`, `pause` oder `instruction`. |
@@ -71,11 +71,34 @@ viele Positionen haben. Jede deklarierte Aufgabe beziehungsweise jedes Item
 gehört zum verwendeten Inventar; unbenutzte Items, Blöcke, Hefte oder
 Teildesigns werden nicht stillschweigend mitgezählt.
 
+Die optionale Spalte `blocks$is_norming` enthält ausschließlich `TRUE` oder
+`FALSE`, ohne fehlende Werte. Ohne diese Spalte wird kein Block als
+Normierungsblock hervorgehoben. Ankeritems allein begründen keine solche
+Markierung. Die Zuordnung wird aus der fachlich vorgegebenen Blockliste
+übernommen, zum Beispiel:
+
+```{r}
+normierungsbloecke <- c("DL_A", "DH_A")  # ausdrückliche Demoannahme
+demo$data$design$blocks$is_norming <-
+  demo$data$design$blocks$block_id %in% normierungsbloecke
+validate_report_input(demo)
+```
+
+Die Heftdesign-Matrix zeigt je Zeile ein Testheft und je Blockspalte die
+zugehörige Blockbezeichnung. Ihre Anzahl und Reihenfolge stammen aus den
+tatsächlich angegebenen Blöcken; Pausen und Instruktionen erhöhen die
+Blocknummer nicht. Normierungsblöcke sind dunkel hinterlegt. Pausen erscheinen
+als schmale leere Spalten an der jeweiligen Blockgrenze. Unterschiedliche
+Pausengrenzen bleiben getrennt erkennbar. Die Zellen enthalten keine
+Minutenangaben; Block-, Pausen- und Instruktionszeiten werden in den
+*Anmerkungen* unter der Tabelle erläutert, auch bei unterschiedlichen Heftzeiten.
+Die Eingaben und Zeitberechnungen bleiben dabei unverändert.
+
 Die Itemrolle bezeichnet den aktuellen Einsatz. Aus `pilot` folgt nicht,
 dass ein Item neu entwickelt wurde; aus `anchor` wird kein Herkunftsjahr
 abgeleitet. Bei Mathematik beschreibt `base` beziehungsweise `supplement`
-den vorgesehenen Moduleinsatz. Die Leistungsskala bleibt für alle Leitideen
-`MO`. Weder Modul noch Leitidee erzeugen weitere Leistungsskalen.
+den vorgesehenen Moduleinsatz. Die Kompetenzskala bleibt für alle Leitideen
+`MO`. Weder Modul noch Leitidee erzeugen weitere Kompetenzskalen.
 
 ```{r}
 knitr::kable(ergebnis$design$pool)
@@ -90,6 +113,10 @@ oder mehrfach innerhalb eines Hefts vorkommt, zählt im jeweiligen Inventar
 nur einmal. Dagegen zählt die Heftzeit jede tatsächlich eingeplante Position.
 `test_minutes` enthält nur Blockzeiten; `total_minutes` enthält zusätzlich
 Pausen und Instruktionen.
+
+Bis zu sechs Blockspalten werden gemeinsam dargestellt; größere Designs
+werden in mehrere Tabellenteile aufgeteilt. Jeder Teil erhält eine eigene
+Beschriftung mit Kapitelnummer und einen Verweis im Fließtext.
 
 ## Teilnahme, Rücklauf und Auswertung unterscheiden
 

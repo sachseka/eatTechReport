@@ -51,8 +51,8 @@ test_that("booklet output uses lower-case units and literal umlauts", {
     expect_true(any(grepl("erh\u00e4lt", rules, fixed = TRUE)))
     expect_false(any(grepl("erhaelt", rules, fixed = TRUE)))
     tables <- study_design_tables(results$design)
-    cells <- unlist(lapply(tables, function(x) unlist(lapply(x$parts, function(part) unlist(part[-1L])))))
-    expect_true(any(grepl("[0-9],[0-9]\u00a0min$", cells)))
-    expect_false(any(grepl(" Min\\.?", cells)))
+    notes <- vapply(tables, study_design_timing_note, character(1))
+    expect_true(any(grepl("[0-9](,[0-9])?\u00a0min", notes)))
+    expect_false(any(grepl(" Min\\.?", notes)))
   }
 })

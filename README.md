@@ -8,18 +8,21 @@
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/sachseka/eatTechReport/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/sachseka/eatTechReport/actions/workflows/R-CMD-check.yaml)
 [![Codecov test coverage](https://codecov.io/gh/sachseka/eatTechReport/graph/badge.svg)](https://app.codecov.io/gh/sachseka/eatTechReport)
+[![pkgdown](https://github.com/sachseka/eatTechReport/actions/workflows/pkgdown.yaml/badge.svg)](https://github.com/sachseka/eatTechReport/actions/workflows/pkgdown.yaml)
 <!-- badges: end -->
 
 eatTechReport entwickelt Technische Berichte für VERA-3 aus vorhandenen
 Auswertungsergebnissen und redigierbaren Quarto-Textbausteinen. Der aktuelle
 Paketstand erzeugt mit `scope = "bericht"` einen **durchgängigen Beispielbericht
 bis zum Literaturverzeichnis**: Grundlagen, Testdesign, Stichprobenbeschreibung
-und Leistung der Pilotierungsstichprobe, Haupttest-Auswahl und Module,
+und Kompetenz der Pilotierungsstichprobe, Haupttest-Auswahl und Module,
 Itemkennwerte, Umrechnungsformeln sowie Hinweise zur Auswertung und Rückmeldung.
 Die Word-Ausgabe verwendet die mitgelieferte, freigegebene Corporate-Vorlage.
 Die Aufgabenmatrix stellt die Aufgabenfolgen der Module nebeneinander dar.
-Stufengrafiken zeigen die Gesamtauswahl und einen gemeinsamen Vergleich der
-Basis- und Ergänzungsmodule mit schmalen, gruppierten Balken je Skala.
+Die Stufengrafiken folgen den bisherigen Berichten: In Deutsch stehen die
+Module einer Skala zusammen; in Mathematik steht das Basismodul separat und
+die Ergänzungsmodule werden je Leitidee verglichen. Schmale Balken, kurze
+Legenden rechts und dieselben Corporate-Farben werden wiederverwendet.
 Die bisherigen Teilumfänge bleiben verfügbar; die fachliche Textredaktion
 wird weitergeführt.
 
@@ -57,9 +60,9 @@ Testdesign, Stichprobe, Antwortzahlen und illustrativer Cuts.
 Für Mathematik steht das Profil `v3_ma_mg_mm` mit der globalen Skala `MO` bereit.
 
 `example_report()` erzeugt standardmäßig `scope = "pilotierung"` mit Schema
-`0.3.0-draft`. Für die Leistungsdarstellung allein bleiben
+`0.3.0-draft`. Für die Kompetenzdarstellung allein bleiben
 `example_leistung_input()` und `example_report(scope = "pilotierung_leistung")`
-verfügbar. Die Leistungsfunktionen können auch vollständige Berichtsobjekte
+verfügbar. Die Funktionen für Kompetenzkennwerte können auch vollständige Berichtsobjekte
 verarbeiten; `validate_leistung_input()` prüft dabei den PV-Teil.
 `validate_report_input()` prüft zusätzlich Testdesign und Stichprobe.
 Der erweiterte Umfang `haupttest_struktur` verwendet Schema `0.4.0-draft`
@@ -70,13 +73,17 @@ demo_haupttest <- example_report(scope = "haupttest_struktur")
 haupttest <- summarise_report_input(demo_haupttest)$main_test
 haupttest$modules
 haupttest$tasks
-plot_item_levels(demo_haupttest, "DL")
 plot_item_levels(demo_haupttest, "DL", by = "module")
 ```
 
 Die optionale R-Tabelle `data$main_test$item_levels` enthält `item_id` und
 `level_label` für jedes ausgewählte Item. Die Stufenzuordnung stammt aus der
 vorgelagerten Auswertung; die Beispieldaten enthalten illustrative Zuordnungen.
+Die zusätzliche API-Ansicht `plot_item_levels(demo_haupttest, "DL")` zählt die
+eindeutigen Items der Gesamtauswahl; sie wird nicht zusätzlich in den Bericht
+aufgenommen. Aufgabentitel werden als `data$main_test$items$task_label` in R
+übergeben und müssen innerhalb jeder `task_id` übereinstimmen. Der
+[Haupttest-Artikel](vignettes/haupttest.qmd) zeigt die Zuordnung eigener Titel.
 
 Für den vollständigen Beispielbericht steht Schema `0.5.0-draft` bereit:
 
@@ -108,6 +115,16 @@ verwendet (`corporate_template = NULL`). Im Quellpaket liegt sie unter
 `inst/templates/eatTechReport.docx`. Demo und reale Daten verwenden dieselbe
 Gestaltung mit Arial ab 11 pt und 1,5-fachem Zeilenabstand. Bei Bedarf kann
 `corporate_template` auf eine andere freigegebene DOTX- oder DOCX-Datei verweisen.
+
+Abbildungen und Tabellen erhalten Beschriftungen mit Kapitelnummern und
+Verweise im Fließtext. Erläuterungen stehen als *Anmerkungen* außerhalb der
+Grafiken. Die Kompetenzverteilung zeigt *N*, *M*, *SD* und die Stufenanteile;
+zusätzliche Tabellen mit denselben PV-Kennwerten entfallen im Word-Bericht.
+Die Heftdesign-Matrix zeigt Blockbezeichnungen ohne Minutenangaben in den
+Zellen, schmale leere Pausenspalten und ausdrücklich angegebene
+Normierungsblöcke (`data$design$blocks$is_norming`). Zeiten stehen in der
+Anmerkung. Die Aufgabenmatrix verwendet kurze Modulüberschriften und
+Corporate-Schattierungen.
 
 Für die automatische Aktualisierung von Inhaltsverzeichnis und Seitenzahlen
 verwendet dieser Stand unter Windows zusätzlich ein installiertes Microsoft
@@ -162,7 +179,7 @@ kopiert weiterhin acht Bausteine für `scope = "pilotierung"`.
 Mit `scope = "haupttest_struktur"` werden zehn Bausteine kopiert, darunter
 `haupttest_auswahl.qmd` und `haupttest_module.qmd`.
 Mit `scope = "pilotierung_leistung"` werden die drei bisherigen Bausteine für
-eine reine Leistungsdarstellung kopiert. Der Textordner muss alle Bausteine
+eine reine Kompetenzdarstellung kopiert. Der Textordner muss alle Bausteine
 des beim Rendern verwendeten Umfangs enthalten.
 
 Reale Eingaben, Altberichte, redigierte Texte, Corporate-Berichte und ihre
@@ -174,7 +191,7 @@ Arbeitsstand ab; fachliche Vorjahresvergleiche und Randmarkierungen folgen spät
 
 - PVs liegen bereits auf der 500er-Berichtsskala vor; erwartet werden
   voraussichtlich 15 vollständige PVs je Person und Skala.
-- Die Leistungsdarstellung berücksichtigt alle angegebenen Personen,
+- Die Kompetenzdarstellung berücksichtigt alle angegebenen Personen,
   ungewichtet und ohne Untergruppen.
 - Deutsch verwendet `DL`, `DH`, `DO`, `DS`. Die Mathematik-Leitideen `MZ`, `MG`,
   `MM`, `MR`, `MD` verweisen auf die gemeinsame Skala `MO`.
@@ -193,7 +210,7 @@ Arbeitsstand ab; fachliche Vorjahresvergleiche und Randmarkierungen folgen spät
 
 Der Artikel [Testdesign und Stichprobenbeschreibung](vignettes/pilotierung.qmd)
 erläutert die zusätzlichen R-Objekte `data$design` und `data$sample`.
-[Leistungskennzahlen und Plausible Values](vignettes/leistung.qmd) beschreibt
+[Kompetenzkennwerte und Plausible Values](vignettes/leistung.qmd) beschreibt
 die PV-Eingaben und ihre Berechnungsregeln.
 [Haupttest-Auswahl und Module](vignettes/haupttest.qmd) beschreibt das separate
 Haupttestinventar, Wiederverwendungen, Herkunftswellen, Aufgabenmatrix und
@@ -228,7 +245,12 @@ pkgdown::build_site(preview = FALSE)
 Das Ausgabeziel ist `_pkgdown/`. Interne Arbeitsunterlagen werden außerhalb
 des Repositories unter `lokal/planung/` gepflegt.
 Website-Beispiele greifen nicht auf private Dateien oder reale Daten zu.
-Der Website-Build veröffentlicht nichts.
+Dieser lokale Website-Build veröffentlicht nichts. Der GitHub-Workflow
+`pkgdown.yaml` baut und prüft die Website bei Pull Requests. Auf `main` kann
+er sie über GitHub Pages veröffentlichen; dafür muss in den
+Repository-Einstellungen **Pages → Build and deployment → GitHub Actions**
+gewählt sein. Private Originalberichte und lokale Renderablagen werden
+auch dabei nicht verwendet.
 
 Unter Windows außerhalb von RStudio benötigt R gegebenenfalls den Pfad zum
 mit Quarto gelieferten Pandoc. Liegen Projekt und temporärer Ordner auf

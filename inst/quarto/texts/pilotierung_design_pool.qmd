@@ -8,10 +8,7 @@ pilot_inventory <- inventory[inventory$role == "pilot", , drop = FALSE]
 cat("Für den VERA-Durchgang im Schuljahr ", config$report$main_year - 1, "/",
     substr(config$report$main_year, 3, 4), " wurden ",
     length(unique(pilot_inventory$task_id)), " Aufgaben mit ", nrow(pilot_inventory),
-    " Items pilotiert. Die folgende Tabelle gibt einen Überblick über die ",
-    "Aufgaben und Items in den einzelnen Kompetenzbereichen",
-    if (config$report$subject == "ma") " (Leitideen)" else "",
-    ". Die zusätzlich eingesetzten Ankeritems werden gesondert ausgewiesen.\n\n", sep = "")
+    " Items pilotiert.\n\n", sep = "")
 ```
 
 ```{r}
@@ -26,8 +23,11 @@ pool_table <- data.frame(
   "Items" = pool$n_items,
   check.names = FALSE
 )
-cat(eatTechReport:::study_table_markdown(pool_table, c("l", "l", "r", "r"),
-                                       widths = c(44, 26, 17, 13)))
+for (i in seq_len(nrow(pool_table))) {
+  cat("Im Bereich ", eatTechReport:::report_markdown_text(pool_table$Bereich[i]),
+      " wurden ", pool_table$Aufgaben[i], " Aufgaben mit ", pool_table$Items[i],
+      " ", pool_table$Rolle[i], " eingesetzt.\n\n", sep = "")
+}
 ```
 
 *Anmerkung.* Eine Aufgabe kann mehrere Items umfassen. Aufgaben und Items, die

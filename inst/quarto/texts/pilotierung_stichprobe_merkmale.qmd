@@ -33,7 +33,11 @@ for (variable in names(category_names)) {
     cat(eatTechReport:::report_markdown_text(category_names[[variable]]),
         " wurde für diesen Durchgang nicht erhoben.\n\n", sep = "")
   } else {
-    cat("**", eatTechReport:::report_markdown_text(values$label[1]), "**\n\n", sep = "")
+    table_id <- paste0("tbl-stichprobe-", gsub("_", "-", variable, fixed = TRUE))
+    cat("@", table_id, " zeigt die Zusammensetzung der Auswertungspopulation nach ",
+        eatTechReport:::report_markdown_text(values$label[1]), ".\n\n", sep = "")
+    cat("Table: Zusammensetzung der Stichprobe: ", eatTechReport:::report_markdown_text(values$label[1]),
+        ". {#", table_id, "}\n\n", sep = "")
     display <- data.frame(
       "Ausprägung" = values$category,
       "Personen (N)" = values$n,
@@ -52,7 +56,14 @@ language <- characteristics$family_language_by_state
 if (!is.null(language)) {
   cat("Die Verteilung der Angaben zur Familiensprache in den einzelnen ",
       "Ländern ist in der folgenden Tabelle dargestellt.\n\n", sep = "")
-  for (language_table in eatTechReport:::study_language_tables(language)) {
+  language_tables <- eatTechReport:::study_language_tables(language)
+  for (i in seq_along(language_tables)) {
+    language_table <- language_tables[[i]]
+    table_id <- paste0("tbl-stichprobe-familiensprache-laender-", i)
+    cat("@", table_id, " enthält die Anteile der Familiensprachen für die einzelnen Länder.\n\n", sep = "")
+    cat("Table: Familiensprache der Schülerinnen und Schüler nach Ländern",
+        if (length(language_tables) > 1L) paste0(" (Teil ", i, ")") else "",
+        ". {#", table_id, "}\n\n", sep = "")
     widths <- if (ncol(language_table) > 4L) {
       c(22, 18, rep(60 / (ncol(language_table) - 2), ncol(language_table) - 2))
     } else NULL

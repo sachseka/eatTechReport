@@ -3,19 +3,27 @@
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/sachseka/eatTechReport/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/sachseka/eatTechReport/actions/workflows/R-CMD-check.yaml)
 [![Codecov test coverage](https://codecov.io/gh/sachseka/eatTechReport/graph/badge.svg)](https://app.codecov.io/gh/sachseka/eatTechReport)
+[![pkgdown](https://github.com/sachseka/eatTechReport/actions/workflows/pkgdown.yaml/badge.svg)](https://github.com/sachseka/eatTechReport/actions/workflows/pkgdown.yaml)
 <!-- badges: end -->
 
 eatTechReport verbindet vorhandene Auswertungsergebnisse mit redigierbaren
 Quarto-Texten für Technische Berichte zu VERA-3.
 
 Mit `scope = "bericht"` entsteht ein **durchgängiger Beispielbericht bis zum
-Literaturverzeichnis**: Grundlagen, Testdesign, Stichprobe und Leistung,
-Haupttest-Auswahl, Aufgabenmatrix und gemeinsame Modul-Stufengrafiken,
+Literaturverzeichnis**: Grundlagen, Testdesign, Stichprobe und Kompetenz,
+Haupttest-Auswahl, Aufgabenmatrix und Modul-Stufengrafiken,
 Itemkennwerte, Umrechnungsformeln sowie Hinweise zur Auswertung und Rückmeldung.
 Die Word-Ausgabe verwendet die mitgelieferte, freigegebene Corporate-Vorlage.
 Die Texte lassen sich in 15 öffentlichen Quarto-Bausteinen redigieren.
 Die bisherigen Teilumfänge bleiben verfügbar; `example_report()` verwendet
 weiterhin standardmäßig `scope = "pilotierung"`.
+
+Die Modulstufen werden wie in den bisherigen Berichten dargestellt: Deutsch
+je Skala gemeinsam, Mathematik mit einem eigenen Basismoduldiagramm und
+einem Vergleich der Ergänzungsmodule je Leitidee. Kurze Legenden stehen rechts;
+die Corporate-Farben werden je Gruppe wiederverwendet. Beschriftungen und
+Anmerkungen gehören zum umgebenden Bericht. Die Kompetenzverteilung enthält
+die deskriptiven Kennwerte und Stufenanteile ohne zusätzliche doppelte PV-Tabellen.
 
 ## Direkt ausprobieren
 
@@ -41,7 +49,7 @@ Word-Berichte ist bereits im Paket enthalten.
 - [Einstieg](articles/einstieg.html): Beispieldaten erzeugen, prüfen und darstellen.
 - [Testdesign und Stichprobe](articles/pilotierung.html): R-Eingaben für
   Aufgaben, Hefte, Rücklauf, Hintergrundmerkmale und gültige Antwortzahlen.
-- [Leistungskennzahlen und PVs](articles/leistung.html): Eingabestruktur,
+- [Kompetenzkennwerte und PVs](articles/leistung.html): Eingabestruktur,
   Skalenkennungen und Berechnungsregeln.
 - [Haupttest-Auswahl und Module](articles/haupttest.html): Aufgabenmatrix,
   gruppierte Stufengrafiken, Itemkennwerte und Transformationen.
@@ -57,6 +65,8 @@ freigegebenen DOTX- oder DOCX-Datei ist optional. Reale Eingaben, Altberichte,
 redigierte Texte und erzeugte Corporate-Dokumente bleiben lokal.
 Die Beispiele dieser Website verwenden ausschließlich
 synthetische Daten; der Website-Build erzeugt keine Word-Berichte.
+GitHub Actions prüft die Website bei Pull Requests und veröffentlicht den
+Stand von `main` über GitHub Pages. Lokale Website-Builds veröffentlichen nichts.
 
 Das Paket schätzt keine PVs aus Itemantworten. Es prüft und verarbeitet bereits
 vorliegende Ergebnisse. Für die reale Berichtserstellung sind fachlich

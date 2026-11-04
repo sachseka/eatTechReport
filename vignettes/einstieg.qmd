@@ -10,10 +10,10 @@ execute:
 ---
 
 Der aktuelle Paketstand verbindet Testdesign, Stichprobenbeschreibung und
-Leistungsdarstellung. Die Eingaben liegen als R-Objekte vor; dieselben
+Kompetenzdarstellung. Die Eingaben liegen als R-Objekte vor; dieselben
 berechneten Ergebnisse werden in Tabellen und redigierbaren Quarto-Texten
 verwendet. Für Deutsch sind mehrere Kompetenzbereiche möglich; Mathematik
-erhält eine gemeinsame globale Leistungsskala. Der größere Umfang
+erhält eine gemeinsame globale Kompetenzskala. Der größere Umfang
 `scope = "bericht"` ergänzt Haupttest-Auswahl und Module, Itemkennwerte und
 Umrechnungsformeln sowie die abschließenden Kapitel bis zur Literatur.
 Der Einstieg beginnt mit dem unveränderten Standardumfang `pilotierung`.
@@ -68,20 +68,18 @@ Auswertungspopulation sind getrennt ausgewiesen. Die Zusammensetzung bezieht
 sich auf die Auswertungspersonen; fehlende kategoriale Angaben erscheinen als
 eigene Kategorie und bleiben im Prozentnenner.
 
-## Leistung der Pilotierungsstichprobe
+## Kompetenz der Pilotierungsstichprobe
 
-```{r}
-knitr::kable(kennzahlen$descriptives, digits = 1)
-```
-
-Die Tabelle enthält je Skala die Personenanzahl, PV-Anzahl, den Mittelwert und
-die Standardabweichung. Die Berechnung verwendet ungerundete Werte; `digits`
-legt hier lediglich die Anzeige fest.
+Die Dichtegrafik zeigt die Kompetenzverteilung, die Stufenanteile und die
+Kennwerte *N*, *M* und *SD*. Die Berechnung verwendet ungerundete Werte. Im
+Word-Bericht werden dieselben Kennwerte nicht noch einmal als separate
+PV-Tabelle ausgegeben; sie bleiben im R-Ergebnis `kennzahlen$descriptives`
+und `kennzahlen$percentages` verfügbar.
 
 ```{r}
 #| fig-width: 8
 #| fig-height: 4.8
-#| fig-alt: "Simulierte Leistungsverteilung für Lesen mit Kompetenzstufengrenzen und Prozentanteilen."
+#| fig-alt: "Simulierte Kompetenzverteilung für Lesen mit Kompetenzstufengrenzen und Prozentanteilen."
 plot_performance(demo, scale_id = "DL")
 ```
 
@@ -99,7 +97,6 @@ ma <- example_report(
 )
 
 knitr::kable(ma$config$domains)
-knitr::kable(summarise_leistung_input(ma)$descriptives, digits = 1)
 ```
 
 Die fünf Leitideen verweisen alle auf `MO`. Die Modulschwerpunkte `MG` und `MM`
@@ -108,7 +105,7 @@ erzeugen keine zusätzlichen psychometrischen Skalen oder Untergruppen.
 ```{r}
 #| fig-width: 8
 #| fig-height: 4.8
-#| fig-alt: "Simulierte globale Mathematik-Leistungsverteilung mit Kompetenzstufengrenzen und Prozentanteilen."
+#| fig-alt: "Simulierte globale Mathematik-Kompetenzverteilung mit Kompetenzstufengrenzen und Prozentanteilen."
 plot_performance(ma, scale_id = "MO")
 ```
 
@@ -131,17 +128,18 @@ Dieser Umfang verwendet Schema `0.5.0-draft`. Die Demo-Itemkennwerte und
 Umrechnungskoeffizienten sind **rein synthetisch**. Reale Kennwerte und
 freigegebene Transformationen für Personen und Items kommen aus der
 vorgelagerten Auswertung. Der Haupttest-Artikel beschreibt die zusätzliche
-Eingabe `data$main_test_results`, die Aufgabenmatrix und die gemeinsamen
-Stufengrafiken für Basis- und Ergänzungsmodule.
+Eingabe `data$main_test_results`, eigene Aufgabentitel für die Aufgabenmatrix
+und die Stufengrafiken: in Deutsch gemeinsam je Skala, in Mathematik mit
+separatem Basismodul und Ergänzungsmodulen gemeinsam je Leitidee.
 
 `example_report()` verwendet standardmäßig `scope = "pilotierung"` und Schema
-`0.3.0-draft`. Für die Leistung allein steht
+`0.3.0-draft`. Für die Kompetenzdarstellung allein steht
 `example_report(scope = "pilotierung_leistung")` zur Verfügung; dieser Umfang
 behält Schema `0.2.0-draft`. Die Funktionen `summarise_leistung_input()` und
 `plot_performance()` können auch mit dem größeren Berichtsobjekt arbeiten.
 
 Der Artikel [Testdesign und Stichprobe](pilotierung.html) beschreibt die neuen
-Eingaben und Zählregeln. [Leistungskennzahlen und PVs](leistung.html) erläutert
+Eingaben und Zählregeln. [Kompetenzkennwerte und PVs](leistung.html) erläutert
 den PV-Eingabevertrag und die Aggregation. Unter
 [Word-Bericht und Textredaktion](textredaktion.html) folgt der lokale
 Renderaufruf mit der verbindlichen Corporate-Vorlage.

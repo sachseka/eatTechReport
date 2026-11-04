@@ -1,5 +1,7 @@
 ---
 lang: de-DE
+crossref:
+  chapters: true
 format:
   docx:
     reference-doc: corporate-reference.docx

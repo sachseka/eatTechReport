@@ -123,7 +123,7 @@ test_that("performance plot text meets the report minimum including inherited ax
   expect_gt(built$data[[6L]]$y[2L], built$data[[6L]]$y[3L])
   expect_gt(built$data[[6L]]$y[4L], built$data[[6L]]$y[3L])
   for (name in c("axis.text.x", "axis.text.y", "axis.title.x", "axis.title.y",
-                 "plot.title", "plot.subtitle", "plot.caption")) {
+                 "plot.title", "plot.subtitle")) {
     text <- ggplot2::calc_element(name, plot$theme)
     expect_true(text$size >= 11, info = name)
     expect_identical(text$family, "Arial", info = name)

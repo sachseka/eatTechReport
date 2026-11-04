@@ -1,4 +1,4 @@
-# Planned website address; building this site does not deploy it.
+# Local builds do not deploy; the GitHub workflow publishes main via Pages.
 url: https://sachseka.github.io/eatTechReport/
 destination: _pkgdown
 development:
@@ -9,6 +9,7 @@ template:
   math-rendering: mathjax
   bslib:
     primary: "#B40036"
+    secondary: "#00818D"
     link-color-dark: "#FF8FAC"
 home:
   title: Technische VERA-Berichte aus R und Quarto
@@ -28,7 +29,7 @@ navbar:
       menu:
         - text: Testdesign und Stichprobe
           href: articles/pilotierung.html
-        - text: Leistungskennzahlen und PVs
+        - text: Kompetenzkennwerte und PVs
           href: articles/leistung.html
         - text: Haupttest-Auswahl und Module
           href: articles/haupttest.html

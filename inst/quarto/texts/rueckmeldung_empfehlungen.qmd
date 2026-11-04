@@ -30,5 +30,5 @@ Zuordnung der Aufgaben zu Leitideen dient der inhaltlichen Einordnung.
 ```
 
 Die Plausible Values der Pilotierungsstichprobe dienen der Beschreibung
-der Leistungsverteilung der Gesamtstichprobe. Sie sind keine individuellen
+der Kompetenzverteilung der Gesamtstichprobe. Sie sind keine individuellen
 Diagnosewerte für die Rückmeldung an einzelne Schülerinnen und Schüler.

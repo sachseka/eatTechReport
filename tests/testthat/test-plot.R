@@ -11,7 +11,8 @@ test_that("plots preserve the exact empirical percentages and summaries", {
   expect_no_warning(built <- ggplot2::ggplot_build(plot))
   expect_true(all(demo$config$scales$DL$cuts %in% built$layout$panel_params[[1L]]$x$breaks))
   expect_true(any(grepl(",", built$layout$panel_params[[1L]]$y$get_labels(), fixed = TRUE)))
-  expect_match(plot$labels$caption, "Synthetisches Beispiel")
+  expect_null(plot$labels$caption)
+  expect_match(attr(plot, "report_note"), "Synthetisches Beispiel")
 })
 
 test_that("bandwidth changes the curve but cannot change level shares", {

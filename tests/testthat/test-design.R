@@ -161,3 +161,25 @@ test_that("matrix columns cannot multiply durations or expand identifiers", {
   bad$items$item_id <- matrix(rep(bad$items$item_id, 2L), ncol = 2L)
   expect_error(validate_design_data(bad, config), "eindimensionale Spalten")
 })
+
+test_that("norming blocks require explicit logical metadata and old inputs remain valid", {
+  config <- example_leistung_input()$config
+  design <- example_design_data(config)
+  expect_true(any(design$blocks$is_norming))
+  result <- summarise_design_data(design, config)
+  expect_identical(result$blocks$is_norming, design$blocks$is_norming)
+  expect_false(any(result$slots$is_norming[result$slots$kind != "block"]))
+  for (value in list(NA, 1, "TRUE")) {
+    bad <- design
+    bad$blocks$is_norming[1L] <- value
+    expect_error(validate_design_data(bad, config), "is_norming braucht TRUE oder FALSE")
+  }
+  old <- design
+  old$blocks$is_norming <- NULL
+  expect_true(validate_design_data(old, config))
+  previous <- summarise_design_data(old, config)
+  expect_false(any(previous$blocks$is_norming))
+  expect_false(any(previous$slots$is_norming))
+  expect_identical(previous$booklets, result$booklets)
+  expect_identical(previous$totals, result$totals)
+})

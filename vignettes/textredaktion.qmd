@@ -79,6 +79,26 @@ Die Tabellen verwenden vertikal zentrierten Text und Innenabstände oberhalb
 und unterhalb des Textes. Kräftige Außenlinien begrenzen die Tabelle;
 dünne horizontale Linien trennen Kopf- und Datenzeilen.
 
+Die Aufgabenmatrix verwendet Corporate-Schattierungen für Basis- und
+Ergänzungsmodule und kurze Modulüberschriften, die in den *Anmerkungen*
+erläutert werden. Aufgabentitel kommen aus `data$main_test$items$task_label`;
+eine [Zuordnung eigener Titel](haupttest.html#aufgabentitel-direkt-aus-r-übergeben)
+lässt sich direkt in R vornehmen.
+
+Die Heftdesign-Matrix folgt der Blockreihenfolge der Eingaben. Normierungsblöcke
+werden nur bei `data$design$blocks$is_norming = TRUE` dunkel hinterlegt;
+Pausen erscheinen als schmale leere Spalten. Die Zellen zeigen ausschließlich
+Blockbezeichnungen. Zeiten stehen in der Anmerkung unterhalb der Tabelle.
+
+Abbildungen und Tabellen erhalten Beschriftungen mit Kapitelnummern, zum
+Beispiel „Abbildung 2.1“ oder „Tabelle 3.2“. Die Quarto-IDs verbinden sie mit
+den Verweisen im Fließtext. Bei der Textredaktion sollten diese IDs und
+Verweise erhalten bleiben, etwa `@fig-kompetenz-dl` oder
+`@tbl-haupttest-aufgabenmatrix-1`; die Nummern werden beim Rendern erzeugt.
+Hinweise und Abkürzungserklärungen stehen als *Anmerkungen* außerhalb der
+Grafiken. Die Kompetenzverteilung zeigt die deskriptiven Kennwerte und
+Stufenanteile ohne zusätzliche Tabellen mit denselben PV-Ergebnissen.
+
 ## Inhaltsverzeichnis und Seitenzahlen aktualisieren
 
 Quarto erzeugt die Word-Felder für das Inhaltsverzeichnis. Deren sichtbarer
@@ -123,9 +143,9 @@ Der vollständige Umfang `scope = "bericht"` kopiert 15 öffentliche Bausteine:
 | `pilotierung_stichprobe_merkmale.qmd` | Alter, Geschlecht, Familiensprache und Testbedingungen. |
 | `pilotierung_stichprobe_bearbeitungen.qmd` | Gültige Antworten je Item und Ankeritem-Fußnote. |
 | `pilotierung_leistung.qmd` | PV-Kennzahlen, Kompetenzstufen und Dichtegrafiken. |
-| `leistung_methoden.qmd` | Berechnungsregeln der Leistungsdarstellung. |
-| `haupttest_auswahl.qmd` | Haupttest-Auswahl, Herkunftswellen und Stufengrafiken der Gesamtauswahl. |
-| `haupttest_module.qmd` | Modulübersicht, gemeinsame Modul-Stufengrafiken und Aufgabenmatrix. |
+| `leistung_methoden.qmd` | Berechnungsregeln der Kompetenzdarstellung. |
+| `haupttest_auswahl.qmd` | Haupttest-Auswahl und Herkunftswellen. |
+| `haupttest_module.qmd` | Modulübersicht, Stufengrafiken nach der ursprünglichen Modulgruppierung und Aufgabenmatrix. |
 | `haupttest_itemprofil.qmd` | Itemkennwerte der Testmodule. |
 | `haupttest_transformation.qmd` | Umrechnung von Personen- und Itemwerten in die Berichtsskala. |
 | `haupttest_auswertungshinweise.qmd` | Hinweise zur Auswertung des Haupttests. |
@@ -160,7 +180,7 @@ weitere Quarto-Dateien angelegt werden:
 | --- | --- |
 | `grundlagen_kompetenzstufen.qmd` | Nach den allgemeinen Informationen, vor Kapitel 2. |
 | `pilotierung_durchfuehrung.qmd` | Nach der Stichprobenbeschreibung. |
-| `pilotierung_auswertung.qmd` | Nach der Durchführung, vor der Leistungsdarstellung. |
+| `pilotierung_auswertung.qmd` | Nach der Durchführung, vor der Kompetenzdarstellung. |
 
 Diese Dateien werden bei den Umfängen `pilotierung`, `haupttest_struktur` und
 `bericht` automatisch eingefügt und mit dem Renderstand archiviert.
@@ -174,7 +194,7 @@ Historische Kompetenzbeschreibungen müssen ihre Modellversion, Stufen und
 Grenzwerte behalten, solange eine fachlich bestätigte neue Zuordnung fehlt.
 Eine Änderung der Stufenbezeichnungen allein ersetzt diese Zuordnung nicht.
 
-Für den früheren Leistungsumfang werden drei Bausteine benötigt:
+Für den früheren Umfang für Kompetenzkennwerte werden drei Bausteine benötigt:
 
 ```{r}
 leistung <- example_report(scope = "pilotierung_leistung")
@@ -209,7 +229,7 @@ automatische Ausrufezeichen am rechten Rand werden später ergänzt.
 ## Umgesetzter Umfang
 
 Der Umfang `pilotierung` verbindet Testdesign, Stichprobenbeschreibung und
-Leistung im Corporate-DOCX. `haupttest_struktur` ergänzt Haupttest-Auswahl,
+Kompetenz im Corporate-DOCX. `haupttest_struktur` ergänzt Haupttest-Auswahl,
 Module, Aufgabenmatrix und Stufengrafiken; `bericht` vervollständigt den
 Beispielbericht mit Itemkennwerten, Umrechnungsformeln und den Schlusskapiteln
 bis zur Literatur. Die fachliche Textredaktion und die Anbindung aktueller

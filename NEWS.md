@@ -1,5 +1,23 @@
 # eatTechReport 0.0.0.9000
 
+* Follow the original report figures: compare German modules within each scale;
+  show the global mathematics base module separately and compare supplementary
+  modules within each focus domain. Use narrow bars, short legends on the right
+  and the same corporate colours for each group. Omit extra selection figures
+  and in-plot titles, count labels and notes from report output.
+* Use Kompetenz in report prose and headings while retaining the existing API
+  names. Present competence summaries and percentages with the density plots
+  without duplicating them in additional PV tables. Add chapter-based figure
+  and table captions, narrative cross-references and separate explanatory notes.
+* Display booklet designs as block matrices with narrow blank pause columns
+  and explicitly marked norming blocks via optional `blocks$is_norming`.
+  Keep timing information in notes rather than inside block cells; retain the
+  existing timing data and calculation rules.
+* Shade task-matrix columns in corporate colours, use short module headers,
+  and show all five mathematics modules together. Task titles are supplied
+  through `data$main_test$items$task_label`, consistently for each `task_id`.
+* Add a pkgdown workflow that builds and checks pull requests and deploys the
+  website from `main` through GitHub Pages, using synthetic examples only.
 * Add the opt-in `bericht` scope (schema `0.5.0-draft`) for a complete example
   report through item statistics, transformations, analysis and feedback
   guidance, and references. Its 15 editable public Quarto blocks include five
@@ -9,13 +27,10 @@
   scale, and explicit metric and population definitions. Summarise module item
   statistics without transforming person PVs again. Demo coefficients are
   clearly synthetic and must be replaced with approved upstream results.
-* Compare all base and supplementary modules in one plot per scale using
-  narrow, grouped bars and a shared axis, with stable module colours and a
-  wrapped legend. Remove module facets and figure pagination.
 * Add a task matrix placing module task sequences side by side by task position.
-* Add competence-level item-count graphics for the main-test selection and its
-  modules, using the report colours, direct count labels and shared module axes.
-  `plot_item_levels()` also returns these plots for use outside Word reports.
+* Add competence-level item-count graphics using supplied assignments and
+  shared module axes. `plot_item_levels()` retains the optional overall
+  selection view for use outside Word reports.
 * Accept optional, complete upstream item-level assignments in
   `data$main_test$item_levels`. Count reused items once overall and once per
   module, and display empty levels explicitly. Synthetic examples include
@@ -65,8 +80,7 @@
 * Include author ORCIDs and workflow/coverage badges in the documentation.
 * Keep internal planning documents locally; user documentation remains in the
   package reference and website articles.
-* Provide an installable development package for VERA-3 pilot-study sections.
-  Other technical-report chapters remain under development.
+* Provide an installable development package for VERA-3 technical-report drafts.
 * Provide reproducible synthetic German and mathematics inputs with 15
   plausible values by default, independent report years, and the agreed
   domain/scale codes.
@@ -74,7 +88,7 @@
   means, standard deviations, and proficiency-level percentages on the
   reporting scale.
 * Plot PV distributions with common smoothing and the same proficiency-level
-  percentages used in the summary tables.
+  percentages returned in the R summaries.
 * Render editable Quarto pilot-study sections to Word using the approved
   corporate template, and save a reproducibility snapshot.
   Successful reruns retain the previous output as a backup. With Microsoft Word

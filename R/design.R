@@ -10,6 +10,13 @@ validate_design_data <- function(design, config) {
     booklet_slots = c("booklet_id", "position", "kind", "block_id", "duration_minutes"),
     design_rules = c("design_id", "label", "assignment_unit", "assignment_description")
   )
+  # A block's role in linking to the reference metric must be supplied by the
+  # analysis. The presence of an anchor item alone does not identify a norming
+  # block, so older inputs without this optional flag are never guessed.
+  if (is.list(design) && is.data.frame(design$blocks) &&
+      "is_norming" %in% names(design$blocks)) {
+    tables$blocks <- c(tables$blocks, "is_norming")
+  }
   if (!is.list(design) || is.data.frame(design) ||
       is.null(names(design)) || anyDuplicated(names(design)) ||
       !setequal(names(design), names(tables))) {
@@ -70,6 +77,10 @@ validate_design_data <- function(design, config) {
   strings(blocks$block_id, "design$blocks$block_id", TRUE)
   strings(blocks$label, "design$blocks$label")
   choices(blocks$module, c("none", "base", "supplement"), "design$blocks$module")
+  if ("is_norming" %in% names(blocks) &&
+      (!is.logical(blocks$is_norming) || anyNA(blocks$is_norming))) {
+    fail("design$blocks$is_norming braucht TRUE oder FALSE ohne Fehlwerte.")
+  }
   strings(links$block_id, "design$block_items$block_id")
   strings(links$item_id, "design$block_items$item_id")
   if (anyDuplicated(key(links$block_id, links$item_id))) {
@@ -122,6 +133,7 @@ summarise_design_data <- function(design, config) {
   validate_design_data(design, config)
   items <- design$items
   blocks <- design$blocks
+  if (!"is_norming" %in% names(blocks)) blocks$is_norming <- FALSE
   links <- design$block_items
   booklets <- design$booklets
   slots <- design$booklet_slots
@@ -139,6 +151,7 @@ summarise_design_data <- function(design, config) {
     selected <- items[items$item_id %in% links$item_id[links$block_id == blocks$block_id[i]], ,
                       drop = FALSE]
     data.frame(block_id = blocks$block_id[i], label = blocks$label[i], module = blocks$module[i],
+               is_norming = blocks$is_norming[i],
                n_tasks = length(unique(selected$task_id)), n_items = nrow(selected),
                n_pilot = sum(selected$role == "pilot"), n_anchor = sum(selected$role == "anchor"),
                domain_ids = paste(config$domains$domain_id[
@@ -153,6 +166,7 @@ summarise_design_data <- function(design, config) {
   slots$block_label[slots$kind == "pause"] <- "Pause"
   slots$block_label[slots$kind == "instruction"] <- "Instruktion"
   slots$module <- block_summary$module[index]
+  slots$is_norming <- ifelse(slots$kind == "block", block_summary$is_norming[index], FALSE)
   slots$n_items <- ifelse(slots$kind == "block", block_summary$n_items[index], 0L)
   slots$n_anchor <- ifelse(slots$kind == "block", block_summary$n_anchor[index], 0L)
   booklet_summary <- do.call(rbind, lapply(seq_len(nrow(booklets)), function(i) {
@@ -187,8 +201,9 @@ example_design_data <- function(config) {
                domain_id = domain, role = c(rep("pilot", length(pilot_ids)), rep("anchor", 2L)),
                stringsAsFactors = FALSE)
   }
-  add_block <- function(id, label, module, item_ids) {
+  add_block <- function(id, label, module, item_ids, is_norming = FALSE) {
     blocks[[length(blocks) + 1L]] <<- data.frame(block_id = id, label = label, module = module,
+                                                is_norming = is_norming,
                                                 stringsAsFactors = FALSE)
     links[[length(links) + 1L]] <<- data.frame(block_id = id, item_id = item_ids,
                                                stringsAsFactors = FALSE)
@@ -205,7 +220,8 @@ example_design_data <- function(config) {
       ids <- paste0(domain, c("_B1", "_B2", "_A"))
       add_block(ids[1], paste(domain, "1"), "none", paste0(domain, c("_P01", "_P02", "_A01")))
       add_block(ids[2], paste(domain, "2"), "none", paste0(domain, c("_P03", "_P04", "_A02")))
-      add_block(ids[3], paste(domain, "Anker"), "none", paste0(domain, c("_A01", "_A02")))
+      add_block(ids[3], paste(domain, "Anker"), "none", paste0(domain, c("_A01", "_A02")),
+                  is_norming = TRUE)
       booklet_ids <- paste0(domain, c("_H1", "_H2"))
       booklets[[i]] <- data.frame(booklet_id = booklet_ids, design_id = domain,
                                   stringsAsFactors = FALSE)
@@ -225,10 +241,10 @@ example_design_data <- function(config) {
       domain <- config$domains$domain_id[i]
       focus <- domain %in% config$focus_domains
       items[[i]] <- add_items(domain, supplement = focus)
-      add_block(paste0(domain, "_B"), paste(domain, "Basis"), "base",
+      add_block(paste0(domain, "_B"), paste0(domain, "-BM"), "base",
                 paste0(domain, c("_P01", "_P02", "_A01", "_A02")))
       if (focus) {
-        add_block(paste0(domain, "_E"), paste(domain, "Erg\u00e4nzung"), "supplement",
+        add_block(paste0(domain, "_E"), paste0(domain, "-EM"), "supplement",
                   paste0(domain, c("_P03", "_P04", "_A01")))
       }
     }

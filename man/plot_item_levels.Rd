@@ -43,6 +43,11 @@ the configured order. Reused items count once in the complete selection
 and once in each module containing them. Module views use a common count
 axis across all modules of the scale, including when only a subset is
 plotted. Mathematics modules use the global scale \code{MO}.
+Report figures follow the original grouping: all German modules within a
+scale; the mathematics base module separately from each group of
+supplementary modules. Short display labels and corporate colours are
+reused consistently across these groups. Captions and notes belong to the
+surrounding report rather than the plot itself.
 }
 \examples{
 demo <- example_report(scope = "haupttest_struktur")

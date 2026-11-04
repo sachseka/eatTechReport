@@ -57,19 +57,25 @@ main_test_tables <- function(main_test, config) {
 
 # Historical task overview: positions are rows, modules are columns. A task may
 # appear at a different position in each module; never align these rows by ID.
-main_test_task_matrices <- function(main_test, max_modules = 4L) {
+main_test_task_matrices <- function(main_test, max_modules = 5L, config = NULL) {
   if (length(max_modules) != 1L || !is.numeric(max_modules) ||
       !is.finite(max_modules) || max_modules < 1 || max_modules != floor(max_modules)) {
     stop("max_modules muss eine positive ganze Zahl sein.", call. = FALSE)
   }
   modules <- main_test$modules
-  groups <- split(seq_len(nrow(modules)), ceiling(seq_len(nrow(modules)) / max_modules))
+  grouping <- if (!is.null(config) && config$report$subject == "de") modules$domain_ids else
+    rep("all", nrow(modules))
+  groups <- unlist(lapply(unique(grouping), function(group) {
+    index <- which(grouping == group)
+    split(index, ceiling(seq_along(index) / max_modules))
+  }), recursive = FALSE)
   lapply(groups, function(index) {
     selected <- modules[index, , drop = FALSE]
     tasks <- main_test$tasks[main_test$tasks$module_id %in% selected$module_id, , drop = FALSE]
     positions <- sort(unique(tasks$task_position))
     table <- data.frame(Position = positions, check.names = FALSE)
-    labels <- selected$label
+    labels <- if (is.null(config)) selected$label else
+      unname(item_module_short_labels(modules, config)[selected$module_id])
     repeated <- duplicated(labels) | duplicated(labels, fromLast = TRUE)
     labels[repeated] <- paste0(labels[repeated], " (", selected$module_id[repeated], ")")
     # Word can otherwise split this compound in the middle of its final syllable.
@@ -81,6 +87,22 @@ main_test_task_matrices <- function(main_test, max_modules = 4L) {
       table[[i + 1L]] <- values
     }
     names(table) <- c("Position", labels)
-    list(module_ids = selected$module_id, table = table)
+    list(module_ids = selected$module_id, module_types = selected$module_type,
+         labels = selected$label, table = table)
   })
+}
+
+main_test_task_matrix_markdown <- function(part) {
+  n <- ncol(part$table) - 1L
+  text <- study_table_markdown(part$table, c("r", rep("l", n)),
+                               widths = c(10, rep(90 / n, n)))
+  lines <- strsplit(text, "\n", fixed = TRUE)[[1L]]
+  header <- which(startsWith(lines, "|"))[1L]
+  types <- ifelse(part$module_types == "base", "EatTaskBase", "EatTaskSupplement")
+  labels <- report_markdown_text(names(part$table))
+  labels[1L] <- "Nr."
+  cells <- c(paste0("[", labels[1L], "]{custom-style=\"EatTaskMatrix\"}"),
+    paste0("[", labels[-1L], "]{custom-style=\"", types, "\"}"))
+  lines[header] <- paste0("|", paste(cells, collapse = "|"), "|")
+  paste(c(lines, "", ""), collapse = "\n")
 }

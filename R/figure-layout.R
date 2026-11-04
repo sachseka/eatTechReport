@@ -29,7 +29,7 @@ is_report_figure_table <- function(table, styles = NULL, ns = word_ns()) {
       length(xml2::xml_find_all(table, ".//w:drawing", ns)) != 1L) return(FALSE)
   descriptions <- xml2::xml_attr(xml2::xml_find_all(table, ".//pic:cNvPr", ns), "descr")
   if (length(descriptions) != 1L || is.na(descriptions) ||
-      !grepl("^figures/item-levels-[^/\\\\]+[.]png$", descriptions)) return(FALSE)
+      !grepl("^figures/(item-levels-[^/\\\\]+|DL|DH|DO|DS|MO)[.]png$", descriptions)) return(FALSE)
   paragraphs <- xml2::xml_find_all(table, "w:tr/w:tc/w:p", ns)
   ids <- xml2::xml_attr(xml2::xml_find_first(paragraphs, "w:pPr/w:pStyle", ns), "w:val", ns)
   caption <- !is.na(ids) & ids %in% report_figure_caption_ids(styles, ns)

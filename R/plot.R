@@ -13,7 +13,8 @@
 #' @return A ggplot object. Attributes `population_percentages` and
 #'   `descriptives` contain the unrounded results for this scale. Attributes
 #'   `density_data` and `density_bandwidth` record the plotted density and its
-#'   smoothing bandwidth.
+#'   smoothing bandwidth. Attribute `report_note` holds the explanatory note
+#'   for placement below the figure; it is not drawn inside the plot.
 #' @details A Gaussian kernel density is calculated for each PV on one common
 #'   grid, then the densities are averaged. The automatic bandwidth depends on
 #'   the person count within each PV, not on the artificial sample size obtained
@@ -101,10 +102,7 @@ plot_performance <- function(input, scale_id, bandwidth = NULL, font_family = "s
                        italic(M) == .(format_number(descriptives$mean)) ~ " | " ~
                        italic(SD) == .(format_number(descriptives$sd)) ~ " | " ~
                        .(descriptives$n_pv) ~ "PVs")
-  caption <- "Alle F\u00e4lle, ungewichtet. Anteile je PV berechnet und anschlie\u00dfend gemittelt."
-  if (input$config$report$data_origin == "synthetic") {
-    caption <- paste0("Synthetisches Beispiel; illustrative Stufengrenzen.\n", caption)
-  }
+  note <- performance_plot_note(input$config)
 
   # Locally bound names keep ggplot's data-mask expressions visible to R checks.
   value <- density <- lower <- upper <- fill <- level_label <- NULL
@@ -135,8 +133,7 @@ plot_performance <- function(input, scale_id, bandwidth = NULL, font_family = "s
     ggplot2::scale_y_continuous(labels = axis_labels,
                                expand = ggplot2::expansion(mult = c(0, 0.02))) +
     ggplot2::labs(title = scale$label, subtitle = subtitle,
-                   x = "Leistung auf der 500er-Berichtsskala", y = "Dichte",
-                   caption = caption) +
+                   x = "Kompetenz auf der 500er-Berichtsskala", y = "Dichte") +
     ggplot2::theme_minimal(base_size = 11, base_family = font_family) +
     ggplot2::theme(
       panel.grid.minor = ggplot2::element_blank(),
@@ -147,7 +144,6 @@ plot_performance <- function(input, scale_id, bandwidth = NULL, font_family = "s
       axis.text = ggplot2::element_text(size = 11),
       axis.text.y = ggplot2::element_text(margin = ggplot2::margin(r = 2)),
       axis.title.y = ggplot2::element_text(margin = ggplot2::margin(r = 2)),
-      plot.caption = ggplot2::element_text(hjust = 0, colour = "#625A5E", size = 11),
       plot.margin = ggplot2::margin(5.5, 2, 5.5, 2),
       plot.background = ggplot2::element_rect(fill = "white", colour = NA)
     )
@@ -155,5 +151,17 @@ plot_performance <- function(input, scale_id, bandwidth = NULL, font_family = "s
   attr(plot, "descriptives") <- descriptives
   attr(plot, "density_data") <- density_data
   attr(plot, "density_bandwidth") <- bandwidth
+  attr(plot, "report_note") <- note
   plot
+}
+
+performance_plot_note <- function(config) {
+  note <- paste0("Die Angaben beziehen sich auf alle ausgewerteten Sch\u00fclerinnen und Sch\u00fcler ",
+    "der jeweiligen Skala; es wurden keine Gewichte verwendet. Die Kompetenzstufenanteile ",
+    "wurden f\u00fcr jeden Plausible Value berechnet und anschlie\u00dfend gemittelt. ",
+    "Rundungsbedingt k\u00f6nnen sich die Prozentanteile geringf\u00fcgig von 100,0 % unterscheiden.")
+  if (identical(config$report$data_origin, "synthetic")) {
+    note <- paste0("Synthetisches Beispiel mit illustrativen Stufengrenzen. ", note)
+  }
+  note
 }

@@ -12,13 +12,13 @@ test_that("main-test examples support domains, global mathematics and older item
     expect_equal(sum(result$pool$n_items), result$totals$n_items)
     expect_identical(result$pool$domain_id, config$domains$domain_id)
     if (config$report$subject == "ma") {
-      expect_equal(result$totals, data.frame(n_tasks = 10L, n_items = 20L, n_modules = 3L))
+      expect_equal(result$totals, data.frame(n_tasks = 10L, n_items = 20L, n_modules = 5L))
       expect_true(all(result$modules$scale_ids == "MO"))
-      expect_equal(result$modules$n_items, c(18L, 2L, 2L))
+      expect_equal(result$modules$n_items, c(18L, 2L, 2L, 2L, 2L))
     } else {
-      expect_equal(result$totals, data.frame(n_tasks = 4L, n_items = 8L, n_modules = 4L))
-      expect_equal(result$modules$n_items, c(3L, 2L, 3L, 2L))
-      expect_equal(result$tasks$n_items[result$tasks$task_id == "DL_T1"], c(2L, 1L))
+      expect_equal(result$totals, data.frame(n_tasks = 4L, n_items = 8L, n_modules = 6L))
+      expect_equal(result$modules$n_items, c(3L, 2L, 2L, 3L, 2L, 2L))
+      expect_equal(result$tasks$n_items[result$tasks$task_id == "DL_T1"], c(2L, 1L, 1L))
     }
   }
 })

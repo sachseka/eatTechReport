@@ -242,7 +242,7 @@ example_main_test_data <- function(config) {
   items <- do.call(rbind, lapply(config$domains$domain_id, function(domain) {
     data.frame(item_id = paste0(domain, c("_P01", "_P02", "_ALT01", "_ALT02")),
                task_id = paste0(domain, c("_T1", "_T1", "_T_ALT", "_T_ALT")),
-               task_label = paste("Beispielaufgabe", domain, c("A", "A", "B", "B")),
+               task_label = paste("Aufgabe", domain, c("A", "A", "B", "B")),
                domain_id = domain, stringsAsFactors = FALSE)
   }))
   modules <- links <- list()
@@ -258,10 +258,13 @@ example_main_test_data <- function(config) {
   }
   if (identical(config$report$subject, "de")) {
     for (domain in config$domains$domain_id) {
-      add_module(paste0(domain, "_BM"), paste(domain, "Basismodul"), "base", 18,
+      domain_label <- config$domains$label[match(domain, config$domains$domain_id)]
+      add_module(paste0(domain, "_BM"), paste(domain_label, "Basismodul"), "base", 18,
                   paste0(domain, c("_P01", "_P02", "_ALT01")))
-      add_module(paste0(domain, "_EM"), paste(domain, "Erg\u00e4nzungsmodul"), "supplement", 9,
+      add_module(paste0(domain, "_EM"), paste(domain_label, "Erg\u00e4nzungsmodul A"), "supplement", 9,
                   paste0(domain, c("_P02", "_ALT02")))
+      add_module(paste0(domain, "_EM_B"), paste(domain_label, "Erg\u00e4nzungsmodul B"), "supplement", 9,
+                  paste0(domain, c("_P01", "_ALT01")))
     }
   } else if (identical(config$report$subject, "ma")) {
     base_items <- unlist(lapply(config$domains$domain_id, function(domain) {
@@ -271,8 +274,11 @@ example_main_test_data <- function(config) {
     }), use.names = FALSE)
     add_module("MA_BM", "Mathematik Basismodul", "base", 35, base_items)
     for (domain in config$focus_domains) {
-      add_module(paste0(domain, "_EM"), paste(domain, "Erg\u00e4nzungsmodul"), "supplement", 15,
+      domain_label <- config$domains$label[match(domain, config$domains$domain_id)]
+      add_module(paste0(domain, "_EM"), paste(domain_label, "Erg\u00e4nzungsmodul A"), "supplement", 15,
                   paste0(domain, c("_P02", "_ALT02")))
+      add_module(paste0(domain, "_EM_B"), paste(domain_label, "Erg\u00e4nzungsmodul B"), "supplement", 15,
+                  paste0(domain, c("_P01", "_ALT01")))
     }
   } else stop("Haupttestbeispiel unterstuetzt subject = 'de' oder 'ma'.", call. = FALSE)
   waves <- data.frame(wave_id = c("demo_current", "demo_previous"),

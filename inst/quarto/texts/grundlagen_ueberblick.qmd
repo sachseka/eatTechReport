@@ -29,8 +29,8 @@ if (config$report$subject == "de") {
 #| results: asis
 if (config$report$data_origin == "synthetic") {
   cat("**Arbeitsfassung mit synthetischen Beispieldaten:** Die Angaben zur ",
-      "Pilotierungsstudie, zur Leistungsverteilung und gegebenenfalls zur Hauptstudie dienen der Erprobung der ",
-      "Berichtserstellung. Auch die in den Leistungsgrafiken verwendeten ",
+      "Pilotierungsstudie, zur Kompetenzverteilung und gegebenenfalls zur Hauptstudie dienen der Erprobung der ",
+      "Berichtserstellung. Auch die in den Kompetenzgrafiken verwendeten ",
       "Stufengrenzen sind vorläufige Beispielwerte.\n\n", sep = "")
 }
 ```

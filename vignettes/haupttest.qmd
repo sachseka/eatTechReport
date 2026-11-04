@@ -71,6 +71,32 @@ möglich. Ein Modul kann Items mehrerer Domänen enthalten. Domäne und
 psychometrische Skala werden über `config$domains` verbunden; Module erzeugen
 keine zusätzlichen Skalen.
 
+## Aufgabentitel direkt aus R übergeben
+
+Die Aufgabenmatrix übernimmt ihre Texte aus `data$main_test$items$task_label`.
+Alle Items mit derselben `task_id` benötigen denselben Titel. Eine separate
+CSV-Datei oder nachträgliches Ändern der Word-Tabelle ist dafür nicht nötig.
+Eine benannte Zuordnung aus dem Aufgabenkatalog lässt sich direkt übernehmen:
+
+```{r}
+benannt <- demo
+aufgabentitel <- c(
+  DL_T1 = "Beispieltext A",
+  DL_T_ALT = "Beispieltext B",
+  DH_T1 = "Hörbeispiel A",
+  DH_T_ALT = "Hörbeispiel B"
+)
+items <- benannt$data$main_test$items
+stopifnot(all(items$task_id %in% names(aufgabentitel)))
+benannt$data$main_test$items$task_label <- unname(aufgabentitel[items$task_id])
+validate_report_input(benannt)
+knitr::kable(unique(benannt$data$main_test$items[c("task_id", "task_label")]))
+```
+
+Die IDs steuern weiterhin die Zuordnung; redigierbar ist die sichtbare
+Bezeichnung. Für die Word-Ausgabe wird anschließend `benannt$config` mit
+`benannt$data` an `render_report()` übergeben.
+
 ## Zählregeln
 
 Gesamtzahlen zählen eindeutige Aufgaben- und Item-IDs. Ein Item in zwei Modulen
@@ -89,13 +115,21 @@ pilotiert wurde. Sie sind dann keine addierbare Zerlegung der Gesamtauswahl.
 Das Ergebnis kennzeichnet diesen Fall mit `source_overlap`; auch im Bericht
 wird auf ihn hingewiesen.
 
-Die Word-Ausgabe enthält außerdem eine **Aufgabenmatrix** mit den Modulnamen
-als Spalten und den Aufgabenpositionen als Zeilen. Jede Zelle nennt die an
+Die Word-Ausgabe enthält außerdem eine **Aufgabenmatrix** wie Tabelle 3.2 der
+bisherigen Berichte, mit kurzen Modulbezeichnungen als Spalten und den
+Aufgabenpositionen als Zeilen. Jede Zelle nennt die an
 dieser Position vorgesehene Aufgabe. Damit lassen sich
 die Aufgabenfolgen von Basismodul und Ergänzungsmodulen unmittelbar vergleichen.
 Ein Gedankenstrich bezeichnet eine nicht belegte Position. Wiederverwendete
 Aufgaben erscheinen in jedem zugehörigen Modul; ihre Position kann sich dabei
 unterscheiden.
+
+Im Mathematikbeispiel stehen Basismodul und jeweils zwei Ergänzungsmodule
+der beiden Leitideen in einer Tabelle mit fünf Modulspalten nebeneinander.
+In Deutsch wird die Matrix je Kompetenzbereich dargestellt. Schattierungen
+in den Corporate-Farben unterscheiden Basis- und Ergänzungsmodule. Die vollständigen
+Modulbezeichnungen werden unter der Tabelle in den *Anmerkungen* erläutert.
+Beschriftung und Verweis im Fließtext erhalten die Kapitelnummer automatisch.
 
 ## Itemverteilung auf die Kompetenzstufen
 
@@ -115,32 +149,70 @@ demo$data$main_test$item_levels
 
 Die folgenden Grafiken verwenden ausschließlich **synthetische Zuordnungen**.
 Auch bei null Items bleiben die vorgesehenen Kompetenzstufen sichtbar.
-Die Gesamtauswahl zählt jedes Item einmal. Im Modulvergleich erscheint ein
-wiederverwendetes Item in jedem zugehörigen Modul einmal.
+Im Modulvergleich erscheint ein wiederverwendetes Item in jedem zugehörigen
+Modul einmal. Die Anordnung folgt den bisherigen Berichten: In Deutsch
+werden die Module einer Skala gemeinsam verglichen.
 
 ```{r}
 #| fig-width: 6.1
-#| fig-height: 3.23
-#| fig-alt: "Synthetische Itemanzahl je Kompetenzstufe in der Gesamtauswahl für Lesen."
-plot_item_levels(demo, "DL")
-```
-
-```{r}
-#| fig-width: 6.1
-#| fig-height: 3.7
-#| fig-alt: "Synthetische Itemanzahl je Kompetenzstufe im Basis- und Ergänzungsmodul für Lesen."
+#| fig-height: 3.31
+#| fig-cap: "Verteilung der Items in den Testmodulen Lesen auf die Kompetenzstufen (synthetisches Beispiel)."
+#| fig-alt: "Schmale gruppierte Balken für DL-BM, DL-EM-A und DL-EM-B; kurze Legende rechts."
 plot_item_levels(demo, "DL", by = "module")
 ```
 
-Mit `module_ids` lässt sich eine Auswahl von Modulen darstellen. Die gemeinsame
-Größenachse berücksichtigt weiterhin alle Module dieser Skala, sodass mehrere
-Abbildungen vergleichbar bleiben. Die Farben der Module bleiben bei dieser
-Auswahl erhalten. Alle Module derselben Skala stehen in **einer gemeinsamen
-Abbildung**: schmale Balken nebeneinander je Kompetenzstufe und eine Legende
-mit den vollständigen Modulbezeichnungen unterhalb der Grafik. Es gibt keine
-Aufteilung in Teilgrafiken oder mehrere Abbildungen. Für Word passt das Paket
-die Abbildungshöhe an die umgebrochenen Legendenzeilen an. Schrift und
-Abbildungsbreite entsprechen dem Berichtsdesign.
+*Anmerkungen.* DL-BM = Lesen Basismodul, DL-EM-A = Lesen Ergänzungsmodul A,
+DL-EM-B = Lesen Ergänzungsmodul B. Sämtliche Stufenzuordnungen sind synthetisch.
+
+In Mathematik steht das globale Basismodul in einer eigenen Abbildung.
+Die Ergänzungsmodule werden je Leitidee gemeinsam verglichen; alle verwenden
+weiterhin die globale Kompetenzskala `MO` und dieselbe Größenachse.
+
+```{r}
+#| fig-width: 6.1
+#| fig-height: 3.31
+#| fig-cap: "Verteilung der Items des Mathematik-Basismoduls auf die Kompetenzstufen (synthetisches Beispiel)."
+#| fig-alt: "Einzelne schmale Balken für das globale Basismodul MO-BM; Legende rechts."
+ma <- example_report("v3_ma_mg_mm", scope = "haupttest_struktur", n_persons = 24)
+plot_item_levels(ma, "MO", by = "module", module_ids = "MA_BM")
+```
+
+*Anmerkung.* MO-BM = Mathematik Basismodul. Die Modul-ID `MA_BM` ist ein
+interner Schlüssel des Beispiels; die Abbildung verwendet das Skalenkürzel `MO`.
+
+```{r}
+#| fig-width: 6.1
+#| fig-height: 3.31
+#| fig-cap: "Verteilung der Items in den Ergänzungsmodulen Größen und Messen (synthetisches Beispiel)."
+#| fig-alt: "Gruppierte schmale Balken für MG-EM-A und MG-EM-B; Legende rechts."
+plot_item_levels(ma, "MO", by = "module", module_ids = c("MG_EM", "MG_EM_B"))
+```
+
+*Anmerkungen.* MG-EM-A und MG-EM-B = Größen und Messen Ergänzungsmodule A und B.
+
+```{r}
+#| fig-width: 6.1
+#| fig-height: 3.31
+#| fig-cap: "Verteilung der Items in den Ergänzungsmodulen Muster und Strukturen (synthetisches Beispiel)."
+#| fig-alt: "Gruppierte schmale Balken für MM-EM-A und MM-EM-B; Legende rechts."
+plot_item_levels(ma, "MO", by = "module", module_ids = c("MM_EM", "MM_EM_B"))
+```
+
+*Anmerkungen.* MM-EM-A und MM-EM-B = Muster und Strukturen / Funktionaler
+Zusammenhang Ergänzungsmodule A und B.
+
+Die Corporate-Farben beginnen in jeder Abbildungsgruppe erneut mit Weinrot,
+Türkis und bei einer dritten Reihe Rosa. Dadurch verwendet zum Beispiel
+Zuhören dieselbe Palette wie Lesen. Die kurzen Legenden stehen rechts;
+bei einer einzigen Reihe in Deutsch entfällt die Legende. Direkte Zahlen
+auf den Balken sowie Titel und Anmerkungen innerhalb der Grafik entfallen.
+Im Bericht stehen Beschriftung, Fließtextverweis und Anmerkungen außerhalb.
+
+Mit `module_ids` lassen sich weitere Teilmengen darstellen. Die Größenachse
+berücksichtigt weiterhin alle Module derselben Skala; Farben und Kurzlabels
+bleiben bei Teilmengen erhalten. Die zusätzliche API-Ansicht
+`plot_item_levels(demo, "DL", by = "selection")` zählt jedes ausgewählte
+Item einmal. Der Bericht ergänzt damit keine weitere Gesamtauswahlgrafik.
 
 Bestehende Eingaben ohne `item_levels` bleiben gültig. Dann steht im
 Auswahlkapitel ein sichtbarer Platzhalter für die noch benötigte Zuordnung;
@@ -176,7 +248,7 @@ knitr::kable(ergebnisse$transformations)
 
 Die Modulübersicht berichtet ungewichtete Mittelwerte über die zugehörigen
 Items, getrennt nach Skala. Jedes Item geht je Modul einmal ein. Diese
-Mittelwerte beschreiben die Items und sind keine Personenleistungskennwerte.
+Mittelwerte beschreiben die Items und sind keine Kennwerte der Personenkompetenz.
 Das Ergebnis `item_statistics` enthält außerdem die aus den gelieferten
 Itemkoeffizienten berechneten Berichtswerte (`report_score`).
 
@@ -192,7 +264,7 @@ gegebenenfalls nötigen Anpassung des Lösungswahrscheinlichkeitskriteriums
 für Items werden in der vorgelagerten Auswertung festgelegt. Das Paket leitet
 sie weder aus den Personen-PVs noch aus den Kompetenzstufengrenzen ab.
 Personen-PVs liegen bereits auf der 500er-Berichtsskala vor und werden für
-die Leistungsdarstellung nicht erneut umgerechnet.
+die Kompetenzdarstellung nicht erneut umgerechnet.
 
 ## Redaktion und Word-Ausgabe
 

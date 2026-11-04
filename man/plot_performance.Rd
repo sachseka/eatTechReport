@@ -23,7 +23,8 @@ default is \code{"sans"}; Word reports use \code{"Arial"} explicitly.}
 A ggplot object. Attributes \code{population_percentages} and
 \code{descriptives} contain the unrounded results for this scale. Attributes
 \code{density_data} and \code{density_bandwidth} record the plotted density and its
-smoothing bandwidth.
+smoothing bandwidth. Attribute \code{report_note} holds the explanatory note
+for placement below the figure; it is not drawn inside the plot.
 }
 \description{
 Draw an averaged PV density with competence-level cuts and empirical
