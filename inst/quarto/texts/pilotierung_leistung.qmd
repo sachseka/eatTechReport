@@ -17,26 +17,27 @@ Linien kennzeichnen die Grenzen zwischen den Kompetenzstufen.
 #| results: asis
 for (scale_id in names(config$scales)) {
   if (scale_id != names(config$scales)[1L]) cat("\n\n{{< pagebreak >}}\n\n")
-  label <- display_labels$scales[[scale_id]]
+  label <- value(display_labels$scales[[scale_id]], markdown = TRUE)
   descriptives <- results$descriptives[results$descriptives$scale_id == scale_id, ]
   percentages <- results$percentages[results$percentages$scale_id == scale_id, ]
   figure_id <- paste0("fig-kompetenz-", tolower(scale_id))
-  cat("\n\n### ", label, " (", scale_id, ") {#leistung_", tolower(scale_id), "}\n\n", sep = "")
+  cat("\n\n### ", label, " (", value(scale_id), ") {#leistung_", tolower(scale_id), "}\n\n", sep = "")
   cat("@", figure_id, " zeigt die Kompetenzverteilung ",
-      if (config$report$subject == "ma") "im Fach Mathematik" else paste0("im Kompetenzbereich „", label, "“"),
-      ". Die ausgewertete Stichprobe umfasst *N* = ", descriptives$n_persons,
-      " Schülerinnen und Schüler. Der Mittelwert beträgt *M* = ", decimal(descriptives$mean),
-      " Punkte bei einer Standardabweichung von *SD* = ", decimal(descriptives$sd),
+      if (config$report$subject == "ma") paste0("im Fach ", value("Mathematik")) else paste0("im Kompetenzbereich „", label, "“"),
+      ". Die ausgewertete Stichprobe umfasst *N* = ", value(descriptives$n_persons),
+      " Schülerinnen und Schüler. Der Mittelwert beträgt *M* = ", value(decimal(descriptives$mean)),
+      " Punkte bei einer Standardabweichung von *SD* = ", value(decimal(descriptives$sd)),
       " Punkten.\n\n", sep = "")
   largest <- which.max(percentages$percent)
   cat("Der größte Anteil der Schülerinnen und Schüler entfällt mit ",
-      decimal(percentages$percent[largest]), " % auf die Kompetenzstufe ",
-      display_labels$levels[[scale_id]][largest],
+      value(decimal(percentages$percent[largest])), " % auf die Kompetenzstufe ",
+      value(display_labels$levels[[scale_id]][largest], markdown = TRUE),
       ". Die Anteile auf den weiteren Kompetenzstufen sind der Abbildung zu entnehmen.\n\n", sep = "")
   cat("![Kompetenzverteilung der Pilotierungsstichprobe: ", label, ".](figures/", scale_id,
       ".png){#", figure_id, " width=15.5cm}\n\n", sep = "")
-  cat("*Anmerkung.* *N* = Anzahl der Schülerinnen und Schüler; *M* = Mittelwert; ",
+  cat("::: {custom-style=\"ReportFigureNote\"}\n\n",
+      "*Anmerkung.* *N* = Anzahl der Schülerinnen und Schüler; *M* = Mittelwert; ",
       "*SD* = Standardabweichung. ",
-      eatTechReport:::performance_plot_note(config), "\n\n", sep = "")
+      eatTechReport:::performance_plot_note(config), "\n\n:::\n\n", sep = "")
 }
 ```

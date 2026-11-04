@@ -12,6 +12,41 @@ report_completion_module_table <- function(results) {
   )
 }
 
+# The original report expresses the person transformation by its reference
+# mean and SD. Invert only the supplied person coefficients; item coefficients
+# may include an additional response-probability shift and are not a reference
+# population distribution.
+report_reference_parameters <- function(results, target = "person") {
+  if (!identical(target, "person")) {
+    stop("Referenzmittelwert und -streuung werden aus der Personentransformation bestimmt.",
+         call. = FALSE)
+  }
+  rows <- results$transformations
+  rows <- rows[rows$target == target, , drop = FALSE]
+  data.frame(scale_id = rows$scale_id,
+             mean = (500 - rows$intercept) / rows$slope,
+             sd = 100 / rows$slope, stringsAsFactors = FALSE)
+}
+
+# Only these fixed mathematical row labels enter the table as Markdown.
+# Configured scale labels and numeric values always pass through the escaping
+# and simulation-marking helper, so supplied strings cannot become markup.
+report_reference_table_markdown <- function(results, config) {
+  reference <- report_reference_parameters(results)
+  table <- data.frame(Kennwert = c("$M_{\\mathrm{ref}}$",
+                                   "$\\mathit{SD}_{\\mathrm{ref}}$"),
+                      check.names = FALSE, stringsAsFactors = FALSE)
+  for (i in seq_len(nrow(reference))) {
+    table[[i + 1L]] <- report_text_value(
+      study_number(c(reference$mean[i], reference$sd[i]), 3L), config)
+  }
+  names(table) <- c("Kennwert", report_text_value(vapply(reference$scale_id,
+    function(id) config$scales[[id]]$label, character(1)), config))
+  paste(c("", knitr::kable(table, format = "pipe", row.names = FALSE,
+                            align = c("l", rep("r", nrow(reference)))), "", ""),
+         collapse = "\n")
+}
+
 report_transformation_number <- function(value) {
   if (!is.numeric(value) || is.complex(value) || length(value) != 1L ||
       !is.finite(value)) {

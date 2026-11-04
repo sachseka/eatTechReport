@@ -51,6 +51,9 @@ apply_report_layout <- function(directory) {
   }
   # Conditional table styles can carry their own font and small point sizes.
   for (props in xml2::xml_find_all(styles, "//w:rPr", ns)) layout_run_properties(props, ns)
+  # Figure notes are the deliberate 10 pt exception to the report minimum.
+  # Word's built-in hyperlink styles also control newly generated field links.
+  format_report_note_link_styles(styles, ns)
   xml2::write_xml(styles, styles_file)
 
   parts <- list.files(file.path(directory, "word"), full.names = TRUE,
@@ -94,6 +97,7 @@ apply_report_layout <- function(directory) {
         }
       }
     }
+    format_report_notes_and_links(part, styles, ns)
     xml2::write_xml(part, path)
   }
   invisible(directory)
@@ -113,6 +117,7 @@ layout_style_role <- function(names) {
   if (any(keys %in% c("subtitle", "untertitel", "untertitel1", "subtiteldeckblatt"))) return("subtitle")
   if (any(keys == "reportauthors")) return("coverauthors")
   if (any(keys == "reportaffiliation")) return("coveraffiliation")
+  if (any(keys %in% c("reportbibliography", "bibliography", "literaturverzeichnis"))) return("bibliography")
   if (any(keys %in% c("caption", "tablecaption", "imagecaption", "beschriftung"))) return("caption")
   if (any(keys %in% c("tocheading", "titelinhaltsverzeichnis",
                      "inhaltsverzeichnisberschrift1", "inhaltsverzeichnis\u00fcberschrift1"))) return("heading1")
@@ -185,6 +190,16 @@ layout_paragraph_properties <- function(props, ns, role = "") {
     xml2::xml_set_attr(spacing, "w:afterLines", NULL, ns)
     xml2::xml_set_attr(layout_child(props, "keepNext", ns), "w:val", "1")
     xml2::xml_set_attr(layout_child(props, "contextualSpacing", ns), "w:val", "0")
+  } else if (role == "bibliography") {
+    # Separate references by an explicit paragraph gap. Contextual spacing
+    # would otherwise suppress that gap between consecutive entries.
+    layout_set_attributes(spacing, c("w:before" = "0", "w:after" = "160",
+                                    "w:beforeAutospacing" = "0", "w:afterAutospacing" = "0"), ns)
+    xml2::xml_set_attr(spacing, "w:beforeLines", NULL, ns)
+    xml2::xml_set_attr(spacing, "w:afterLines", NULL, ns)
+    xml2::xml_set_attr(layout_child(props, "contextualSpacing", ns), "w:val", "0")
+    xml2::xml_set_attr(layout_child(props, "keepLines", ns), "w:val", "1")
+    xml2::xml_set_attr(layout_child(props, "keepNext", ns), "w:val", "0")
   } else if (role %in% c("title", "subtitle")) {
     xml2::xml_set_attr(layout_child(props, "jc", ns), "w:val", "left")
   } else if (role %in% c("coverauthors", "coveraffiliation")) {
@@ -206,6 +221,42 @@ layout_paragraph_properties <- function(props, ns, role = "") {
                                 "textboxTightWrap", "outlineLvl", "divId", "cnfStyle",
                                 "rPr", "sectPr", "pPrChange"))
   invisible(props)
+}
+
+# Apply the same reference spacing after Word has updated its fields. Explicit
+# bibliography styles identify entries without matching author names or years;
+# existing hanging indents, italic titles, links and reference text are retained.
+format_report_bibliography <- function(part, styles, ns) {
+  nodes <- xml2::xml_find_all(styles, "w:style", ns)
+  ids <- xml2::xml_attr(nodes, "w:styleId", ns)
+  names <- xml2::xml_attr(xml2::xml_find_first(nodes, "w:name", ns), "w:val", ns)
+  selected <- vapply(seq_along(nodes), function(i) {
+    identical(layout_style_role(c(ids[i], names[i])), "bibliography")
+  }, logical(1))
+  parents <- lapply(nodes, function(node) {
+    xml2::xml_attr(xml2::xml_find_all(node, "w:basedOn", ns), "w:val", ns)
+  })
+  for (pass in seq_along(nodes)) {
+    previous <- selected
+    selected <- selected | vapply(parents, function(parent) any(parent %in% ids[selected]), logical(1))
+    if (identical(previous, selected)) break
+  }
+  for (style in nodes[selected]) {
+    if (identical(xml2::xml_attr(style, "w:type", ns), "paragraph")) {
+      layout_paragraph_properties(layout_child(style, "pPr", ns), ns, "bibliography")
+      layout_order_children(style, c("name", "aliases", "basedOn", "next", "link",
+        "autoRedefine", "hidden", "uiPriority", "semiHidden", "unhideWhenUsed",
+        "qFormat", "locked", "personal", "personalCompose", "personalReply", "rsid",
+        "pPr", "rPr", "tblPr", "trPr", "tcPr", "tblStylePr"))
+    }
+  }
+  for (paragraph in xml2::xml_find_all(part, "//w:p[w:pPr/w:pStyle]", ns)) {
+    id <- xml2::xml_attr(xml2::xml_find_first(paragraph, "w:pPr/w:pStyle", ns), "w:val", ns)
+    if (id %in% ids[selected]) {
+      layout_paragraph_properties(layout_child(paragraph, "pPr", ns, first = TRUE), ns, "bibliography")
+    }
+  }
+  invisible(part)
 }
 
 layout_set_attributes <- function(node, values, ns) {

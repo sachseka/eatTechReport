@@ -11,26 +11,15 @@ zusammen.
 #| label: grundlagen_fachueberblick
 #| results: asis
 if (config$report$subject == "de") {
-  areas <- paste0("„", eatTechReport:::report_markdown_text(config$domains$label), "“")
-  cat("Im Rahmen von VERA-3 Deutsch ist die Überprüfung der Kompetenzbereiche ",
+  areas <- paste0("„", value(config$domains$label), "“")
+  cat("Im Rahmen von VERA-3 ", value("Deutsch"), " ist die Überprüfung der Kompetenzbereiche ",
       paste(areas, collapse = " und "), " vorgesehen.\n\n", sep = "")
 } else {
   areas <- config$domains$label[match(config$focus_domains, config$domains$domain_id)]
-  cat("Für VERA-3 Mathematik werden ein Basismodul mit Aufgaben zu allen fünf ",
+  cat("Für VERA-3 ", value("Mathematik"), " werden ein Basismodul mit Aufgaben zu allen fünf ",
       "Leitideen und leistungsbezogene Ergänzungsmodule bereitgestellt. Im ",
       "vorliegenden Durchgang beziehen sich die Ergänzungsmodule auf die ",
-      "Leitideen ", paste0("„", eatTechReport:::report_markdown_text(areas), "“", collapse = " und "),
+      "Leitideen ", paste0("„", value(areas), "“", collapse = " und "),
       ". Die Auswertung erfolgt auf Grundlage des Globalmodells mathematischer Kompetenz.\n\n", sep = "")
-}
-```
-
-```{r}
-#| label: bericht_datenherkunft
-#| results: asis
-if (config$report$data_origin == "synthetic") {
-  cat("**Arbeitsfassung mit synthetischen Beispieldaten:** Die Angaben zur ",
-      "Pilotierungsstudie, zur Kompetenzverteilung und gegebenenfalls zur Hauptstudie dienen der Erprobung der ",
-      "Berichtserstellung. Auch die in den Kompetenzgrafiken verwendeten ",
-      "Stufengrenzen sind vorläufige Beispielwerte.\n\n", sep = "")
 }
 ```

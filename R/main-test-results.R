@@ -143,8 +143,11 @@ example_main_test_results <- function(config, main_test) {
                        logit = logits, stringsAsFactors = FALSE)
   item_scales <- config$domains$scale_id[match(items$domain_id, config$domains$domain_id)]
   scale_ids <- unique(config$domains$scale_id[config$domains$scale_id %in% item_scales])
+  # Match the report's Rasch item-location convention at p = .625, using the
+  # illustrative reference mean 0 and SD 1. Real coefficients remain supplied.
+  item_intercept <- 500 + 100 * stats::qlogis(0.625)
   transforms <- do.call(rbind, lapply(scale_ids, function(id) {
-    data.frame(scale_id = id, target = c("person", "item"), intercept = c(500, 550),
+    data.frame(scale_id = id, target = c("person", "item"), intercept = c(500, item_intercept),
                slope = c(100, 100),
                source_label = "Synthetisches Rechenbeispiel; keine freigegebene Transformation",
                stringsAsFactors = FALSE)

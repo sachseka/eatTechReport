@@ -185,8 +185,10 @@ validate_leistung_input <- function(input) {
   exact_names(input, c("config", "data"), "input")
   config <- input$config
   data <- input$data
+  optional_config <- intersect("conventions", names(config))
   exact_names(config, c("schema_version", "scope", "report", "domains", "focus_domains",
-                         "performance", "scales"), "config")
+                         "performance", "scales", optional_config), "config")
+  validate_report_conventions(config$conventions)
   if (!identical(config$schema_version, "0.2.0-draft") ||
       !identical(config$scope, "pilotierung_leistung")) {
     fail("Erwartet werden schema_version = '0.2.0-draft' und scope = 'pilotierung_leistung'.")
@@ -370,6 +372,10 @@ summarise_leistung_input <- function(input) {
 #'   `"haupttest_struktur"` also includes main-test selection and module structure.
 #'   `"bericht"` adds item statistics, illustrative transformations and all final
 #'   report chapters through the reference list.
+#' @param size `"small"` keeps the compact examples; `"realistic"` supplies
+#'   larger synthetic item pools, overlapping booklets, multiple classes and
+#'   main-test tasks. With `"realistic"`, omitted `n_persons` defaults to 2400
+#'   per scale instead of 24. An explicitly supplied `n_persons` is respected.
 #' @return A `config` and `data` list. The pilot-study scope uses schema
 #'   `0.3.0-draft` and adds `design` and `sample` to the performance input tables.
 #'   The extended scope uses schema `0.4.0-draft` and also adds `main_test`.
@@ -384,12 +390,16 @@ example_report <- function(profile = "v3_de_lesen_zuhoeren", seed = 42L,
                            n_persons = 24L, n_pv = 15L,
                            main_year = 2027L, pilot_year = 2026L,
                            scope = c("pilotierung", "pilotierung_leistung", "haupttest_struktur", "bericht"),
-                           authors = NULL, affiliation = NULL) {
+                           authors = NULL, affiliation = NULL,
+                           size = c("small", "realistic")) {
   scope <- match.arg(scope)
+  size <- match.arg(size)
+  if (identical(size, "realistic") && missing(n_persons)) n_persons <- 2400L
   input <- example_leistung_input(profile = profile, seed = seed,
                                   n_persons = n_persons, n_pv = n_pv,
                                   main_year = main_year, pilot_year = pilot_year,
                                   authors = authors, affiliation = affiliation)
+  if (identical(size, "realistic")) return(example_realistic_input(input, scope, seed))
   if (scope %in% c("pilotierung", "haupttest_struktur", "bericht")) {
     input$config$scope <- scope
     input$config$schema_version <- "0.3.0-draft"

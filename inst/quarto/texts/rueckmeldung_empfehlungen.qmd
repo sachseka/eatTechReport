@@ -17,18 +17,3 @@ Unterricht heranzuziehen, beispielsweise Klassenarbeiten, mündliche Leistungen
 und Unterrichtsgespräche. Für die Verwendung der Ergebnisse im Zusammenhang
 mit Benotungen oder Schullaufbahnempfehlungen wird auf die Vereinbarung zur
 Weiterentwicklung von VERA (KMK, 2012) verwiesen.
-
-```{asis, rueckmeldung_skalen_de, echo=identical(config$report$subject, "de")}
-Die Ergebnisse der untersuchten Deutsch-Kompetenzbereiche werden getrennt
-zurückgemeldet. Eine Zusammenfassung zu einem gemeinsamen Deutsch-Gesamtwert
-ist nicht vorgesehen.
-```
-
-```{asis, rueckmeldung_skalen_ma, echo=identical(config$report$subject, "ma")}
-Für Mathematik erfolgt die Rückmeldung auf der globalen Skala MO. Die
-Zuordnung der Aufgaben zu Leitideen dient der inhaltlichen Einordnung.
-```
-
-Die Plausible Values der Pilotierungsstichprobe dienen der Beschreibung
-der Kompetenzverteilung der Gesamtstichprobe. Sie sind keine individuellen
-Diagnosewerte für die Rückmeldung an einzelne Schülerinnen und Schüler.

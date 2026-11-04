@@ -1,0 +1,97 @@
+---
+title: "Konventionen und Schwellenwerte"
+lang: de
+format:
+  html:
+    minimal: true
+execute:
+  warning: false
+  message: false
+---
+
+Schwellen für die Itemgüte sind Festlegungen der vorgelagerten Auswertung.
+Mit `report_conventions()` werden sie als strukturierter Bestandteil von
+`config$conventions` übergeben und für den Bericht geprüft. Das Paket trifft
+daraus keine automatische Auswahlentscheidung und verändert keine Itemkennwerte.
+
+## Konventionen übergeben
+
+```{r}
+library(eatTechReport)
+
+# Illustrative Werte; keine freigegebenen Schwellen eines Durchgangs.
+konventionen <- report_conventions(
+  discrimination_target = 0.30,
+  discrimination_min = 0.15,
+  infit_max = 1.15,
+  infit_exception_max = 1.30
+)
+
+demo <- example_report(scope = "bericht")
+demo$config$conventions <- konventionen
+validate_report_input(demo)
+konventionen$item_selection
+```
+
+Der Konventionsblock ist optional. Bisherige Eingaben ohne diesen Block bleiben
+gültig. Für vorhandene Konventionen müssen alle vier Felder von
+`item_selection` ausdrücklich angegeben werden. Es gibt keine automatisch
+gesetzten Schwellenwerte für einen realen Durchgang.
+
+| Feld in `item_selection` | Bedeutung im Bericht |
+|---|---|
+| `discrimination_target` | Die Trennschärfe soll **größer** als dieser Zielwert sein. |
+| `discrimination_min` | Die Trennschärfe soll diesen Wert **nicht unterschreiten**. |
+| `infit_max` | Reguläre Obergrenze des Infit, einschließlich des angegebenen Werts. |
+| `infit_exception_max` | Höchstens tolerierter Infit nach begründeter inhaltlicher Abwägung, einschließlich des angegebenen Werts. |
+
+Trennschärfeschwellen liegen als Korrelationswerte zwischen −1 und 1. Der
+Mindestwert darf den Zielwert nicht übersteigen. Beide Infitgrenzen müssen
+positiv und endlich sein; die Ausnahmegrenze darf nicht unter der regulären
+Obergrenze liegen. Eine Untergrenze für Infit ist in dieser Schnittstelle nicht
+vorgesehen. Unbekannte Felder, fehlende Werte und Zahlen als Text werden
+zurückgewiesen.
+
+## Optionale Konventionen für die Verlinkung
+
+Für den Text zur gewichteten Verlinkung im Kompetenzbereich Sprachgebrauch
+(`DS`) können zwei weitere Festlegungen übergeben werden:
+
+```{r}
+mit_verlinkung <- report_conventions(
+  discrimination_target = 0.30,
+  discrimination_min = 0.15,
+  infit_max = 1.15,
+  infit_exception_max = 1.30,
+  residual_correlation_abs = 0.40,
+  dependent_item_weight = 0.60
+)
+mit_verlinkung$linking
+```
+
+`residual_correlation_abs` bezieht sich auf den **Betrag** der
+Residualkorrelation. Ein Wert gilt ab der angegebenen Grenze als auffällig.
+`dependent_item_weight` beschreibt den multiplikativen Gewichtungsfaktor für
+die betreffenden Verlinkungsitems. Beide Angaben werden gemeinsam gesetzt;
+die Korrelationsgrenze liegt zwischen 0 und 1, der Faktor über 0 und höchstens 1.
+
+Der Block dokumentiert eine Festlegung für den beschriebenen DS-Text. Er wendet
+das Verfahren nicht auf andere Kompetenzbereiche an und berechnet weder
+Residualkorrelationen noch Gewichte. Ob das Verfahren tatsächlich eingesetzt
+wurde und wie viele Items betroffen waren, gehört zur fachlichen Redaktion
+und zu den Ergebnissen der vorgelagerten Analyse.
+
+## Darstellung in den Textbausteinen
+
+Übergebene Schwellen erscheinen als Zahlen mit deutschem Dezimalkomma,
+beispielsweise `0,30` und `1,15`. Bei
+`config$report$data_origin = "synthetic"` wird die eingesetzte Zahl gelb
+hinterlegt. Im Modus `"observed"` entfällt diese Hervorhebung.
+
+Fehlt der optionale Konventionsblock, bleiben die entsprechenden redaktionellen
+Platzhalter sichtbar, beispielsweise `[Zielschwelle]`. Ein fehlender Wert wird
+nicht durch eine vermeintliche fachliche Vorgabe ersetzt.
+
+Die Werte werden zusammen mit den übrigen Eingaben im Berichtsarchiv
+gespeichert. Die [Textredaktion](textredaktion.html) beschreibt die Bearbeitung
+der Quarto-Bausteine und die Markierung weiterer Daten- und Konfigurationswerte.

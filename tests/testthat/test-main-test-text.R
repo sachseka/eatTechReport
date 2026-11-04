@@ -25,6 +25,8 @@ main_test_text_fixture <- function() {
 render_main_test_blocks <- function(source, config, main_test) {
   previous_options <- options(device = function(...) grDevices::pdf(file = NULL, ...))
   on.exit(options(previous_options), add = TRUE)
+  config$report$data_origin <- "observed"
+  value <- function(x, markdown = FALSE) report_text_value(x, config, markdown)
   results <- list(main_test = main_test)
   paste(knitr::knit_child(text = source, envir = environment(),
                           options = list(echo = FALSE), quiet = TRUE), collapse = "\n")
@@ -67,7 +69,7 @@ test_that("main-test Quarto blocks render separate captions and escape user labe
   expect_match(rendered, "Aufgaben im VERA-3-2027-Basismodul und in den Erg\u00e4nzungsmodulen", fixed = TRUE)
   expect_match(rendered, "Zusatz &#124; B", fixed = TRUE)
   expect_match(rendered, "H\u00f6ren \\[A\\]", fixed = TRUE)
-  expect_match(rendered, "12,5\u00a0min", fixed = TRUE)
+  expect_false(grepl("tbl-haupttest-module|## Aufbau der Testmodule", rendered))
   expect_match(rendered, "mehreren Pilotierungen", fixed = TRUE)
   expect_match(rendered, "nicht zu einer Gesamtzahl addiert", fixed = TRUE)
   expect_match(rendered, "[Kriterien und Begr\u00fcndung", fixed = TRUE)

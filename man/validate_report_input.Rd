@@ -25,6 +25,10 @@ Lists and tables must contain the fields of the selected schema; arbitrary
 additional fields are rejected. Design blocks may additionally contain
 logical \code{is_norming} values without missing entries. This explicit flag
 controls norming-block shading; anchor items alone do not imply it.
+All scopes optionally accept \code{config$conventions}, created with
+\code{\link[=report_conventions]{report_conventions()}}. These thresholds populate report text; they do not
+select items or change supplied results. Older inputs without this block
+remain valid.
 Scope \code{haupttest_struktur} uses schema \verb{0.4.0-draft} and additionally requires
 \code{data$main_test}: selected items, modules, ordered item membership and
 documented pilot-wave membership. It extends the draft with main-test

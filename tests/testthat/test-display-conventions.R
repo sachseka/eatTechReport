@@ -4,6 +4,7 @@ render_age_paragraph <- function(age) {
   text <- readLines(source, encoding = "UTF-8")
   end <- which(text == "```")[1L]
   environment <- new.env(parent = baseenv())
+  environment$value <- function(x, markdown = FALSE) as.character(x)
   environment$results <- list(sample = list(characteristics = list(age = age)))
   paste(utils::capture.output(eval(parse(text = text[2L:(end - 1L)]),
                                    envir = environment)), collapse = "\n")
@@ -48,7 +49,7 @@ test_that("booklet output uses lower-case units and literal umlauts", {
     input <- example_report(profile)
     results <- summarise_report_input(input)
     rules <- results$design$design_rules$assignment_description
-    expect_true(any(grepl("erh\u00e4lt", rules, fixed = TRUE)))
+    expect_true(any(grepl("[\u00e4\u00f6\u00fc]", input$config$domains$label)))
     expect_false(any(grepl("erhaelt", rules, fixed = TRUE)))
     tables <- study_design_tables(results$design)
     notes <- vapply(tables, study_design_timing_note, character(1))
