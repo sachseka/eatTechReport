@@ -79,7 +79,8 @@ test_that("materialised corporate title controls keep only supplied fragments hi
   report <- list(data_origin = "synthetic", main_year = 2027L, subject = "ma")
   xml <- paste0('<w:hdr xmlns:w="', ns[["w"]], '"><w:sdt><w:sdtPr>',
     '<w:dataBinding w:xpath="/cp:coreProperties[1]/dc:title[1]"/><w:text/></w:sdtPr>',
-    '<w:sdtContent><w:p><w:r><w:t>Vergleichsarbeiten 2027 3. Jahrgangsstufe Mathematik</w:t></w:r>',
+    '<w:sdtContent><w:p><w:r><w:rPr><w:i/><w:color w:val="00818D"/></w:rPr>',
+    '<w:t>Vergleichsarbeiten 2027 3. Jahrgangsstufe Mathematik</w:t></w:r>',
     '</w:p></w:sdtContent></w:sdt></w:hdr>')
   doc <- xml2::read_xml(xml)
   styles <- value_word_fixture()$styles
@@ -88,6 +89,9 @@ test_that("materialised corporate title controls keep only supplied fragments hi
   expect_identical(xml2::xml_text(values), c("2027", "Mathematik"))
   expect_length(xml2::xml_find_all(doc, "//w:dataBinding|//w:sdtPr/w:text", ns), 0L)
   expect_identical(xml2::xml_text(doc), "Vergleichsarbeiten 2027 3. Jahrgangsstufe Mathematik")
+  expect_length(xml2::xml_find_all(doc, "//w:sdtContent/w:p/w:r/w:rPr/w:i", ns), 4L)
+  expect_identical(xml2::xml_attr(xml2::xml_find_all(doc,
+    "//w:sdtContent/w:p/w:r/w:rPr/w:color", ns), "w:val", ns), rep("00818D", 4L))
   before <- as.character(doc)
   apply_report_value_highlights(doc, styles, report, ns)
   expect_identical(as.character(doc), before)

@@ -2,7 +2,7 @@
 url: https://sachseka.github.io/eatTechReport/
 destination: _pkgdown
 development:
-  mode: unreleased
+  mode: release
 template:
   bootstrap: 5
   light-switch: true
@@ -33,6 +33,8 @@ navbar:
           href: articles/leistung.html
         - text: Haupttest-Auswahl und Module
           href: articles/haupttest.html
+        - text: Auswertungskonventionen
+          href: articles/konventionen.html
         - text: Word-Bericht und Textredaktion
           href: articles/textredaktion.html
 reference:
@@ -40,6 +42,7 @@ reference:
     contents:
       - example_report
       - example_leistung_input
+      - report_conventions
       - validate_report_input
       - validate_leistung_input
   - title: Kennzahlen und Grafiken
@@ -59,5 +62,6 @@ articles:
       - einstieg
       - pilotierung
       - haupttest
+      - konventionen
       - leistung
       - textredaktion

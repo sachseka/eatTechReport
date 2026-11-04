@@ -1,3 +1,17 @@
+# eatTechReport 0.0.1
+
+* Add optional, validated reporting conventions for discrimination, Infit and
+  residual-correlation-based linking. Supplied thresholds are highlighted in
+  synthetic reports without surrounding brackets; they never trigger
+  automatic item selection or modify upstream results.
+* Add reproducible, larger synthetic examples with multiple tasks, booklet
+  designs and main-test modules. Keep compact examples available for quick
+  experimentation and tests.
+* Add spacing between bibliography entries while retaining the report's
+  paragraph and font conventions.
+* Repeat column headings when longer task and booklet matrices span pages.
+  Preserve customised header fields when marking simulated title values.
+
 # eatTechReport 0.0.0.9000
 
 * Highlight data- and configuration-derived Word text in yellow for synthetic

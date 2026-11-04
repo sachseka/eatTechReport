@@ -100,6 +100,37 @@ ergebnisse$main_test_results$module_statistics
 ergebnisse$main_test_results$transformations
 ```
 
+Für einen umfangreicheren Beispielbericht mit mehreren hundert Pilotierungsitems,
+zahlreichen Heftversionen und größeren Haupttestmodulen:
+
+```r
+demo_gross <- example_report(scope = "bericht", size = "realistic", seed = 42)
+```
+
+Dieser Modus verwendet standardmäßig 2.400 Personen je Skala und 15 PVs.
+`n_persons` und `n_pv` bleiben frei wählbar. Das kompakte Beispiel bleibt mit
+`size = "small"` der Standard. Auch die größeren Daten sind vollständig simuliert.
+
+Auswertungskonventionen werden separat als R-Objekt übergeben. Zum Beispiel:
+
+```r
+demo_gross$config$conventions <- report_conventions(
+  discrimination_target = 0.30,
+  discrimination_min = 0.15,
+  infit_max = 1.15,
+  infit_exception_max = 1.30
+)
+validate_report_input(demo_gross)
+```
+
+Dies sind Beispielwerte, keine Vorgaben für einen Durchgang. Die gelieferten
+Schwellen erscheinen im Text ohne zusätzliche Klammern, etwa `0,30`, und werden im
+Simulationsmodus gelb markiert. Die Konventionen steuern die Beschreibung;
+die Itemauswahl und die Auswertung erfolgen weiterhin vorgelagert. Sie sind
+von den Kompetenzstufengrenzen in `config$scales` getrennt. Die
+[Konventionen-Anleitung](vignettes/konventionen.qmd) erläutert Wertebereiche,
+Vergleichsoperatoren und die optionalen Angaben zur Verlinkung.
+
 Dieser Umfang benötigt zusätzlich `data$main_test_results` mit den Tabellen
 `item_statistics` (`item_id`, `p_correct`, `logit`) und `transformations`
 (`scale_id`, `target`, `intercept`, `slope`, `source_label`) sowie den
@@ -246,6 +277,10 @@ Codecov ist für das öffentliche Repository eingerichtet. Der Upload verwendet
 und benötigt kein zusätzliches Upload-Secret. Für ein neues Repository muss
 die [Codecov-GitHub-App](https://docs.codecov.com/docs/quick-start) zunächst
 Zugriff erhalten.
+Die [App-Konfiguration](https://github.com/apps/codecov/installations/select_target)
+erlaubt unter **Only select repositories** eine Freigabe nur für dieses
+Repository. Ein Repository-Secret ersetzt diese App-Freigabe nicht; auch nach
+einem erfolgreichen Upload kann Codecov auf die noch fehlende App hinweisen.
 
 Die tatsächliche Word-Automation und die visuelle Kontrolle der Corporate-Ausgabe
 werden zusätzlich lokal geprüft. Eine hohe R-Testabdeckung ersetzt diese

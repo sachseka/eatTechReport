@@ -1,7 +1,7 @@
 Package: eatTechReport
 Type: Package
 Title: Generate Technical Reports for Educational Assessments
-Version: 0.0.0.9000
+Version: 0.0.1
 Authors@R: c(
     person("Karoline A.", "Sachse",
         email = "karoline.sachse@iqb.hu-berlin.de", role = c("aut", "cre"),

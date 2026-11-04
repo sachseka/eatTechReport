@@ -28,12 +28,15 @@ Abbildungsanmerkungen verwenden 10 pt und einfachen Zeilenabstand;
 verknüpfte Verweise erscheinen in Corporate-Weinrot. Im Modus „Simulierte
 Daten“ werden daten- und konfigurationsabhängige Word-Textwerte gelb markiert,
 einschließlich Tabellenwerten und Deckblattangaben.
+Literatureinträge erhalten zusätzlichen Absatzabstand. Optionale
+Auswertungskonventionen liefern Schwellen für Trennschärfe, Infit und Verlinkung;
+ihre Textwerte erscheinen ohne zusätzliche Klammern.
 
 ## Direkt ausprobieren
 
 ```r
 library(eatTechReport)
-demo <- example_report(scope = "bericht", n_persons = 200, seed = 42)
+demo <- example_report(scope = "bericht", size = "realistic", seed = 42)
 validate_report_input(demo)
 ergebnis <- summarise_report_input(demo)
 ergebnis$design$pool
@@ -49,6 +52,9 @@ illustrative Grenzwerte und Umrechnungskoeffizienten. Reale Itemkennwerte und
 freigegebene Personen- und Itemtransformationen werden vorgelagert geliefert.
 Kennzahlen und Grafiken lassen sich direkt ausprobieren. Die Vorlage für
 Word-Berichte ist bereits im Paket enthalten.
+Das größere Beispiel enthält mehrere hundert Pilotierungsitems und verwendet
+standardmäßig 2.400 Personen je Skala. Für schnelle Versuche bleibt
+`size = "small"` verfügbar und der Standard von `example_report()`.
 
 - [Einstieg](articles/einstieg.html): Beispieldaten erzeugen, prüfen und darstellen.
 - [Testdesign und Stichprobe](articles/pilotierung.html): R-Eingaben für
@@ -57,6 +63,8 @@ Word-Berichte ist bereits im Paket enthalten.
   Skalenkennungen und Berechnungsregeln.
 - [Haupttest-Auswahl und Module](articles/haupttest.html): Aufgabenmatrix,
   gruppierte Stufengrafiken, Itemkennwerte und Transformationen.
+- [Auswertungskonventionen](articles/konventionen.html): Schwellen als R-Eingaben
+  und ihre Darstellung in redigierbaren Texten.
 - [Word-Bericht und Textredaktion](articles/textredaktion.html): Corporate-Vorlage,
   Quarto-Bausteine und lokale Renderablage.
 - [Funktionsreferenz](reference/index.html): Argumente und Rückgabewerte.

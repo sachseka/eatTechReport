@@ -106,6 +106,7 @@ format_report_note_link_styles <- function(styles, ns) {
 }
 
 format_report_notes_and_links <- function(part, styles, ns) {
+  format_report_bibliography(part, styles, ns)
   note_ids <- report_note_style_ids(styles, ns)
   for (paragraph in xml2::xml_find_all(part, "//w:p[w:pPr/w:pStyle]", ns)) {
     id <- xml2::xml_attr(xml2::xml_find_first(paragraph, "w:pPr/w:pStyle", ns), "w:val", ns)
@@ -131,7 +132,7 @@ format_report_notes_and_links <- function(part, styles, ns) {
 }
 
 # Word may materialise new hyperlink runs when it updates the contents and
-# cross-reference fields. Reapply only the owned note/link presentation after
+# cross-reference fields. Reapply only the owned note/link/reference presentation after
 # that step; do not repeat table/page-break processing or change field values.
 finalise_report_note_links <- function(path, report = NULL) {
   directory <- tempfile(".report-parts-", tmpdir = dirname(path))

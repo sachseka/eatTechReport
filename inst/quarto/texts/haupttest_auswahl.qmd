@@ -21,7 +21,21 @@ if (config$report$subject == "ma") {
 }
 ```
 
-[Kriterien und Begründung der Aufgabenauswahl ergänzen.]
+```{r}
+#| label: haupttest_auswahl_konventionen
+#| results: asis
+if (is.null(config$conventions)) {
+  cat("[Kriterien und Begründung der Aufgabenauswahl ergänzen.]\n\n")
+} else {
+  threshold <- function(name) eatTechReport:::report_convention_value(
+    config, "item_selection", name, name)
+  cat("Für die Trennschärfe war ein Wert über ", threshold("discrimination_target"),
+      " vorgesehen; die Untergrenze lag bei ", threshold("discrimination_min"),
+      ". Für den Infit galt eine Obergrenze von ", threshold("infit_max"),
+      "; begründete Ausnahmen waren bis ", threshold("infit_exception_max"),
+      " möglich.\n\n", sep = "")
+}
+```
 
 ```{r}
 #| label: haupttest_auswahl_herkunft

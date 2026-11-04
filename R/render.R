@@ -545,6 +545,8 @@ finalise_report_docx <- function(path, report = NULL) {
                                       '"><w:r><w:br w:type="page"/></w:r></w:p>'))
     xml2::xml_add_sibling(contents, page_break, .where = "before")
   }
+  # Long owned matrices need body-level tables for Word to repeat headers.
+  unwrap_report_table_wrappers(doc, styles, ns)
   # Tables: strong outer rules, light horizontal separators, no verticals.
   for (table in xml2::xml_find_all(doc, "//w:tbl", ns)) {
     space_report_table(table, styles, ns)

@@ -54,6 +54,41 @@ steuert die Wiederholbarkeit der Simulation und hat keine Jahresbedeutung.
 Auch Testdesign, Hintergrundmerkmale und Antwortzahlen sind in diesem
 Beispiel synthetisch.
 
+## Größere Beispieldaten
+
+Für die Prüfung eines vollständigen Berichts in annähernd realistischem
+Umfang gibt es `size = "realistic"`. Ohne ausdrückliche Angabe von `n_persons`
+werden damit 2.400 Personen je Skala erzeugt; standardmäßig stehen weiterhin
+15 vollständige PVs je Person und Skala bereit.
+
+```{r}
+gross <- example_report(scope = "bericht", size = "realistic", seed = 42)
+validate_report_input(gross)
+```
+
+Das Deutschbeispiel umfasst 252 Pilotierungs- und Ankeritems in 42 Aufgaben
+und 28 Heftversionen. Für Mathematik sind es 288 Items in 244 Aufgaben und
+24 Heftversionen. Die Haupttestauswahl enthält 72 Items in Deutsch und
+96 Items in Mathematik. In beiden Beispielen gibt es sieben fiktive Länder,
+mehr als hundert Klassen, fehlende Hintergrundangaben sowie Teilnehmende,
+die nicht zur Auswertungspopulation gehören.
+
+Die Heftversionen überlappen sich und enthalten ausdrücklich gekennzeichnete
+Normierungsblöcke. Die gültigen Bearbeitungszahlen berücksichtigen die
+synthetische Heftzuweisung und nicht bewertbare Antworten. Aufgaben können
+zwischen Haupttestmodulen wiederverwendet werden; ein Teil stammt aus einer
+früheren synthetischen Pilotierungswelle. Aufgabenlabels lassen sich weiterhin
+über `data$main_test$items$task_label` ändern.
+
+Auch diese größeren Beispiele sind vollständig synthetisch. Ihre
+Itemkennwerte werden aus simulierten Schwierigkeiten und Fähigkeiten erzeugt;
+es wird kein Modell an echten Antworten geschätzt. Die Beispielerzeugung
+liefert dazu passende Stufenzuordnungen anhand der illustrativen Cuts. Bei
+realen Berichten verwendet das Paket ausschließlich die übergebenen
+Zuordnungen. `size = "small"` bleibt der kompakte Standard. `n_persons` kann
+in beiden Größen ausdrücklich gesetzt werden; `seed` macht die Simulation
+wiederholbar, ohne den Zufallszustand der aufrufenden R-Sitzung zu verändern.
+
 ## Testdesign und Stichprobe prüfen
 
 ```{r}

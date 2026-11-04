@@ -31,6 +31,7 @@ test_that("Quarto renders a report with the installed layout and no private inpu
                            scope = "bericht",
                            authors = c("Ada Beispiel", "B\u00e9la & Beispiel [2]"),
                            affiliation = c("Institut f\u00fcr Beispielstudien", "Universit\u00e4t Musterstadt"))
+  input$config$conventions <- report_conventions(0.30, 0.15, 1.15, 1.30)
   output <- tempfile("bundled-render-")
   expect_warning(result <- render_report(input$config, input$data,
                                           output_dir = output, update_fields = "none"),
@@ -74,6 +75,11 @@ test_that("Quarto renders a report with the installed layout and no private inpu
   expect_identical(xml2::xml_attr(xml2::xml_find_all(figure_tables,
     ".//*[local-name()='inline']/*[local-name()='extent']"), "cx"), rep("5580000", 4L))
   expect_match(xml2::xml_text(doc), "Literatur", fixed = TRUE)
+  expect_match(xml2::xml_text(doc), "Wert \u00fcber 0,30", fixed = TRUE)
+  expect_false(grepl("[0,30]", xml2::xml_text(doc), fixed = TRUE))
+  bibliography <- xml2::xml_find_all(doc, "//w:p[w:pPr/w:pStyle/@w:val='ReportBibliography']", ns)
+  expect_length(bibliography, length(report_completion_bibliography(input$config)))
+  expect_true(all(xml2::xml_attr(xml2::xml_find_first(bibliography, "w:pPr/w:spacing", ns), "w:after", ns) == "160"))
   expect_match(xml2::xml_text(doc), "Hinweise zur Auswertung", fixed = TRUE)
   expect_match(xml2::xml_text(doc), "Referenzwerte", fixed = TRUE)
   expect_false(grepl("affine Form|Synthetisches Beispiel:|gelieferten Koeffizienten beschreiben", xml2::xml_text(doc)))

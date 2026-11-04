@@ -102,6 +102,9 @@ mark_report_header_values <- function(doc, report, ns = word_ns()) {
     if (!identical(paste0(xml2::xml_text(texts), collapse = ""), expected)) next
     runs <- xml2::xml_find_all(paragraph, "w:r", ns)
     if (!length(runs)) next
+    # Rebuilding only direct runs would duplicate text held by a hyperlink or
+    # another nested control. Preserve such customised titles and their binding.
+    if (length(xml2::xml_find_all(paragraph, "w:r/w:t", ns)) != length(texts)) next
     props <- xml2::xml_find_first(runs[[1L]], "w:rPr", ns)
     control_props <- xml2::xml_find_first(control, "w:sdtPr", ns)
     xml2::xml_remove(xml2::xml_find_all(control_props, "w:dataBinding|w:text", ns))

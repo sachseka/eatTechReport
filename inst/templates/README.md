@@ -10,7 +10,9 @@ The reference is supplied with the package so reports do not depend on a local
 template file. The rendering code also enforces Arial, a minimum body-text size
 of 11 pt and 1.5 line spacing. Figure notes use the dedicated `ReportFigureNote`
 style with 10 pt Arial and single spacing. Hyperlinks and cross-references use
-the corporate burgundy colour.
+the corporate burgundy colour. Bibliography entries use `ReportBibliography`
+with an 8 pt paragraph gap between sources and retain 1.5 line spacing within
+each entry.
 
 To rebuild the reference from an approved corporate DOTX, run
 `tools/prepare-report-template.R` from the source repository and supply both the

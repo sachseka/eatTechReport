@@ -13,7 +13,8 @@ example_report(
   pilot_year = 2026L,
   scope = c("pilotierung", "pilotierung_leistung", "haupttest_struktur", "bericht"),
   authors = NULL,
-  affiliation = NULL
+  affiliation = NULL,
+  size = c("small", "realistic")
 )
 }
 \arguments{
@@ -42,6 +43,11 @@ NULL uses visible placeholders. Stored in \code{config$report$authors}.}
 \item{affiliation}{Shared affiliation for the authors. A character vector
 supplies separate lines. NULL uses a visible placeholder. Stored in
 \code{config$report$affiliation}.}
+
+\item{size}{\code{"small"} keeps the compact examples; \code{"realistic"} supplies
+larger synthetic item pools, overlapping booklets, multiple classes and
+main-test tasks. With \code{"realistic"}, omitted \code{n_persons} defaults to 2400
+per scale instead of 24. An explicitly supplied \code{n_persons} is respected.}
 }
 \value{
 A \code{config} and \code{data} list. The pilot-study scope uses schema
