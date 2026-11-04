@@ -26,7 +26,9 @@ DOTX- oder DOCX-Datei kann bei Bedarf über `corporate_template` übergeben werd
 Dabei werden Layout, Kopf- und Fußzeilen sowie Formatvorlagen verwendet;
 Text aus dem Dokumentkörper einer Vorlage wird nicht in den Bericht kopiert.
 
-Das Layout verwendet Arial mit mindestens 11 pt und 1,5-fachem Zeilenabstand.
+Der Fließtext verwendet Arial mit mindestens 11 pt und 1,5-fachem Zeilenabstand.
+Abbildungsanmerkungen bilden die gezielte Ausnahme: Arial 10 pt, einfacher
+Zeilenabstand und kein zusätzlicher Abstand zwischen ihren Absätzen.
 Überschriften der Ebenen 1 bis 4 erhalten 16, 13, 12 beziehungsweise 11 pt
 und Abstand zum vorausgehenden Text. Auf dem Deckblatt steht der dreizeilige
 Titel in 22 pt, der Untertitel in 18 pt. Tabellenbeschriftungen stehen nah an
@@ -50,8 +52,8 @@ bericht$path
 bericht$archive_dir
 ```
 
-Der Beispielbericht kennzeichnet synthetische Eingaben einschließlich der
-Umrechnungskoeffizienten sichtbar und verwendet dieselben Kennzahlen wie
+Der Beispielbericht hinterlegt daten- und konfigurationsabhängige Textwerte
+gelb und verwendet dieselben Kennzahlen wie
 `summarise_report_input()`. Reale Itemkennwerte und freigegebene
 Personen- und Itemtransformationen werden vorgelagert geliefert.
 
@@ -98,7 +100,10 @@ den Verweisen im Fließtext. Bei der Textredaktion sollten diese IDs und
 Verweise erhalten bleiben, etwa `@fig-kompetenz-dl` oder
 `@tbl-haupttest-aufgabenmatrix-1`; die Nummern werden beim Rendern erzeugt.
 Hinweise und Abkürzungserklärungen stehen als *Anmerkungen* außerhalb der
-Grafiken. Die Kompetenzverteilung zeigt die deskriptiven Kennwerte und
+Grafiken. Dafür wird die Absatzformatvorlage `ReportFigureNote` verwendet;
+normale Tabellenanmerkungen behalten die Fließtextgröße. Hyperlinks und
+verknüpfte Querverweise erscheinen auch nach der Word-Feldaktualisierung in
+Corporate-Weinrot (`#B40036`). Die Kompetenzverteilung zeigt die deskriptiven Kennwerte und
 Stufenanteile ohne zusätzliche Tabellen mit denselben PV-Ergebnissen.
 
 ## Inhaltsverzeichnis und Seitenzahlen aktualisieren
@@ -143,7 +148,7 @@ Der vollständige Umfang `scope = "bericht"` kopiert 15 öffentliche Bausteine:
 
 | Datei | Inhalt |
 | --- | --- |
-| `grundlagen_ueberblick.qmd` | Allgemeine Informationen und Datenherkunft. |
+| `grundlagen_ueberblick.qmd` | Allgemeine Informationen, Fach und Kompetenzbereiche. |
 | `pilotierung_design_pool.qmd` | Aufgaben, Items und ihre Rollen. |
 | `pilotierung_design_hefte.qmd` | Heftaufbau, Zeiten, Zuweisung und Blöcke. |
 | `pilotierung_stichprobe_ruecklauf.qmd` | Teilnahme, Rücklauf und Auswertungspopulation. |
@@ -152,10 +157,10 @@ Der vollständige Umfang `scope = "bericht"` kopiert 15 öffentliche Bausteine:
 | `pilotierung_leistung.qmd` | PV-Kennzahlen, Kompetenzstufen und Dichtegrafiken. |
 | `leistung_methoden.qmd` | Berechnungsregeln der Kompetenzdarstellung. |
 | `haupttest_auswahl.qmd` | Haupttest-Auswahl und Herkunftswellen. |
-| `haupttest_module.qmd` | Modulübersicht, Stufengrafiken nach der ursprünglichen Modulgruppierung und Aufgabenmatrix. |
-| `haupttest_itemprofil.qmd` | Itemkennwerte der Testmodule. |
-| `haupttest_transformation.qmd` | Umrechnung von Personen- und Itemwerten in die Berichtsskala. |
-| `haupttest_auswertungshinweise.qmd` | Hinweise zur Auswertung des Haupttests. |
+| `haupttest_module.qmd` | Itemkennwerte, Stufengrafiken nach der ursprünglichen Modulgruppierung und Aufgabenmatrix innerhalb von 3.1. |
+| `haupttest_itemprofil.qmd` | Für bestehende Redaktionsordner beibehalten; die Standardausgabe der Itemkennwerte steht in `haupttest_module.qmd`. |
+| `haupttest_transformation.qmd` | Für bestehende Redaktionsordner beibehalten; die Standardtransformation steht in `haupttest_auswertungshinweise.qmd`. |
+| `haupttest_auswertungshinweise.qmd` | Abschnitt 3.2: Auswertungshinweise, allgemeine Personentransformation und Referenzwertetabelle. |
 | `rueckmeldung_empfehlungen.qmd` | Empfehlungen für die Rückmeldung an Schulen. |
 | `literatur.qmd` | Literaturverzeichnis. |
 
@@ -170,6 +175,12 @@ Ergebnissen; für reine Textkorrekturen bleiben sie unverändert. In
 `{#pilotierung_leistung}` erhalten bleiben. An dieser Stelle fügt der Renderer
 bei den größeren Umfängen Testdesign und Stichprobenbeschreibung ein.
 
+Die Dateien sind redaktionelle Bausteine und entsprechen nicht jeweils einem
+eigenen nummerierten Abschnitt. Im vollständigen Bericht bündelt Abschnitt
+3.1 Auswahl, Module, Itemkennwerte, Aufgabenmatrix und Stufengrafiken. Darauf
+folgen 3.2 mit den Auswertungshinweisen und der Personentransformation sowie
+3.3 mit den Rückmeldungsempfehlungen.
+
 ```{r}
 bericht <- render_report(
   config = demo$config,
@@ -182,6 +193,41 @@ bericht <- render_report(
 Der Arbeitsordner enthält redigierbare Quellen. Die installierten
 Standardbausteine werden dabei nicht verändert. Der Quarto-Text beeinflusst
 die Inhalte; die verbindliche Corporate-Vorlage bestimmt die Gestaltung.
+
+### Variable Angaben im Modus „Simulierte Daten“
+
+`config$report$data_origin = "synthetic"` aktiviert die gelbe Hinterlegung
+daten- und konfigurationsabhängiger Word-Textangaben. Dazu gehören Werte im
+Fließtext, in Überschriften und Beschriftungen, Tabellenwerte sowie die
+variablen Deckblattangaben. Feste Textpassagen bleiben unverändert.
+Bei realen Eingaben mit `data_origin = "observed"` wird diese Markierung
+nicht hinzugefügt. Die erzeugten Grafikdateien behalten ihre Corporate-Farben.
+
+Inline-R-Ausgaben werden beim Rendern automatisch markiert. In eigenen
+Codeblöcken mit `results: asis` und `cat()` muss dagegen kenntlich bleiben,
+welche Teile aus den Eingaben stammen. Dafür stellt die Berichtsumgebung
+die Funktion `value()` bereit:
+
+Der folgende Block gehört in eine Quarto-Berichtsdatei. `value()` steht während
+der Berichtserzeugung zur Verfügung und ist keine exportierte Paketfunktion.
+
+```{r}
+#| results: asis
+cat("Die Pilotierung fand im Jahr ", value(config$report$pilot_year), ".", sep = "")
+```
+
+`value()` behandelt den Wert standardmäßig als wörtlichen Text. Bereits
+formatiertes Markdown kann mit `value(x, markdown = TRUE)` übergeben werden.
+Die Funktion verwendet die Zeichenformatvorlage `EatSimulatedValue`.
+Quarto-IDs, Dateipfade und Referenzziele dürfen nicht in `value()` eingeschlossen
+werden. Eine gelbe Hinterlegung bezeichnet eine dynamische Angabe;
+ein Platzhalter in eckigen Klammern bezeichnet weiterhin eine auszufüllende
+Textstelle.
+
+Für eigene Abbildungsanmerkungen wird der Absatz mit der Quarto-Div-Option
+`custom-style="ReportFigureNote"` versehen. Das erzeugt die kleinere
+Darstellung mit einfachem Zeilenabstand, ohne Tabellenanmerkungen oder
+Fließtext zu verändern.
 
 Für Kapiteltexte aus dem eigenen Arbeitsbestand können im selben Ordner drei
 weitere Quarto-Dateien angelegt werden:

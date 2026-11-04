@@ -12,8 +12,8 @@ Für die Hauptstudie `r config$report$main_year` wurden insgesamt
 for (i in seq_len(nrow(results$main_test$pool))) {
   row <- results$main_test$pool[i, ]
   domain <- config$domains$label[match(row$domain_id, config$domains$domain_id)]
-  cat("Auf den Kompetenzbereich „", eatTechReport:::report_markdown_text(domain),
-      "“ entfallen ", row$n_tasks, " Aufgaben mit ", row$n_items, " Items.\n\n", sep = "")
+  cat("Auf den Kompetenzbereich „", value(domain),
+      "“ entfallen ", value(row$n_tasks), " Aufgaben mit ", value(row$n_items), " Items.\n\n", sep = "")
 }
 if (config$report$subject == "ma") {
   cat("Die Skalierung erfolgt für Mathematik insgesamt (MO). Die Zuordnung ",
@@ -28,9 +28,9 @@ if (config$report$subject == "ma") {
 #| results: asis
 for (i in seq_len(nrow(results$main_test$waves))) {
   row <- results$main_test$waves[i, ]
-  cat("In der Pilotierungsstudie ", row$pilot_year, " („",
-      eatTechReport:::report_markdown_text(row$label), "“) wurden davon ",
-      row$n_tasks, " Aufgaben mit ", row$n_items, " Items erprobt.\n\n", sep = "")
+  cat("In der Pilotierungsstudie ", value(row$pilot_year), " („",
+      value(row$label), "“) wurden davon ",
+      value(row$n_tasks), " Aufgaben mit ", value(row$n_items), " Items erprobt.\n\n", sep = "")
 }
 if (results$main_test$source_overlap) {
   cat("Einzelne Items wurden in mehreren Pilotierungen eingesetzt. Die Zahlen dürfen ",

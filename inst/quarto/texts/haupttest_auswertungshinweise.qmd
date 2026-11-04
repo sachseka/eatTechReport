@@ -1,40 +1,45 @@
 ## Hinweise zur Auswertung {#haupttest_auswertungshinweise}
 
-Die Auswertung des Haupttests setzt die freigegebenen Aufgabenfassungen,
-Auswertungsanleitungen und Itemparameter voraus. Die in diesem Bericht
-zusammengefassten Kennwerte dienen der Beschreibung des Tests. Für eine
-Skalierung sind die vollständigen Parameter auf der vorgesehenen Logit-Metrik
-zu verwenden.
+Die Itemkennwertetabellen enthalten die Parameter für die Auswertung der
+Testmodule. Zur Anbindung an die Berichtsskala können die vorgegebenen
+Itemschwierigkeiten als feste Anker verwendet werden. Die durch die Anker
+festgelegte Skalenlage darf dabei nicht durch zusätzliche Restriktionen auf
+die Mittelwerte der Personen- oder Itemparameter verändert werden.
 
-Zur Anbindung an die Berichtsskala können geeignete Itemparameter als feste
-Anker verwendet werden. Zusätzliche Restriktionen auf die Mittelwerte der
-Personen- oder Itemparameter dürfen die durch diese Anker festgelegte
-Skalenlage nicht verändern. Die geschätzten Personenfähigkeiten werden
-anschließend mit der Personentransformation aus dem Abschnitt
-[Umrechnung in die Berichtsskala](#haupttest_transformation) umgerechnet.
+::: {#haupttest_transformation}
 
-Vor einer Übernahme der Ankerparameter ist zu prüfen, ob Items, Kodierungen
-und Bedingungen mit der Kalibrierung übereinstimmen. Freie Schätzungen können
-Hinweise auf veränderte Itemschwierigkeiten oder differenzielles
-Itemfunktionieren liefern. Neu geschätzte Parameter benötigen eine geeignete
-Anbindung an die Referenzmetrik, bevor Kompetenzstufen zugeordnet werden.
+Die Personenfähigkeiten auf der Logit-Skala werden mit
+@eq-haupttest-persontransformation in die Bildungsstandardmetrik umgerechnet:
 
-Unterschiedliche Modulkombinationen und ihre Zuweisung zu den Teilnehmenden
-sind im Auswertungsmodell zu berücksichtigen. Bei einer gemeinsamen
-MML-Skalierung ist insbesondere die Spezifikation der Populationsverteilung
-beziehungsweise des Hintergrundmodells zu prüfen. Fehlende und ungültige
-Antworten werden nach den für den Durchgang vereinbarten Regeln behandelt.
-Substanzielle Änderungen an Aufgaben oder Auswertungsanleitungen erfordern
-eine erneute Prüfung der Verwendbarkeit der Parameter.
+$$
+\mathrm{Metrik}_{\mathrm{BISTA}} = 500 +
+\frac{100}{\mathit{SD}_{\mathrm{ref}}}
+\cdot \left(\mathrm{Logit} - M_{\mathrm{ref}}\right)
+$$ {#eq-haupttest-persontransformation}
+
+Die zugehörigen Referenzmittelwerte und Referenzstandardabweichungen sind
+in @tbl-haupttest-referenz angegeben.
+
+```{r}
+#| label: haupttest_referenz_tabelle
+#| results: asis
+cat("Table: Referenzwerte für die Transformation der Personenfähigkeiten. {#tbl-haupttest-referenz}\n\n")
+cat(eatTechReport:::report_reference_table_markdown(results$main_test_results, config))
+```
+
+:::
+
+Vor der Fixierung der Itemparameter empfiehlt sich eine freie Schätzung,
+um veränderte Itemschwierigkeiten und differenzielles Itemfunktionieren zu
+prüfen. Bei einer Neuskalierung ist die Anbindung an die Referenzmetrik
+erneut herzustellen. Unterschiedliche Modulkombinationen und ihre Zuweisung
+zu den Schülerinnen und Schülern sind im Auswertungsmodell zu berücksichtigen.
 
 ```{asis, haupttest_auswertung_skalen_de, echo=identical(config$report$subject, "de")}
 Die Auswertung im Fach Deutsch erfolgt getrennt für die untersuchten
-Kompetenzbereiche. Die Parameter der verschiedenen Skalen werden nicht zu
-einem gemeinsamen Deutsch-Gesamtwert zusammengeführt.
+Kompetenzbereiche. Ein gemeinsamer Deutsch-Gesamtwert ist nicht vorgesehen.
 ```
 
 ```{asis, haupttest_auswertung_skalen_ma, echo=identical(config$report$subject, "ma")}
 Die Auswertung im Fach Mathematik erfolgt auf der globalen Skala MO.
-Leitideen kennzeichnen die Inhalte der Aufgaben; aus den Ergänzungsmodulen
-werden keine eigenständigen leitideenspezifischen Berichtsskalen gebildet.
 ```

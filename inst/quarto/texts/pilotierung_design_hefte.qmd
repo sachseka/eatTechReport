@@ -11,16 +11,16 @@ design_parts <- eatTechReport:::study_design_tables(results$design)
 for (i in seq_along(design_parts)) {
   part <- design_parts[[i]]
   rule <- part$rule
-  cat("\n\n", eatTechReport:::report_markdown_text(rule$assignment_description), "\n\n", sep = "")
+  cat("\n\n", value(rule$assignment_description), "\n\n", sep = "")
   for (j in seq_along(part$parts)) {
     id <- paste0("tbl-pilotierung-design-", i, "-", j)
-    continuation <- if (length(part$parts) > 1L) paste0(" (Teil ", j, " von ", length(part$parts), ")") else ""
+    continuation <- if (length(part$parts) > 1L) paste0(" (Teil ", value(j), " von ", value(length(part$parts)), ")") else ""
     title <- if (config$report$subject == "ma") {
-      paste0("Modularisiertes Testdesign der Pilotierungsstudie ", config$report$pilot_year)
-    } else paste0("Teildesign der Pilotierungsstudie ", config$report$pilot_year,
-                  " für den Kompetenzbereich „", rule$label, "“")
+      paste0("Modularisiertes Testdesign der Pilotierungsstudie ", value(config$report$pilot_year))
+    } else paste0("Teildesign der Pilotierungsstudie ", value(config$report$pilot_year),
+                  " für den Kompetenzbereich „", value(rule$label), "“")
     cat("\n\n@", id, " zeigt die Abfolge der Testblöcke", continuation, ".\n\n", sep = "")
-    cat("\n\nTable: ", eatTechReport:::report_markdown_text(paste0(title, continuation)),
+    cat("\n\nTable: ", title, continuation,
         ". {#", id, "}\n\n", sep = "")
     cat(eatTechReport:::study_design_table_markdown(part$parts[[j]]))
   }
@@ -32,7 +32,7 @@ for (i in seq_along(design_parts)) {
     cat("Die schmale Leerspalte trennt die Blöcke vor und nach der Pause. ")
   }
   if (config$report$subject == "ma") cat("BM = Basismodul; EM = Ergänzungsmodul. ")
-  cat(eatTechReport:::report_markdown_text(eatTechReport:::study_design_timing_note(part)),
+  cat(eatTechReport:::study_design_timing_note(part, config),
       "\n\n:::\n\n", sep = "")
 }
 ```

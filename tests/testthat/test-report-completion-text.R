@@ -68,17 +68,19 @@ test_that("all final chapter blocks knit for German and global mathematics", {
     fixture <- completion_text_fixture(profile)
     env <- new.env(parent = globalenv())
     env$config <- fixture$config
+    env$value <- function(x, markdown = FALSE) report_text_value(x, fixture$config, markdown)
     env$results <- list(main_test_results = fixture$main_test_results)
     sources <- file.path(text_dir, report_completion_text_names())
     source <- unlist(lapply(sources, readLines, encoding = "UTF-8"), use.names = FALSE)
     source <- gsub("(label: |\\{asis, )", paste0("\\1", profile, "_"), source)
     markdown <- paste(knitr::knit_child(text = source, envir = env,
       options = list(echo = FALSE), quiet = TRUE), collapse = "\n")
-    expect_match(markdown, "{#haupttest_itemprofil}", fixed = TRUE)
+    expect_match(markdown, "{#haupttest_auswertungshinweise}", fixed = TRUE)
     expect_match(markdown, "{#literatur}", fixed = TRUE)
-    expect_match(markdown, "Synthetisches Beispiel", fixed = TRUE)
-    expect_match(markdown, "y_{\\mathrm{Person}} = 500 + 100 \\cdot \\theta", fixed = TRUE)
-    expect_match(markdown, "y_{\\mathrm{Item}} = 550 + 100 \\cdot \\beta", fixed = TRUE)
+    expect_match(markdown, "{#eq-haupttest-persontransformation}", fixed = TRUE)
+    expect_match(markdown, "{#tbl-haupttest-referenz}", fixed = TRUE)
+    expect_match(markdown, 'custom-style="EatSimulatedValue"', fixed = TRUE)
+    expect_false(grepl("Synthetisches Beispiel|affine|y_\\{|Itemschwierigkeit auf der jeweils", markdown))
     expect_false(grepl("@haupttest_transformation", markdown, fixed = TRUE))
     if (fixture$config$report$subject == "ma") {
       expect_match(markdown, "globalen Skala MO", fixed = TRUE)

@@ -29,9 +29,9 @@ state_table <- data.frame(
 )
 cat("\n\nTable: Zusammensetzung der Stichprobe nach Ländern. {#tbl-stichprobe-laender}\n\n")
 cat(eatTechReport:::study_table_markdown(state_table, c("l", rep("r", 5)),
-                                       widths = c(23, 15, 16, 16, 18, 12)))
+                                       widths = c(23, 15, 16, 16, 18, 12), config = config))
 if (total$n_not_analysed > 0L) {
-  cat("Von den Teilnehmenden gehen ", total$n_not_analysed,
+  cat("Von den Teilnehmenden gehen ", value(total$n_not_analysed),
       " Personen nicht in die Auswertungspopulation ein.\n\n", sep = "")
 }
 ```

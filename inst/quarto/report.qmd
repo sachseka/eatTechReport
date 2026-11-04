@@ -21,6 +21,11 @@ execute:
 input <- readRDS("archive/inputs.rds")
 config <- input$config
 results <- readRDS("archive/summaries.rds")
+value <- function(x, markdown = FALSE) {
+  eatTechReport:::report_text_value(x, config, markdown = markdown)
+}
+knitr::knit_hooks$set(inline = eatTechReport:::report_inline_value_hook(
+  config, knitr::knit_hooks$get("inline")))
 display_labels <- readRDS("archive/display-labels.rds")
 decimal <- function(x) formatC(x, format = "f", digits = 1, decimal.mark = ",")
 ```

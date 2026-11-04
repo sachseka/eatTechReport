@@ -83,6 +83,7 @@ test_that("design QMD supplies a caption and cross-reference for every compact m
   for (profile in c("v3_de_lesen_zuhoeren", "v3_ma_mg_mm")) {
     input <- example_report(profile)
     config <- input$config
+    value <- function(x, markdown = FALSE) report_text_value(x, config, markdown)
     results <- summarise_report_input(input)
     source <- readLines(system.file("quarto", "texts", "pilotierung_design_hefte.qmd",
                                     package = "eatTechReport"), encoding = "UTF-8")
@@ -130,6 +131,7 @@ test_that("country language tables distinguish zero shares from absent denominat
 
 test_that("response descriptions keep zero counts and show an italic median with equals sign", {
   config <- example_leistung_input()$config
+  config$report$data_origin <- "observed"
   config$domains$label[1] <- "Lesen [Probe]"
   rows <- data.frame(domain_id = "DL", role = "pilot", n_items = 4L,
                       min = 0L, median = 1.5, max = 4L)

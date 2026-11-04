@@ -12,6 +12,7 @@ if (!grepl("\\.docx$", args[[2L]], ignore.case = TRUE)) {
 if (!file.exists("R/render.R")) stop("Run from the package source root.")
 source("R/render.R", local = TRUE)
 if (file.exists("R/layout.R")) source("R/layout.R", local = TRUE)
+if (file.exists("R/note-link-layout.R")) source("R/note-link-layout.R", local = TRUE)
 library(xml2)
 target <- normalizePath(args[[2L]], winslash = "/", mustWork = FALSE)
 dir.create(dirname(target), recursive = TRUE, showWarnings = FALSE)

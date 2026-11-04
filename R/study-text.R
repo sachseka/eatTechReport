@@ -8,20 +8,37 @@ study_number <- function(value, digits = 1L) {
   out
 }
 
-study_table_markdown <- function(data, align = NULL, widths = NULL) {
+study_table_markdown <- function(data, align = NULL, widths = NULL, config = NULL,
+                                 dynamic_headers = integer(),
+                                 dynamic_columns = seq_len(ncol(data))) {
   if (is.null(align)) align <- vapply(data, function(value) if (is.numeric(value)) "r" else "l", character(1))
   if (length(align) == 1L) align <- rep(align, ncol(data))
   if (!is.null(widths) && (!is.numeric(widths) || length(widths) != ncol(data) ||
                            any(!is.finite(widths) | widths <= 0))) {
     stop("widths muss je Spalte eine positive endliche Zahl enthalten.", call. = FALSE)
   }
-  data[] <- lapply(data, function(value) {
+  if (!is.numeric(dynamic_columns) || anyNA(dynamic_columns) ||
+      any(dynamic_columns != floor(dynamic_columns) |
+            dynamic_columns < 1L | dynamic_columns > ncol(data))) {
+    stop("dynamic_columns muss gueltige Spaltennummern enthalten.", call. = FALSE)
+  }
+  data[] <- lapply(seq_along(data), function(j) {
+    value <- data[[j]]
     value <- as.character(value)
     value[is.na(value)] <- "\u2014"
-    report_markdown_text(value)
+    report_text_value(value, if (j %in% dynamic_columns) config else NULL)
   })
   names(data) <- report_markdown_text(names(data))
   names(data) <- gsub("\\b(N|M|SD)\\b", "*\\1*", names(data), perl = TRUE)
+  if (length(dynamic_headers)) {
+    if (!is.numeric(dynamic_headers) || anyNA(dynamic_headers) ||
+        any(dynamic_headers != floor(dynamic_headers) |
+              dynamic_headers < 1L | dynamic_headers > ncol(data))) {
+      stop("dynamic_headers muss gueltige Spaltennummern enthalten.", call. = FALSE)
+    }
+    names(data)[dynamic_headers] <- report_text_value(names(data)[dynamic_headers],
+                                                     config, markdown = TRUE)
+  }
   table <- knitr::kable(data, format = "pipe", align = align, row.names = FALSE)
   if (!is.null(widths)) {
     # Pandoc uses separator lengths as relative widths for wide pipe tables.
@@ -132,9 +149,10 @@ study_design_table_markdown <- function(data) {
 # Times remain visible below the design, without repeating every duration in
 # every block cell or adding a second table. Unequal times remain identified by
 # booklet; missing pauses are not silently presented as pauses for every row.
-study_design_timing_note <- function(part) {
+study_design_timing_note <- function(part, config = NULL) {
   slots <- part$slots
   ids <- part$booklets$booklet_id
+  value <- function(x) if (is.null(config)) as.character(x) else report_text_value(x, config)
   categories <- list()
   if (all(slots$module[slots$kind == "block"] %in% c("base", "supplement"))) {
     categories <- list(Basismodule = slots$kind == "block" & slots$module %in% "base",
@@ -148,10 +166,11 @@ study_design_timing_note <- function(part) {
     values <- vapply(ids, function(id) {
       sum(slots$duration_minutes[selected & slots$booklet_id == id])
     }, numeric(1))
-    number <- function(value) study_number(value, if (all(value == floor(value))) 0L else 1L)
+    number <- function(x) value(study_number(x, if (all(x == floor(x))) 0L else 1L))
     if (length(unique(values)) == 1L) {
       paste0(label, ": ", number(values[1L]), "\u00a0min")
-    } else paste0(label, ": ", paste0(ids, " ", number(values), "\u00a0min", collapse = ", "))
+    } else paste0(label, ": ", paste0(value(ids), " ", number(values),
+                                      "\u00a0min", collapse = ", "))
   })
   paste0(paste(unlist(parts, use.names = FALSE), collapse = "; "), ".")
 }
@@ -185,19 +204,21 @@ study_response_sentences <- function(rows, config) {
     row <- rows[i, , drop = FALSE]
     label <- if ("domain_id" %in% names(row)) {
       domain_label <- config$domains$label[match(row$domain_id, config$domains$domain_id)]
-      paste0(" im Kompetenzbereich \u201e", report_markdown_text(domain_label), "\u201c")
+      paste0(" im Kompetenzbereich \u201e", report_text_value(domain_label, config), "\u201c")
     } else ""
     if (row$role == "anchor") {
       paste0("F\u00fcr die Ankeritems", label, " lagen pro Item ",
-             study_number(row$min, 0L), " bis ", study_number(row$max, 0L),
+             report_text_value(study_number(row$min, 0L), config), " bis ",
+             report_text_value(study_number(row$max, 0L), config),
              " Antworten von Sch\u00fclerinnen und Sch\u00fclern (*Median* = ",
-             study_number(row$median), ") vor.")
+             report_text_value(study_number(row$median), config), ") vor.")
     } else {
       paste0("Durch das oben beschriebene Testdesign lagen f\u00fcr die im Jahr ",
-             config$report$pilot_year, " pilotierten Aufgaben", label,
-             " pro Item ", study_number(row$min, 0L), " bis ", study_number(row$max, 0L),
+             report_text_value(config$report$pilot_year, config), " pilotierten Aufgaben", label,
+             " pro Item ", report_text_value(study_number(row$min, 0L), config), " bis ",
+             report_text_value(study_number(row$max, 0L), config),
              " Antworten von Sch\u00fclerinnen und Sch\u00fclern (*Median* = ",
-             study_number(row$median), ") vor.")
+             report_text_value(study_number(row$median), config), ") vor.")
     }
   }, character(1), USE.NAMES = FALSE)
 }

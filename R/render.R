@@ -54,6 +54,14 @@ edit_report_texts <- function(path, overwrite = FALSE,
 #' Template body text is not imported. Missing Pandoc styles are derived from
 #' corporate styles. Quarto must be installed separately.
 #'
+#' With `config$report$data_origin = "synthetic"`, data- and configuration-derived
+#' Word text is highlighted in yellow, including table values and cover inputs.
+#' Inline R output is marked automatically; editable as-is chunks use `value()`
+#' for their dynamic text. Inputs marked `"observed"` receive no such highlight.
+#' Figure notes use the `ReportFigureNote` paragraph style (Arial 10 pt, single
+#' spacing); ordinary body text retains its 11 pt minimum and 1.5 spacing.
+#' Hyperlinks and cross-references use the corporate burgundy colour.
+#'
 #' Successful renders store the report, derived reference and a baseline
 #' snapshot of inputs, results, texts and software information inside
 #' `output_dir`. Work is prepared in a sibling staging directory. If rendering
@@ -209,8 +217,8 @@ render_report <- function(config, data,
     stop("Die Quarto-Hauptdatei konnte nicht kopiert werden.", call. = FALSE)
   }
   subject <- if (config$report$subject == "de") "Deutsch" else "Mathematik"
-  title <- paste(c(paste("Vergleichsarbeiten", config$report$main_year),
-                   "3. Jahrgangsstufe", subject), collapse = "  \n")
+  title <- paste(c(paste("Vergleichsarbeiten", report_text_value(config$report$main_year, config)),
+                   "3. Jahrgangsstufe", report_text_value(subject, config)), collapse = "  \n")
   subtitle <- "Technischer Bericht"
   quarto::quarto_render(
     input = source, output_format = "docx", output_file = "report.docx",
@@ -223,6 +231,7 @@ render_report <- function(config, data,
   fields_updated <- FALSE
   if (fields_requested) {
     update_docx_fields(report_path, file.path(archive_dir, "word-fields.log"))
+    finalise_report_note_links(report_path, config$report)
     fields_updated <- TRUE
   }
   session <- utils::sessionInfo()
@@ -652,7 +661,10 @@ finalise_report_docx <- function(path, report = NULL) {
   format_report_design_tables(doc, ns)
   format_report_task_matrices(doc, ns)
   normalize_report_page_breaks(doc, ns)
+  apply_report_value_highlights(doc, styles, report, ns)
   xml2::write_xml(doc, document_file)
+  xml2::write_xml(styles, styles_file)
+  finalise_report_value_parts(directory, report, ns)
   pack_word_package(directory, path)
   invisible(path)
 }

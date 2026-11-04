@@ -8,12 +8,12 @@ if (is.null(age)) {
 } else if (age$n_valid + age$n_missing == 0L) {
   cat("Die Auswertungspopulation enthält keine Personen; für das Alter sind keine Kennwerte oder Fehlwertanteile berechenbar.\n\n")
 } else if (age$n_valid == 0L) {
-  cat("Für das Alter liegen keine gültigen Angaben vor (fehlende Angaben: 100,0 %).\n\n")
+  cat("Für das Alter liegen keine gültigen Angaben vor (fehlende Angaben: ", value("100,0"), " %).\n\n", sep = "")
 } else {
   missing_percent <- 100 * age$n_missing / (age$n_valid + age$n_missing)
-  cat("Das mittlere Alter der Stichprobe betrug *M* = ", eatTechReport:::study_number(age$mean),
-      " Jahre (*SD* = ", eatTechReport:::study_number(age$sd),
-      "; fehlende Angaben: ", eatTechReport:::study_number(missing_percent), " %).\n\n", sep = "")
+  cat("Das mittlere Alter der Stichprobe betrug *M* = ", value(eatTechReport:::study_number(age$mean)),
+      " Jahre (*SD* = ", value(eatTechReport:::study_number(age$sd)),
+      "; fehlende Angaben: ", value(eatTechReport:::study_number(missing_percent)), " %).\n\n", sep = "")
   if (!is.finite(age$sd)) cat("Die Standardabweichung ist bei weniger als zwei gültigen Altersangaben nicht berechenbar.\n\n")
 }
 ```
@@ -35,8 +35,8 @@ for (variable in names(category_names)) {
   } else {
     table_id <- paste0("tbl-stichprobe-", gsub("_", "-", variable, fixed = TRUE))
     cat("@", table_id, " zeigt die Zusammensetzung der Auswertungspopulation nach ",
-        eatTechReport:::report_markdown_text(values$label[1]), ".\n\n", sep = "")
-    cat("Table: Zusammensetzung der Stichprobe: ", eatTechReport:::report_markdown_text(values$label[1]),
+        value(values$label[1]), ".\n\n", sep = "")
+    cat("Table: Zusammensetzung der Stichprobe: ", value(values$label[1]),
         ". {#", table_id, "}\n\n", sep = "")
     display <- data.frame(
       "Ausprägung" = values$category,
@@ -44,7 +44,7 @@ for (variable in names(category_names)) {
       "Anteil (%)" = eatTechReport:::study_number(values$percent),
       check.names = FALSE
     )
-    cat(eatTechReport:::study_table_markdown(display, c("l", "r", "r")))
+    cat(eatTechReport:::study_table_markdown(display, c("l", "r", "r"), config = config))
   }
 }
 ```
@@ -62,13 +62,14 @@ if (!is.null(language)) {
     table_id <- paste0("tbl-stichprobe-familiensprache-laender-", i)
     cat("@", table_id, " enthält die Anteile der Familiensprachen für die einzelnen Länder.\n\n", sep = "")
     cat("Table: Familiensprache der Schülerinnen und Schüler nach Ländern",
-        if (length(language_tables) > 1L) paste0(" (Teil ", i, ")") else "",
+        if (length(language_tables) > 1L) paste0(" (Teil ", value(i), ")") else "",
         ". {#", table_id, "}\n\n", sep = "")
     widths <- if (ncol(language_table) > 4L) {
       c(22, 18, rep(60 / (ncol(language_table) - 2), ncol(language_table) - 2))
     } else NULL
     cat(eatTechReport:::study_table_markdown(language_table,
-          c("l", rep("r", ncol(language_table) - 1L)), widths = widths))
+          c("l", rep("r", ncol(language_table) - 1L)), widths = widths,
+          config = config, dynamic_headers = seq.int(3L, ncol(language_table))))
   }
 }
 ```

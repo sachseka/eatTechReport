@@ -110,7 +110,13 @@ lautet `Berichtswert = intercept + slope * Logitwert`.
 **Die Demokoeffizienten sind rein synthetisch.** Reale Itemkennwerte und
 freigegebene Transformationen kommen aus der vorgelagerten Auswertung.
 Bereits auf der Berichtsskala vorliegende Personen-PVs werden nicht erneut
-umgerechnet. Die bestehenden Umfänge und die Voreinstellung bleiben unverändert.
+umgerechnet. Die Word-Ausgabe bündelt Auswahl, Module, Itemkennwerte,
+Aufgabenmatrix und Stufengrafiken in Abschnitt 3.1. Abschnitt 3.2 enthält die
+Auswertungshinweise mit der allgemeinen Personentransformation und einer
+Tabelle der Referenzmittelwerte und -standardabweichungen; Abschnitt 3.3 die
+Rückmeldungsempfehlungen. Die Referenzwerte werden rechnerisch aus den
+gelieferten Personenkoeffizienten dargestellt. Die R-Eingaben und Ergebnisse
+enthalten weiterhin die getrennten Personen- und Itemkoeffizienten.
 
 ## Word-Bericht und Textredaktion
 
@@ -118,12 +124,15 @@ Für die Dokumenterzeugung wird zusätzlich [Quarto](https://quarto.org/) benöt
 Die freigegebene Corporate-Vorlage wird mit dem Paket ausgeliefert und automatisch
 verwendet (`corporate_template = NULL`). Im Quellpaket liegt sie unter
 `inst/templates/eatTechReport.docx`. Demo und reale Daten verwenden dieselbe
-Gestaltung mit Arial ab 11 pt und 1,5-fachem Zeilenabstand. Bei Bedarf kann
+Gestaltung mit Arial ab 11 pt und 1,5-fachem Zeilenabstand im Fließtext.
+Abbildungsanmerkungen verwenden Arial 10 pt und einfachen Zeilenabstand.
+Bei Bedarf kann
 `corporate_template` auf eine andere freigegebene DOTX- oder DOCX-Datei verweisen.
 
 Abbildungen und Tabellen erhalten Beschriftungen mit Kapitelnummern und
-Verweise im Fließtext. Erläuterungen stehen als *Anmerkungen* außerhalb der
-Grafiken. Die Kompetenzverteilung zeigt *N*, *M*, *SD* und die Stufenanteile;
+Verweise im Fließtext. Verknüpfte Verweise erscheinen in Corporate-Weinrot.
+Erläuterungen stehen als *Anmerkungen* außerhalb der Grafiken.
+Die Kompetenzverteilung zeigt *N*, *M*, *SD* und die Stufenanteile;
 zusätzliche Tabellen mit denselben PV-Kennwerten entfallen im Word-Bericht.
 Die Heftdesign-Matrix zeigt Blockbezeichnungen ohne Minutenangaben in den
 Zellen, schmale leere Pausenspalten und ausdrücklich angegebene
@@ -154,9 +163,12 @@ bericht$manifest$fields_updated
 Alternativ können Autoren und gemeinsame Affiliation direkt an `example_report()` übergeben werden.
 Ohne Angaben erscheinen Platzhalter in eckigen Klammern auf dem Deckblatt.
 
-Der Umfang `bericht` enthält alle vorgesehenen Kapitel bis zur Literatur und
-kennzeichnet synthetische Eingaben einschließlich der Umrechnungskoeffizienten
-sichtbar. Durchgangsspezifische Textvariablen stehen zunächst in eckigen Klammern.
+Der Umfang `bericht` enthält alle vorgesehenen Kapitel bis zur Literatur.
+Im Modus „Simulierte Daten“ (`config$report$data_origin = "synthetic"`)
+werden daten- und konfigurationsabhängige Angaben im Word-Text gelb hinterlegt,
+einschließlich Tabellenwerten und Deckblattangaben. Bei realen Eingaben
+(`"observed"`) entfällt diese Markierung. Noch auszufüllende Textstellen
+stehen weiterhin in eckigen Klammern.
 Die fachliche Prüfung und Redaktion der Texte bleiben Teil der Vorbereitung
 eines realen Berichts. Bestehende Ausgaben werden standardmäßig nicht überschrieben.
 

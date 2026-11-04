@@ -7,8 +7,10 @@ history or links to an external template. Metadata embedded in the cover image
 has also been removed without recompressing the image.
 
 The reference is supplied with the package so reports do not depend on a local
-template file. Arial, a minimum font size of 11 pt and the report's paragraph
-spacing are also enforced by the rendering code.
+template file. The rendering code also enforces Arial, a minimum body-text size
+of 11 pt and 1.5 line spacing. Figure notes use the dedicated `ReportFigureNote`
+style with 10 pt Arial and single spacing. Hyperlinks and cross-references use
+the corporate burgundy colour.
 
 To rebuild the reference from an approved corporate DOTX, run
 `tools/prepare-report-template.R` from the source repository and supply both the

@@ -24,6 +24,10 @@ einem Vergleich der Ergänzungsmodule je Leitidee. Kurze Legenden stehen rechts;
 die Corporate-Farben werden je Gruppe wiederverwendet. Beschriftungen und
 Anmerkungen gehören zum umgebenden Bericht. Die Kompetenzverteilung enthält
 die deskriptiven Kennwerte und Stufenanteile ohne zusätzliche doppelte PV-Tabellen.
+Abbildungsanmerkungen verwenden 10 pt und einfachen Zeilenabstand;
+verknüpfte Verweise erscheinen in Corporate-Weinrot. Im Modus „Simulierte
+Daten“ werden daten- und konfigurationsabhängige Word-Textwerte gelb markiert,
+einschließlich Tabellenwerten und Deckblattangaben.
 
 ## Direkt ausprobieren
 

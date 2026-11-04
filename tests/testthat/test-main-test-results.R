@@ -10,7 +10,9 @@ test_that("final item summaries use supplied affine item transformations", {
     fixture <- main_results_fixture(profile)
     expect_true(validate_main_test_results(fixture$data, fixture$config, fixture$main_test))
     result <- summarise_main_test_results(fixture$data, fixture$config, fixture$main_test)
-    expect_equal(result$item_statistics$report_score, 550 + 100 * result$item_statistics$logit)
+    expect_equal(stats::plogis((result$item_statistics$report_score - 500) / 100 -
+                                result$item_statistics$logit),
+                 rep(0.625, nrow(result$item_statistics)))
     expect_equal(nrow(result$item_statistics), nrow(fixture$main_test$items))
     expect_gt(sum(result$module_statistics$n_items), nrow(result$item_statistics))
     expect_identical(result$transformations$target,

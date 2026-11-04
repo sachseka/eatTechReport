@@ -265,6 +265,27 @@ $$
 \text{Berichtswert} = \text{intercept} + \text{slope} \cdot \text{Logitwert}
 $$
 
+Dies ist die Form der gelieferten R-Koeffizienten. In der Word-Ausgabe steht
+die Personentransformation innerhalb der Auswertungshinweise in Abschnitt 3.2
+in der bisherigen Referenzform:
+
+$$
+\text{Berichtswert} = 500 + \frac{100}{SD_{\mathrm{ref}}}
+\left(\text{Logitwert} - M_{\mathrm{ref}}\right).
+$$
+
+Die zugehörige Tabelle verwendet die algebraisch äquivalenten Werte
+`SD_ref = 100 / slope` und `M_ref = (500 - intercept) / slope` aus den
+gelieferten Zeilen mit `target = "person"`. Dadurch werden weder neue
+Referenzwerte geschätzt noch historische Koeffizienten eingesetzt.
+Die Referenzwertetabelle zeigt drei Nachkommastellen; die R-Ergebnisse behalten
+die ursprünglichen Koeffizienten ohne diese Darstellungsrundung.
+Die getrennten affinen Personen- und Itemformelblöcke werden im Bericht
+nicht zusätzlich ausgegeben. Die Itemkoeffizienten bleiben für die
+Berechnung von `item_statistics$report_score` verfügbar; sie werden wegen
+einer möglichen Verschiebung des Lösungswahrscheinlichkeitskriteriums
+nicht als Referenzmittelwert und -standardabweichung interpretiert.
+
 **Die Koeffizienten im Beispiel sind ausschließlich synthetisch und keine
 freigegebenen VERA-Umrechnungen.** Reale Koeffizienten einschließlich einer
 gegebenenfalls nötigen Anpassung des Lösungswahrscheinlichkeitskriteriums
@@ -290,18 +311,33 @@ Der vollständige Umfang verwendet **15 öffentliche Quarto-Bausteine**.
 Zu den zehn Bausteinen von `haupttest_struktur`, einschließlich
 `haupttest_auswahl.qmd` und `haupttest_module.qmd`, kommen fünf hinzu:
 
-- `haupttest_itemprofil.qmd`: Itemkennwerte der Testmodule;
-- `haupttest_transformation.qmd`: getrennte Personen- und Itemumrechnungen;
-- `haupttest_auswertungshinweise.qmd`: Hinweise zur Auswertung;
+- `haupttest_itemprofil.qmd`: bleibt für bestehende Redaktionsordner erhalten;
+  die Standardausgabe der Itemkennwerte steht in `haupttest_module.qmd`;
+- `haupttest_transformation.qmd`: bleibt für bestehende Redaktionsordner erhalten;
+  die Standardtransformation steht in `haupttest_auswertungshinweise.qmd`;
+- `haupttest_auswertungshinweise.qmd`: Hinweise zur Auswertung mit
+  Personentransformation und Referenzwertetabelle;
 - `rueckmeldung_empfehlungen.qmd`: Empfehlungen für die Rückmeldung;
 - `literatur.qmd`: Literaturverzeichnis.
 
 Die Voreinstellung `pilotierung` bleibt bei acht Bausteinen. Auswahlbegründungen
 und weitere Textvariablen stehen zunächst in eckigen Klammern. Der Textordner
 muss alle Bausteine des beim Rendern gewählten Umfangs enthalten. Vorhandene
-redigierte Dateien sollten beim Ergänzen der neuen Dateien beibehalten werden.
+Redaktion wird nicht automatisch auf eine neue Kapitelstruktur umgestellt.
+Bei Arbeitsordnern mit den früheren separaten Itemkennwerte- und
+Transformationskapiteln sind die Inhalte in `haupttest_module.qmd`
+beziehungsweise `haupttest_auswertungshinweise.qmd` einzuordnen. Die alten
+Dateien bleiben anschließend ohne sichtbaren Kapitelinhalt erhalten, damit
+keine doppelten Abschnitte entstehen. Eigene Textkorrekturen werden dabei
+in die neuen Stellen übernommen.
 Optional vorhandene lokale Kompetenz- und Methodentexte werden weiterhin
 eingebunden und archiviert.
+
+Im vollständigen Word-Bericht fasst Abschnitt 3.1 Auswahl, Module, Itemkennwerte,
+Aufgabenmatrix und Stufengrafiken zusammen. Abschnitt 3.2 enthält die
+Auswertungshinweise einschließlich der Referenzformel; Abschnitt 3.3 die
+Empfehlungen für die Rückmeldung. Bei synthetischen Eingaben werden die
+variablen Word-Textwerte gelb hinterlegt.
 
 Damit lässt sich ein durchgängiger Beispielbericht bis zum Literaturverzeichnis
 erzeugen. Die fachliche Redaktion und Freigabe der Texte sowie die

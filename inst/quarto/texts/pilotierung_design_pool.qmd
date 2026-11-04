@@ -5,9 +5,9 @@
 #| results: asis
 inventory <- input$data$design$items
 pilot_inventory <- inventory[inventory$role == "pilot", , drop = FALSE]
-cat("Für den VERA-Durchgang im Schuljahr ", config$report$main_year - 1, "/",
-    substr(config$report$main_year, 3, 4), " wurden ",
-    length(unique(pilot_inventory$task_id)), " Aufgaben mit ", nrow(pilot_inventory),
+cat("Für den VERA-Durchgang im Schuljahr ", value(config$report$main_year - 1), "/",
+    value(substr(config$report$main_year, 3, 4)), " wurden ",
+    value(length(unique(pilot_inventory$task_id))), " Aufgaben mit ", value(nrow(pilot_inventory)),
     " Items pilotiert.\n\n", sep = "")
 ```
 
@@ -24,9 +24,9 @@ pool_table <- data.frame(
   check.names = FALSE
 )
 for (i in seq_len(nrow(pool_table))) {
-  cat("Im Bereich ", eatTechReport:::report_markdown_text(pool_table$Bereich[i]),
-      " wurden ", pool_table$Aufgaben[i], " Aufgaben mit ", pool_table$Items[i],
-      " ", pool_table$Rolle[i], " eingesetzt.\n\n", sep = "")
+  cat("Im Bereich ", value(pool_table$Bereich[i]),
+      " wurden ", value(pool_table$Aufgaben[i]), " Aufgaben mit ", value(pool_table$Items[i]),
+      " ", value(pool_table$Rolle[i]), " eingesetzt.\n\n", sep = "")
 }
 ```
 
