@@ -14,6 +14,7 @@
 #' @return A ggplot object. Attribute `item_level_counts` contains the exact
 #'   counts shown; `scale_id` and `by` identify the selected view.
 #'   `suggested_height_cm` provides a useful height when saving at 15.5 cm width.
+#'   `data_origin` records whether the supplied input is synthetic or observed.
 #' @details Requires the optional `data$main_test$item_levels` table with one
 #'   `item_id` and `level_label` per selected item. Assignments are supplied by
 #'   the upstream analysis; the function does not infer them from person PVs,

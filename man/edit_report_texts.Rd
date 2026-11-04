@@ -28,6 +28,13 @@ Copies the text blocks for the selected report scope into a working
 directory. Edit these copies and pass the directory to \code{\link[=render_report]{render_report()}}.
 The package installation itself is never edited.
 }
+\details{
+The scopes copy 3 (\code{pilotierung_leistung}), 8 (\code{pilotierung}),
+10 (\code{haupttest_struktur}) or 15 (\code{bericht}) package blocks. Use the same
+scope when copying blocks and constructing the report input. Optional
+local chapters accepted by \code{\link[=render_report]{render_report()}} are not copied from the
+package; they can be added to the working directory separately.
+}
 \examples{
 texts <- tempfile("report-texts-")
 edit_report_texts(texts)

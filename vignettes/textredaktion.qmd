@@ -23,6 +23,8 @@ Voreinstellung `corporate_template = NULL` verwendet sie automatisch, auch
 für Berichte mit simulierten Daten. Im Quellpaket liegt die Vorlage unter
 `inst/templates/eatTechReport.docx`. Ein eigener Pfad zu einer freigegebenen
 DOTX- oder DOCX-Datei kann bei Bedarf über `corporate_template` übergeben werden.
+Dabei werden Layout, Kopf- und Fußzeilen sowie Formatvorlagen verwendet;
+Text aus dem Dokumentkörper einer Vorlage wird nicht in den Bericht kopiert.
 
 Das Layout verwendet Arial mit mindestens 11 pt und 1,5-fachem Zeilenabstand.
 Überschriften der Ebenen 1 bis 4 erhalten 16, 13, 12 beziehungsweise 11 pt
@@ -76,7 +78,7 @@ mehrere Zeilen. Namen und Institutionen werden als wörtlicher Text behandelt.
 Ohne Angaben bleiben sichtbare Platzhalter in eckigen Klammern stehen.
 
 Die Tabellen verwenden vertikal zentrierten Text und Innenabstände oberhalb
-und unterhalb des Textes. Kräftige Außenlinien begrenzen die Tabelle;
+und unterhalb des Textes. Kräftige horizontale Linien begrenzen die Tabelle oben und unten;
 dünne horizontale Linien trennen Kopf- und Datenzeilen.
 
 Die Aufgabenmatrix verwendet Corporate-Schattierungen für Basis- und
@@ -112,13 +114,18 @@ die abschließenden Prüfsummen für die Renderablage berechnet werden.
 | --- | --- |
 | `update_fields = "auto"` | Verfügbare Word-Automatisierung verwenden; andernfalls die noch ausstehende Feldaktualisierung ausdrücklich melden. |
 | `update_fields = "word"` | Aktualisierung durch Microsoft Word verlangen; ohne diese Voraussetzung mit einem Fehler abbrechen. |
-| `update_fields = "none"` | Den Aktualisierungsschritt ausdrücklich überspringen. |
+| `update_fields = "none"` | Den Aktualisierungsschritt überspringen; der Bericht bleibt mit Warnung im Status `fields_pending`. |
 
 Der Abschlussstatus ist im Manifest nachvollziehbar:
 
 ```{r}
 bericht$manifest$fields_updated
 ```
+
+Ohne verfügbare Word-Automatisierung meldet auch `"auto"` eine Warnung;
+`bericht$manifest$status` lautet dann `"fields_pending"` und
+`bericht$manifest$fields_updated` ist `FALSE`. Nach erfolgreicher Aktualisierung
+lautet der Status `"development_snapshot"`.
 
 Ohne erfolgreiche Feldaktualisierung ist das automatisch befüllte
 Inhaltsverzeichnis noch nicht fertig. Wer für die Ausgabe zwingend einen
@@ -158,7 +165,10 @@ kopiert. `scope = "haupttest_struktur"` umfasst die ersten zehn Bausteine.
 Die erzeugten `.qmd`-Dateien werden in RStudio oder VS Code geöffnet. Absätze,
 Überschriften und Erläuterungen lassen sich dort kapitelweise redigieren.
 Bestehende R-Ausdrücke und Codeblöcke verbinden die Texte mit den berechneten
-Ergebnissen; für reine Textkorrekturen bleiben sie unverändert.
+Ergebnissen; für reine Textkorrekturen bleiben sie unverändert. In
+`pilotierung_leistung.qmd` muss die Abschnittsüberschrift der Ebene 2 mit
+`{#pilotierung_leistung}` erhalten bleiben. An dieser Stelle fügt der Renderer
+bei den größeren Umfängen Testdesign und Stichprobenbeschreibung ein.
 
 ```{r}
 bericht <- render_report(
@@ -220,9 +230,12 @@ Ersetzen bleibt der vorherige Stand in einem benachbarten Sicherungsordner
 erhalten; dessen Pfad steht in `previous_output_dir`. Ein fehlgeschlagener
 Renderlauf ersetzt den vorhandenen Bericht nicht.
 
-Die freigegebene Layoutvorlage ist Bestandteil des Pakets. Altberichte,
-abgeleitete Referenzdateien, reale Eingaben, redigierte Texte, erzeugte
-Corporate-Dokumente und Renderablagen bleiben unter `lokal/`. Die Ablage ist
+Die freigegebene Layoutvorlage ist Bestandteil des Pakets. Für Altberichte,
+reale Eingaben und redigierte Texte wird in diesem Projekt `lokal/` verwendet.
+Mit einem `output_dir` unter `lokal/` bleiben auch abgeleitete Referenzdateien,
+erzeugte Corporate-Dokumente und Renderablagen dort. Der Renderer schreibt
+in den angegebenen Ausgabeordner; er prüft dessen Git-Ausschluss nicht.
+Die Ablage ist
 ein technischer Renderstand; fachliche Freigabe, Vorjahresvergleich und
 automatische Ausrufezeichen am rechten Rand werden später ergänzt.
 

@@ -20,14 +20,17 @@ render_report(
 \code{config$report$affiliation} (shared affiliation, optionally multiple lines).
 Earlier inputs without these fields receive visible placeholders.}
 
-\item{data}{Input tables including population, PV values and, for the
-pilot-study scope, design and sample information.}
+\item{data}{Input tables including population and PV values. The extended
+scopes also require design and sample information; \code{haupttest_struktur}
+and \code{bericht} require \code{main_test}, and \code{bericht} additionally requires
+\code{main_test_results}. See \code{\link[=validate_report_input]{validate_report_input()}}.}
 
 \item{corporate_template}{Optional path to a corporate DOTX or DOCX template.
 NULL uses the layout included with the package.}
 
 \item{text_dir}{Optional directory containing all editable Quarto blocks
-created by \code{\link[=edit_report_texts]{edit_report_texts()}}. For the pilot-study scope, optional local
+created by \code{\link[=edit_report_texts]{edit_report_texts()}} for the same scope as \code{config$scope}.
+For \code{pilotierung}, \code{haupttest_struktur} and \code{bericht}, optional local
 blocks \code{grundlagen_kompetenzstufen.qmd}, \code{pilotierung_durchfuehrung.qmd}
 and \code{pilotierung_auswertung.qmd} are also rendered and archived when present.
 NULL uses the package blocks.}
@@ -48,6 +51,9 @@ operates only on the newly generated staging document.}
 \value{
 A list of class \code{eat_report} with \code{path}, \code{archive_dir}, \code{manifest},
 \code{summaries}, \code{config} and \code{previous_output_dir}. Paths are absolute.
+\code{previous_output_dir} is NULL when there was no previous target directory.
+\code{manifest$fields_updated} records whether Word finalisation succeeded;
+summaries have the structure returned by \code{\link[=summarise_report_input]{summarise_report_input()}}.
 }
 \description{
 The renderer covers test design, sample composition and performance for the
@@ -64,11 +70,14 @@ are used to prepare a local DOCX reference with the report typography.
 Template body text is not imported. Missing Pandoc styles are derived from
 corporate styles. Quarto must be installed separately.
 
-All generated files, including the derived reference and a baseline snapshot
-of inputs, results, texts and software information, are written inside
-\code{output_dir}. Use a private directory excluded from version control, for
-example \code{lokal/demo-de}. This snapshot is not a signed-off release archive;
-change comparison and margin markers are not implemented yet.
+Successful renders store the report, derived reference and a baseline
+snapshot of inputs, results, texts and software information inside
+\code{output_dir}. Work is prepared in a sibling staging directory. If rendering
+fails, that directory is retained for inspection and its path is reported;
+the earlier output remains intact. Use a private parent directory excluded
+from version control, for example \code{lokal/demo-de}. This snapshot is not a
+signed-off release archive; change comparison and margin markers are not
+implemented yet.
 }
 \examples{
 \dontrun{

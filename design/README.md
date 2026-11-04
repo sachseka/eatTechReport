@@ -8,8 +8,9 @@ Der Nutzer hat das Schreibmaschinenmotiv mit Berichtseite bestätigt und eine
 etwas kleinere, ausgewogene Platzierung gewünscht. Das gesamte Schwarz-Weiß-Motiv
 wurde entsprechend verkleinert. Die Wortmarke lautet `eatTechReport`.
 
-Als Familienreferenzen dienen die aktuellen eatPrep-/eatModel-Logos sowie
-die Light-/Dark-Versionen unter `D:/eat/IQB-Methods/logos/`.
+Als Familienreferenzen dienten die eatPrep-/eatModel-Logos sowie die
+Light-/Dark-Versionen der eat-Paketfamilie. Für die reproduzierbare Bereinigung
+genügen die hier mitgelieferte Bildquelle und das Skript.
 
 - Rote Fläche: `#B40036`, einheitlich ohne Schatten oder Farbverläufe.
 - Lightmode: dunkler Hexagonrand `#271A2B`.

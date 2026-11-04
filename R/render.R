@@ -10,6 +10,11 @@
 #'   `"pilotierung_leistung"` for the performance section only, or
 #'   `"haupttest_struktur"` to also include main-test selection and modules.
 #'   `"bericht"` includes the final chapters and references as well.
+#' @details The scopes copy 3 (`pilotierung_leistung`), 8 (`pilotierung`),
+#'   10 (`haupttest_struktur`) or 15 (`bericht`) package blocks. Use the same
+#'   scope when copying blocks and constructing the report input. Optional
+#'   local chapters accepted by [render_report()] are not copied from the
+#'   package; they can be added to the working directory separately.
 #' @return Invisibly, the paths of the copied Quarto files.
 #' @export
 #' @examples
@@ -49,22 +54,28 @@ edit_report_texts <- function(path, overwrite = FALSE,
 #' Template body text is not imported. Missing Pandoc styles are derived from
 #' corporate styles. Quarto must be installed separately.
 #'
-#' All generated files, including the derived reference and a baseline snapshot
-#' of inputs, results, texts and software information, are written inside
-#' `output_dir`. Use a private directory excluded from version control, for
-#' example `lokal/demo-de`. This snapshot is not a signed-off release archive;
-#' change comparison and margin markers are not implemented yet.
+#' Successful renders store the report, derived reference and a baseline
+#' snapshot of inputs, results, texts and software information inside
+#' `output_dir`. Work is prepared in a sibling staging directory. If rendering
+#' fails, that directory is retained for inspection and its path is reported;
+#' the earlier output remains intact. Use a private parent directory excluded
+#' from version control, for example `lokal/demo-de`. This snapshot is not a
+#' signed-off release archive; change comparison and margin markers are not
+#' implemented yet.
 #'
 #' @param config Report configuration from [example_report()]. The cover uses
 #'   `config$report$authors` (names in display order) and
 #'   `config$report$affiliation` (shared affiliation, optionally multiple lines).
 #'   Earlier inputs without these fields receive visible placeholders.
-#' @param data Input tables including population, PV values and, for the
-#'   pilot-study scope, design and sample information.
+#' @param data Input tables including population and PV values. The extended
+#'   scopes also require design and sample information; `haupttest_struktur`
+#'   and `bericht` require `main_test`, and `bericht` additionally requires
+#'   `main_test_results`. See [validate_report_input()].
 #' @param corporate_template Optional path to a corporate DOTX or DOCX template.
 #'   NULL uses the layout included with the package.
 #' @param text_dir Optional directory containing all editable Quarto blocks
-#'   created by [edit_report_texts()]. For the pilot-study scope, optional local
+#'   created by [edit_report_texts()] for the same scope as `config$scope`.
+#'   For `pilotierung`, `haupttest_struktur` and `bericht`, optional local
 #'   blocks `grundlagen_kompetenzstufen.qmd`, `pilotierung_durchfuehrung.qmd`
 #'   and `pilotierung_auswertung.qmd` are also rendered and archived when present.
 #'   NULL uses the package blocks.
@@ -80,6 +91,9 @@ edit_report_texts <- function(path, overwrite = FALSE,
 #'   operates only on the newly generated staging document.
 #' @return A list of class `eat_report` with `path`, `archive_dir`, `manifest`,
 #'   `summaries`, `config` and `previous_output_dir`. Paths are absolute.
+#'   `previous_output_dir` is NULL when there was no previous target directory.
+#'   `manifest$fields_updated` records whether Word finalisation succeeded;
+#'   summaries have the structure returned by [summarise_report_input()].
 #' @export
 #' @examples
 #' \dontrun{

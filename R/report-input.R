@@ -36,10 +36,18 @@ performance_component <- function(input) {
 #' @details Scope `pilotierung` uses schema `0.3.0-draft` and requires
 #'   `data$population`, `data$pvs`, `data$design` and `data$sample`. The earlier
 #'   performance-only scope `pilotierung_leistung` remains supported unchanged.
+#'   Lists and tables must contain the fields of the selected schema; arbitrary
+#'   additional fields are rejected. Design blocks may additionally contain
+#'   logical `is_norming` values without missing entries. This explicit flag
+#'   controls norming-block shading; anchor items alone do not imply it.
 #'   Scope `haupttest_struktur` uses schema `0.4.0-draft` and additionally requires
 #'   `data$main_test`: selected items, modules, ordered item membership and
 #'   documented pilot-wave membership. It extends the draft with main-test
 #'   selection and structure, not item-quality profiles or transformations.
+#'   Each selected item's `task_label` and `domain_id` must agree within its
+#'   `task_id`. Labels are supplied in `data$main_test$items` and used in the
+#'   report's task matrix. This inventory is independent of the current pilot
+#'   inventory; selected items may originate in earlier pilot waves.
 #'   Optional `data$main_test$item_levels` supplies exactly one `level_label`
 #'   per selected `item_id`, using the labels of its configured scale. These
 #'   upstream assignments enable item-level figures; no assignment is inferred
@@ -48,6 +56,11 @@ performance_component <- function(input) {
 #'   `data$main_test_results`: complete item statistics, explicitly supplied
 #'   affine transformations for persons and items, and their definitions. It
 #'   includes the final report chapters through interpretation and references.
+#'   Item statistics contain finite `logit` values and `p_correct` values
+#'   between zero and one for every selected item. Each scale used by selected
+#'   items requires one `person` and one `item` transformation, with finite
+#'   `intercept`, positive finite `slope` and a nonempty `source_label`.
+#'   The formula is `report_score = intercept + slope * logit`.
 #'   Sample composition describes the distinct persons in `data$population`;
 #'   participation and class returns are reported separately. Missing categorical
 #'   values form a separate category and remain in percentage denominators.
@@ -81,7 +94,8 @@ validate_report_input <- function(input) {
 #'
 #' @inheritParams validate_report_input
 #' @return The performance components `descriptives`, `percentages`, `per_pv`,
-#'   plus `design` and `sample` for scope `pilotierung`. Design includes item
+#'   plus `design` and `sample` for scopes `pilotierung`, `haupttest_struktur`
+#'   and `bericht`. Design includes item
 #'   pool counts, blocks, booklets and their slots. Sample includes overall and
 #'   state-level participation, characteristics and valid-response summaries
 #'   separated by pilot and anchor roles. Uncollected characteristics are NULL;
@@ -91,8 +105,10 @@ validate_report_input <- function(input) {
 #'   Wave counts can overlap; module durations are not added to a test duration.
 #'   When supplied, `main_test$item_levels` contains complete competence-level
 #'   item counts for `selection` and `modules`, including zero-count levels.
-#'   Scope `bericht` also returns `main_test_results` with module summaries of
-#'   supplied item statistics and item report scores calculated using the supplied
+#'   Scope `bericht` also returns `main_test_results` with `item_statistics`,
+#'   `module_statistics`, `transformations` and `definitions`. Module summaries
+#'   contain unweighted item means of `p_correct` and `logit`, and minimum and
+#'   maximum item report scores calculated using the supplied item
 #'   transformations. Person PV values are never transformed again.
 #' @seealso [example_report()], [validate_report_input()]
 #' @examples
