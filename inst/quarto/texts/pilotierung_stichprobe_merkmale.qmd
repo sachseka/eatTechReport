@@ -1,0 +1,79 @@
+```{r}
+#| label: pilotierung_stichprobe_alter
+#| results: asis
+characteristics <- results$sample$characteristics
+age <- characteristics$age
+if (is.null(age)) {
+  cat("Das Alter wurde für diesen Durchgang nicht erhoben.\n\n")
+} else if (age$n_valid + age$n_missing == 0L) {
+  cat("Die Auswertungspopulation enthält keine Personen; für das Alter sind keine Kennwerte oder Fehlwertanteile berechenbar.\n\n")
+} else if (age$n_valid == 0L) {
+  cat("Für das Alter liegen keine gültigen Angaben vor (fehlende Angaben: 100,0 %).\n\n")
+} else {
+  missing_percent <- 100 * age$n_missing / (age$n_valid + age$n_missing)
+  cat("Das mittlere Alter der Stichprobe betrug *M* = ", eatTechReport:::study_number(age$mean),
+      " Jahre (*SD* = ", eatTechReport:::study_number(age$sd),
+      "; fehlende Angaben: ", eatTechReport:::study_number(missing_percent), " %).\n\n", sep = "")
+  if (!is.finite(age$sd)) cat("Die Standardabweichung ist bei weniger als zwei gültigen Altersangaben nicht berechenbar.\n\n")
+}
+```
+
+Die folgenden Tabellen zeigen die Zusammensetzung der Stichprobe nach
+Geschlecht und Familiensprache sowie den Anteil der Schülerinnen und Schüler,
+die unter veränderten Testbedingungen teilnahmen.
+
+```{r}
+#| label: pilotierung_stichprobe_kategorien
+#| results: asis
+category_names <- c(gender = "Geschlecht", family_language = "Familiensprache",
+                     changed_conditions = "Veränderte Testbedingungen")
+for (variable in names(category_names)) {
+  values <- characteristics[[variable]]
+  if (is.null(values)) {
+    cat(eatTechReport:::report_markdown_text(category_names[[variable]]),
+        " wurde für diesen Durchgang nicht erhoben.\n\n", sep = "")
+  } else {
+    table_id <- paste0("tbl-stichprobe-", gsub("_", "-", variable, fixed = TRUE))
+    cat("@", table_id, " zeigt die Zusammensetzung der Auswertungspopulation nach ",
+        eatTechReport:::report_markdown_text(values$label[1]), ".\n\n", sep = "")
+    cat("Table: Zusammensetzung der Stichprobe: ", eatTechReport:::report_markdown_text(values$label[1]),
+        ". {#", table_id, "}\n\n", sep = "")
+    display <- data.frame(
+      "Ausprägung" = values$category,
+      "Personen (N)" = values$n,
+      "Anteil (%)" = eatTechReport:::study_number(values$percent),
+      check.names = FALSE
+    )
+    cat(eatTechReport:::study_table_markdown(display, c("l", "r", "r")))
+  }
+}
+```
+
+```{r}
+#| label: pilotierung_stichprobe_familiensprache_laender
+#| results: asis
+language <- characteristics$family_language_by_state
+if (!is.null(language)) {
+  cat("Die Verteilung der Angaben zur Familiensprache in den einzelnen ",
+      "Ländern ist in der folgenden Tabelle dargestellt.\n\n", sep = "")
+  language_tables <- eatTechReport:::study_language_tables(language)
+  for (i in seq_along(language_tables)) {
+    language_table <- language_tables[[i]]
+    table_id <- paste0("tbl-stichprobe-familiensprache-laender-", i)
+    cat("@", table_id, " enthält die Anteile der Familiensprachen für die einzelnen Länder.\n\n", sep = "")
+    cat("Table: Familiensprache der Schülerinnen und Schüler nach Ländern",
+        if (length(language_tables) > 1L) paste0(" (Teil ", i, ")") else "",
+        ". {#", table_id, "}\n\n", sep = "")
+    widths <- if (ncol(language_table) > 4L) {
+      c(22, 18, rep(60 / (ncol(language_table) - 2), ncol(language_table) - 2))
+    } else NULL
+    cat(eatTechReport:::study_table_markdown(language_table,
+          c("l", rep("r", ncol(language_table) - 1L)), widths = widths))
+  }
+}
+```
+
+*Anmerkung.* Fehlende Angaben sind als eigene Kategorie ausgewiesen und in den
+Prozentangaben enthalten. Für Länder ohne ausgewertete Schülerinnen und Schüler
+werden keine Prozentanteile angegeben (–). Rundungsbedingt können die Anteile
+in der Summe geringfügig von 100,0 % abweichen.

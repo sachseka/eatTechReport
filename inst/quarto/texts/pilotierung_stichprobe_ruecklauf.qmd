@@ -1,0 +1,41 @@
+## Stichprobe {#pilotierung_stichprobe}
+
+Die insgesamt realisierte Stichprobe umfasste in der Pilotierungsstudie
+`r config$report$pilot_year` im Fach
+`r if (config$report$subject == "de") "Deutsch" else "Mathematik"`
+`r results$sample$totals$n_participating_classes` Klassen der dritten
+Jahrgangsstufe aus `r sum(results$sample$by_state$n_participating_classes > 0)`
+deutschen Ländern (angeforderte Stichprobe:
+`r results$sample$totals$n_requested_classes` Klassen). Insgesamt nahmen
+`r results$sample$totals$n_participants` Schülerinnen und Schüler teil.
+In die Auswertung gingen die Daten von
+*N* = `r results$sample$totals$n_analysis_persons` Schülerinnen und Schülern ein.
+@tbl-stichprobe-laender zeigt die Verteilung der angefragten und teilnehmenden
+Klassen sowie der teilnehmenden und ausgewerteten Schülerinnen und Schüler auf die Länder.
+
+```{r}
+#| label: pilotierung_stichprobe_laendertabelle
+#| results: asis
+state <- results$sample$by_state
+total <- results$sample$totals
+state_table <- data.frame(
+  "Land" = c(state$label, "Gesamt"),
+  "Klassen angefragt" = c(state$n_requested_classes, total$n_requested_classes),
+  "Klassen Teilnahme" = c(state$n_participating_classes, total$n_participating_classes),
+  "Personen Teilnahme" = c(state$n_participants, total$n_participants),
+  "Personen Auswertung" = c(state$n_analysis_persons, total$n_analysis_persons),
+  "Anteil (%)" = eatTechReport:::study_number(c(state$analysis_percent, 100)),
+  check.names = FALSE
+)
+cat("\n\nTable: Zusammensetzung der Stichprobe nach Ländern. {#tbl-stichprobe-laender}\n\n")
+cat(eatTechReport:::study_table_markdown(state_table, c("l", rep("r", 5)),
+                                       widths = c(23, 15, 16, 16, 18, 12)))
+if (total$n_not_analysed > 0L) {
+  cat("Von den Teilnehmenden gehen ", total$n_not_analysed,
+      " Personen nicht in die Auswertungspopulation ein.\n\n", sep = "")
+}
+```
+
+*Anmerkung.* Die Prozentangaben beziehen sich auf die insgesamt ausgewerteten
+Schülerinnen und Schüler. Die nachfolgende Stichprobenbeschreibung bezieht
+sich ebenfalls auf diese Gruppe.

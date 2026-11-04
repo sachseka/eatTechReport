@@ -1,0 +1,40 @@
+## Hinweise zur Auswertung {#haupttest_auswertungshinweise}
+
+Die Auswertung des Haupttests setzt die freigegebenen Aufgabenfassungen,
+Auswertungsanleitungen und Itemparameter voraus. Die in diesem Bericht
+zusammengefassten Kennwerte dienen der Beschreibung des Tests. Für eine
+Skalierung sind die vollständigen Parameter auf der vorgesehenen Logit-Metrik
+zu verwenden.
+
+Zur Anbindung an die Berichtsskala können geeignete Itemparameter als feste
+Anker verwendet werden. Zusätzliche Restriktionen auf die Mittelwerte der
+Personen- oder Itemparameter dürfen die durch diese Anker festgelegte
+Skalenlage nicht verändern. Die geschätzten Personenfähigkeiten werden
+anschließend mit der Personentransformation aus dem Abschnitt
+[Umrechnung in die Berichtsskala](#haupttest_transformation) umgerechnet.
+
+Vor einer Übernahme der Ankerparameter ist zu prüfen, ob Items, Kodierungen
+und Bedingungen mit der Kalibrierung übereinstimmen. Freie Schätzungen können
+Hinweise auf veränderte Itemschwierigkeiten oder differenzielles
+Itemfunktionieren liefern. Neu geschätzte Parameter benötigen eine geeignete
+Anbindung an die Referenzmetrik, bevor Kompetenzstufen zugeordnet werden.
+
+Unterschiedliche Modulkombinationen und ihre Zuweisung zu den Teilnehmenden
+sind im Auswertungsmodell zu berücksichtigen. Bei einer gemeinsamen
+MML-Skalierung ist insbesondere die Spezifikation der Populationsverteilung
+beziehungsweise des Hintergrundmodells zu prüfen. Fehlende und ungültige
+Antworten werden nach den für den Durchgang vereinbarten Regeln behandelt.
+Substanzielle Änderungen an Aufgaben oder Auswertungsanleitungen erfordern
+eine erneute Prüfung der Verwendbarkeit der Parameter.
+
+```{asis, haupttest_auswertung_skalen_de, echo=identical(config$report$subject, "de")}
+Die Auswertung im Fach Deutsch erfolgt getrennt für die untersuchten
+Kompetenzbereiche. Die Parameter der verschiedenen Skalen werden nicht zu
+einem gemeinsamen Deutsch-Gesamtwert zusammengeführt.
+```
+
+```{asis, haupttest_auswertung_skalen_ma, echo=identical(config$report$subject, "ma")}
+Die Auswertung im Fach Mathematik erfolgt auf der globalen Skala MO.
+Leitideen kennzeichnen die Inhalte der Aufgaben; aus den Ergänzungsmodulen
+werden keine eigenständigen leitideenspezifischen Berichtsskalen gebildet.
+```

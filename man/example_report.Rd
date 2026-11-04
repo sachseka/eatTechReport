@@ -10,7 +10,10 @@ example_report(
   n_persons = 24L,
   n_pv = 15L,
   main_year = 2027L,
-  pilot_year = 2026L
+  pilot_year = 2026L,
+  scope = c("pilotierung", "pilotierung_leistung", "haupttest_struktur", "bericht"),
+  authors = NULL,
+  affiliation = NULL
 )
 }
 \arguments{
@@ -26,14 +29,32 @@ and listening, or \code{"v3_ma_mg_mm"} for globally scaled mathematics.}
 \item{main_year}{Main assessment year recorded in the configuration.}
 
 \item{pilot_year}{Pilot year, supplied independently of \code{main_year}.}
+
+\item{scope}{\code{"pilotierung"} includes the implemented pilot-study sections;
+\code{"pilotierung_leistung"} returns the earlier performance-only example;
+\code{"haupttest_struktur"} also includes main-test selection and module structure.
+\code{"bericht"} adds item statistics, illustrative transformations and all final
+report chapters through the reference list.}
+
+\item{authors}{Character vector of report authors in display order.
+NULL uses visible placeholders. Stored in \code{config$report$authors}.}
+
+\item{affiliation}{Shared affiliation for the authors. A character vector
+supplies separate lines. NULL uses a visible placeholder. Stored in
+\code{config$report$affiliation}.}
 }
 \value{
-The same \code{config} and \code{data} list as \code{\link[=example_leistung_input]{example_leistung_input()}}.
+A \code{config} and \code{data} list. The pilot-study scope uses schema
+\verb{0.3.0-draft} and adds \code{design} and \code{sample} to the performance input tables.
+The extended scope uses schema \verb{0.4.0-draft} and also adds \code{main_test}.
+Scope \code{bericht} uses \verb{0.5.0-draft} and adds \code{main_test_results}; its affine
+transformation coefficients and item statistics are synthetic examples.
 }
 \description{
-A convenient entry point for synthetic report inputs. The current scope is
-the performance chapter only; this function does not invent input fields for
-the remaining chapters.
+A convenient entry point for synthetic report inputs. By default this includes
+test design, sample composition and performance. All example populations,
+item counts, booklet arrangements and cuts are illustrative, not real study
+results. The performance-only scope remains available explicitly.
 }
 \examples{
 demo <- example_report(profile = "v3_ma_mg_mm", seed = 42)

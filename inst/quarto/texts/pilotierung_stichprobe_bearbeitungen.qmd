@@ -1,0 +1,28 @@
+```{r}
+#| label: pilotierung_stichprobe_bearbeitungszahlen
+#| results: asis
+response_summary <- if (config$report$subject == "ma") {
+  results$sample$responses_overall
+} else {
+  results$sample$responses_by_domain
+}
+pilot <- response_summary[response_summary$role == "pilot", , drop = FALSE]
+anchor <- response_summary[response_summary$role == "anchor", , drop = FALSE]
+sentences <- eatTechReport:::study_response_sentences(pilot, config)
+if (length(sentences)) {
+  cat(paste(sentences, collapse = "\n\n"), sep = "")
+  if (nrow(anchor)) cat("[^ankeritem_bearbeitungen]")
+  cat("\n\n")
+} else {
+  cat("Der Itempool enthält keine Pilotierungsitems.\n\n")
+  if (nrow(anchor)) cat("Die Bearbeitungszahlen der Ankeritems sind gesondert ausgewiesen.[^ankeritem_bearbeitungen]\n\n")
+}
+if (nrow(anchor)) {
+  cat("[^ankeritem_bearbeitungen]: Ausgenommen sind die zur Verlinkung eingesetzten Ankeritems. ",
+      paste(eatTechReport:::study_response_sentences(anchor, config), collapse = " "),
+      "\n\n", sep = "")
+}
+```
+
+*Anmerkung zur Zählung.* Die Angaben beziehen sich auf gültige beziehungsweise
+bewertbare Antworten. `r eatTechReport:::report_markdown_text(results$sample$response_definition)`

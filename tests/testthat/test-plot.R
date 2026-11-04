@@ -11,7 +11,8 @@ test_that("plots preserve the exact empirical percentages and summaries", {
   expect_no_warning(built <- ggplot2::ggplot_build(plot))
   expect_true(all(demo$config$scales$DL$cuts %in% built$layout$panel_params[[1L]]$x$breaks))
   expect_true(any(grepl(",", built$layout$panel_params[[1L]]$y$get_labels(), fixed = TRUE)))
-  expect_match(plot$labels$caption, "Synthetisches Beispiel")
+  expect_null(plot$labels$caption)
+  expect_match(attr(plot, "report_note"), "Synthetisches Beispiel")
 })
 
 test_that("bandwidth changes the curve but cannot change level shares", {
@@ -52,7 +53,9 @@ test_that("constant PVs and empty outer intervals remain visible and labelled", 
   built <- ggplot2::ggplot_build(plot)
   labels <- built$data[[5L]]$label
   expect_length(labels, 5L)
-  expect_match(labels[1L], "Ia\n0,0 %", fixed = TRUE)
-  expect_match(labels[5L], "IV\n0,0 %", fixed = TRUE)
+  expect_identical(labels, c("Ia", "Ib", "II", "III", "IV"))
+  percent_labels <- built$data[[6L]]$label
+  expect_match(percent_labels[1L], 'plain("0,0")', fixed = TRUE)
+  expect_match(percent_labels[5L], 'plain("0,0")', fixed = TRUE)
   expect_equal(attr(plot, "population_percentages")$percent, c(0, 0, 100, 0, 0))
 })

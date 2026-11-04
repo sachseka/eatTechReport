@@ -1,46 +1,42 @@
 # Informationen zur Pilotierungsstudie `r config$report$pilot_year` {#pilotierung_titel}
 
-## Leistung der Pilotierungsstichprobe {#pilotierung_leistung}
+Primäres Ziel der Pilotierung war es, psychometrische Informationen über die
+entwickelten Aufgaben zu erhalten, um hochwertige Items für die Hauptstudie
+auswählen zu können.
 
-Die folgenden Darstellungen zeigen die Leistungsverteilung je auswertbarer
-Skala. Die Prozentangaben beziehen sich auf die beobachteten PV-Werte und sind
-unabhängig von der Glättung der Dichte. Ein Wert genau auf einer Stufengrenze
-gehört zur höheren Kompetenzstufe.
+## Kompetenz der Pilotierungsstichprobe {#pilotierung_leistung}
+
+Die nachfolgenden Abbildungen geben einen Überblick über die Kompetenzverteilung
+der Schülerinnen und Schüler in der Pilotierungsstichprobe. Dargestellt werden
+die Verteilung der Kompetenzwerte auf der Berichtsskala und die prozentualen
+Anteile der Schülerinnen und Schüler auf den Kompetenzstufen. Die gestrichelten
+Linien kennzeichnen die Grenzen zwischen den Kompetenzstufen.
 
 ```{r}
 #| label: pilotierung_leistung_skalen
 #| results: asis
 for (scale_id in names(config$scales)) {
-  scale <- config$scales[[scale_id]]
+  if (scale_id != names(config$scales)[1L]) cat("\n\n{{< pagebreak >}}\n\n")
   label <- display_labels$scales[[scale_id]]
   descriptives <- results$descriptives[results$descriptives$scale_id == scale_id, ]
   percentages <- results$percentages[results$percentages$scale_id == scale_id, ]
+  figure_id <- paste0("fig-kompetenz-", tolower(scale_id))
   cat("\n\n### ", label, " (", scale_id, ") {#leistung_", tolower(scale_id), "}\n\n", sep = "")
-  cat("![Leistungsverteilung: ", label, "](figures/", scale_id,
-      ".png){width=15.5cm}\n\n", sep = "")
-  overview <- data.frame(
-    "Personen (N)" = descriptives$n_persons,
-    "Anzahl PVs" = descriptives$n_pv,
-    "Mittelwert" = decimal(descriptives$mean),
-    "Standardabweichung" = decimal(descriptives$sd), check.names = FALSE
-  )
-  cat(knitr::kable(overview, format = "pipe", align = "rrrr"), sep = "\n")
-  cat("\n\n")
-  if (nrow(percentages) <= 6L) {
-    levels <- as.data.frame(as.list(c("Anteil (%)", decimal(percentages$percent))),
-                            check.names = FALSE)
-    names(levels) <- c("Kompetenzstufe", display_labels$levels[[scale_id]])
-    alignment <- c("l", rep("r", nrow(percentages)))
-  } else {
-    levels <- data.frame("Kompetenzstufe" = display_labels$levels[[scale_id]],
-                         "Anteil (%)" = decimal(percentages$percent), check.names = FALSE)
-    alignment <- c("l", "r")
-  }
-  cat(knitr::kable(levels, format = "pipe", align = alignment), sep = "\n")
-  cat("\n\n")
+  cat("@", figure_id, " zeigt die Kompetenzverteilung ",
+      if (config$report$subject == "ma") "im Fach Mathematik" else paste0("im Kompetenzbereich „", label, "“"),
+      ". Die ausgewertete Stichprobe umfasst *N* = ", descriptives$n_persons,
+      " Schülerinnen und Schüler. Der Mittelwert beträgt *M* = ", decimal(descriptives$mean),
+      " Punkte bei einer Standardabweichung von *SD* = ", decimal(descriptives$sd),
+      " Punkten.\n\n", sep = "")
+  largest <- which.max(percentages$percent)
+  cat("Der größte Anteil der Schülerinnen und Schüler entfällt mit ",
+      decimal(percentages$percent[largest]), " % auf die Kompetenzstufe ",
+      display_labels$levels[[scale_id]][largest],
+      ". Die Anteile auf den weiteren Kompetenzstufen sind der Abbildung zu entnehmen.\n\n", sep = "")
+  cat("![Kompetenzverteilung der Pilotierungsstichprobe: ", label, ".](figures/", scale_id,
+      ".png){#", figure_id, " width=15.5cm}\n\n", sep = "")
+  cat("*Anmerkung.* *N* = Anzahl der Schülerinnen und Schüler; *M* = Mittelwert; ",
+      "*SD* = Standardabweichung. ",
+      eatTechReport:::performance_plot_note(config), "\n\n", sep = "")
 }
 ```
-
-N bezeichnet die Anzahl der Personen je Skala und nicht die Anzahl der
-PV-Werte. Rundungsbedingt können sich ausgewiesene Prozentanteile geringfügig
-von 100,0 % unterscheiden.

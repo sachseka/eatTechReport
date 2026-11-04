@@ -33,6 +33,7 @@ jobs:
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: 'yes'
+      NOT_CRAN: 'true'
 
     steps:
       - uses: actions/checkout@v7
@@ -50,8 +51,8 @@ jobs:
           needs: check
           install-quarto: true
 
-      # Tests use synthetic inputs and XML fixtures. The private corporate
-      # template and a local Microsoft Word installation are not CI inputs.
+      # Tests include a Quarto render with synthetic inputs and the bundled
+      # layout. Microsoft Word is needed only for the local field-update check.
       - uses: r-lib/actions/check-r-package@v2
         with:
           args: 'c("--no-manual", "--as-cran")'

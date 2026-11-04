@@ -1,0 +1,43 @@
+## Testdesign {#pilotierung_design}
+
+```{r}
+#| label: pilotierung_design_pool_text
+#| results: asis
+inventory <- input$data$design$items
+pilot_inventory <- inventory[inventory$role == "pilot", , drop = FALSE]
+cat("Für den VERA-Durchgang im Schuljahr ", config$report$main_year - 1, "/",
+    substr(config$report$main_year, 3, 4), " wurden ",
+    length(unique(pilot_inventory$task_id)), " Aufgaben mit ", nrow(pilot_inventory),
+    " Items pilotiert.\n\n", sep = "")
+```
+
+```{r}
+#| label: pilotierung_design_pool_tabelle
+#| results: asis
+pool <- results$design$pool
+roles <- c(pilot = "Pilotierungsitems", anchor = "Ankeritems")
+pool_table <- data.frame(
+  "Bereich" = paste0(pool$domain_label, " (", pool$domain_id, ")"),
+  "Rolle" = unname(roles[pool$role]),
+  "Aufgaben" = pool$n_tasks,
+  "Items" = pool$n_items,
+  check.names = FALSE
+)
+for (i in seq_len(nrow(pool_table))) {
+  cat("Im Bereich ", eatTechReport:::report_markdown_text(pool_table$Bereich[i]),
+      " wurden ", pool_table$Aufgaben[i], " Aufgaben mit ", pool_table$Items[i],
+      " ", pool_table$Rolle[i], " eingesetzt.\n\n", sep = "")
+}
+```
+
+*Anmerkung.* Eine Aufgabe kann mehrere Items umfassen. Aufgaben und Items, die
+in mehreren Testheften eingesetzt wurden, werden jeweils nur einmal gezählt.
+
+```{r}
+#| label: pilotierung_design_fach
+#| results: asis
+if (config$report$subject == "ma") {
+  cat("Für das spätere Basismodul und für die Ergänzungsmodule wurden ",
+      "separate Blöcke von Testaufgaben zusammengestellt.\n\n", sep = "")
+}
+```

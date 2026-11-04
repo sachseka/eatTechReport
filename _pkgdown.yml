@@ -1,4 +1,4 @@
-# Planned website address; building this site does not deploy it.
+# Local builds do not deploy; the GitHub workflow publishes main via Pages.
 url: https://sachseka.github.io/eatTechReport/
 destination: _pkgdown
 development:
@@ -9,12 +9,13 @@ template:
   math-rendering: mathjax
   bslib:
     primary: "#B40036"
+    secondary: "#00818D"
     link-color-dark: "#FF8FAC"
 home:
   title: Technische VERA-Berichte aus R und Quarto
   description: >
-    PV-Kennzahlen, Kompetenzstufenanteile und Dichtegrafiken für VERA-3
-    sowie Word-Berichte aus redigierbaren Quarto-Textbausteinen.
+    Technische VERA-3-Berichte aus R und redigierbaren Quarto-Texten:
+    Pilotierung, Haupttestmodule, Itemkennwerte und Umrechnungsformeln.
 navbar:
   structure:
     left: [intro, reference, articles, news]
@@ -26,8 +27,12 @@ navbar:
     articles:
       text: Anleitungen
       menu:
-        - text: Leistungskennzahlen und PVs
+        - text: Testdesign und Stichprobe
+          href: articles/pilotierung.html
+        - text: Kompetenzkennwerte und PVs
           href: articles/leistung.html
+        - text: Haupttest-Auswahl und Module
+          href: articles/haupttest.html
         - text: Word-Bericht und Textredaktion
           href: articles/textredaktion.html
 reference:
@@ -35,11 +40,14 @@ reference:
     contents:
       - example_report
       - example_leistung_input
+      - validate_report_input
       - validate_leistung_input
   - title: Kennzahlen und Grafiken
     contents:
+      - summarise_report_input
       - summarise_leistung_input
       - plot_performance
+      - plot_item_levels
   - title: Word-Bericht und Textredaktion
     contents:
       - render_report
@@ -49,5 +57,7 @@ articles:
     navbar: ~
     contents:
       - einstieg
+      - pilotierung
+      - haupttest
       - leistung
       - textredaktion

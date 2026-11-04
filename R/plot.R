@@ -8,10 +8,13 @@
 #' @param bandwidth A positive smoothing bandwidth in reporting-scale units.
 #'   If `NULL`, use the mean of [stats::bw.nrd0()] calculated separately for
 #'   each PV. The same bandwidth is then used for all PVs of this scale.
+#' @param font_family A single, nonempty font-family name. The device-neutral
+#'   default is `"sans"`; Word reports use `"Arial"` explicitly.
 #' @return A ggplot object. Attributes `population_percentages` and
 #'   `descriptives` contain the unrounded results for this scale. Attributes
 #'   `density_data` and `density_bandwidth` record the plotted density and its
-#'   smoothing bandwidth.
+#'   smoothing bandwidth. Attribute `report_note` holds the explanatory note
+#'   for placement below the figure; it is not drawn inside the plot.
 #' @details A Gaussian kernel density is calculated for each PV on one common
 #'   grid, then the densities are averaged. The automatic bandwidth depends on
 #'   the person count within each PV, not on the artificial sample size obtained
@@ -28,7 +31,11 @@
 #' demo <- example_report()
 #' plot_performance(demo, "DL")
 #' @export
-plot_performance <- function(input, scale_id, bandwidth = NULL) {
+plot_performance <- function(input, scale_id, bandwidth = NULL, font_family = "sans") {
+  if (!is.character(font_family) || length(font_family) != 1L ||
+      is.na(font_family) || !nzchar(trimws(font_family))) {
+    stop("font_family muss eine nichtleere Zeichenkette sein.", call. = FALSE)
+  }
   results <- summarise_leistung_input(input)
   if (!is.character(scale_id) || length(scale_id) != 1L || is.na(scale_id) ||
       !scale_id %in% names(input$config$scales)) {
@@ -75,23 +82,31 @@ plot_performance <- function(input, scale_id, bandwidth = NULL) {
   )
   labels <- data.frame(
     value = (bands$lower + bands$upper) / 2,
-    density = peak * 1.17,
-    label = paste0(percentages$level_label, "\n",
-                    formatC(percentages$percent, format = "f", digits = 1,
-                            decimal.mark = ","), " %")
+    density = peak * 1.26,
+    level_label = percentages$level_label,
+    percent_density = peak * 1.15,
+    percent_label = sprintf('plain("%s")*scriptstyle(phantom("."))*plain("%%")',
+      formatC(percentages$percent, format = "f", digits = 1, decimal.mark = ","))
   )
-  format_number <- function(x) formatC(x, format = "f", digits = 1, decimal.mark = ",")
-  subtitle <- paste0("N = ", descriptives$n_persons,
-                      "  |  M = ", format_number(descriptives$mean),
-                      "  |  SD = ", format_number(descriptives$sd),
-                      "  |  ", descriptives$n_pv, " PVs")
-  caption <- "Alle F\u00e4lle, ungewichtet. Anteile je PV berechnet und anschlie\u00dfend gemittelt."
-  if (input$config$report$data_origin == "synthetic") {
-    caption <- paste0("Synthetisches Beispiel; illustrative Stufengrenzen.\n", caption)
+  # At the report's 15.5 cm width, adjacent 11 pt percentages need separate
+  # rows in narrow bands. Keep the level labels aligned and move only every
+  # second crowded percentage, without changing the density or axis limits.
+  lower_row <- rep(FALSE, nrow(labels))
+  for (i in seq_len(nrow(labels))[-1L]) {
+    close <- labels$value[i] - labels$value[i - 1L] < diff(limits) * 0.12
+    lower_row[i] <- close && !lower_row[i - 1L]
   }
+  labels$percent_density[lower_row] <- peak * 1.06
+  format_number <- function(x) formatC(x, format = "f", digits = 1, decimal.mark = ",")
+  subtitle <- bquote(italic(N) == .(descriptives$n_persons) ~ " | " ~
+                       italic(M) == .(format_number(descriptives$mean)) ~ " | " ~
+                       italic(SD) == .(format_number(descriptives$sd)) ~ " | " ~
+                       .(descriptives$n_pv) ~ "PVs")
+  note <- performance_plot_note(input$config)
 
   # Locally bound names keep ggplot's data-mask expressions visible to R checks.
-  value <- density <- lower <- upper <- fill <- label <- NULL
+  value <- density <- lower <- upper <- fill <- level_label <- NULL
+  percent_density <- percent_label <- NULL
   plot <- ggplot2::ggplot(density_data, ggplot2::aes(x = value, y = density)) +
     ggplot2::geom_rect(
       data = bands,
@@ -104,28 +119,49 @@ plot_performance <- function(input, scale_id, bandwidth = NULL) {
     ggplot2::geom_line(colour = "#B40036", linewidth = 0.8) +
     ggplot2::geom_vline(xintercept = scale$cuts, colour = "#82767B",
                        linetype = "dashed", linewidth = 0.4) +
-    ggplot2::geom_text(data = labels, ggplot2::aes(label = label),
-                       colour = "#271A2B", size = 3.5, lineheight = 1.1) +
+    ggplot2::geom_text(data = labels, ggplot2::aes(label = level_label),
+                       colour = "#271A2B", family = font_family, size = 11 * 25.4 / 72.27,
+                       lineheight = 1.2) +
+    # A small invisible spacer gives the percentage sign breathing room while
+    # remaining portable to the standard PDF device (unlike Unicode thin space).
+    ggplot2::geom_text(data = labels,
+                       ggplot2::aes(x = value, y = percent_density, label = percent_label),
+                       inherit.aes = FALSE, parse = TRUE, colour = "#271A2B",
+                       family = font_family, size = 11 * 25.4 / 72.27) +
     ggplot2::scale_x_continuous(limits = limits, breaks = axis_breaks, labels = axis_labels,
                                expand = ggplot2::expansion(mult = 0)) +
     ggplot2::scale_y_continuous(labels = axis_labels,
                                expand = ggplot2::expansion(mult = c(0, 0.02))) +
     ggplot2::labs(title = scale$label, subtitle = subtitle,
-                   x = "Leistung auf der 500er-Berichtsskala", y = "Dichte",
-                   caption = caption) +
-    ggplot2::theme_minimal(base_size = 11, base_family = "sans") +
+                   x = "Kompetenz auf der 500er-Berichtsskala", y = "Dichte") +
+    ggplot2::theme_minimal(base_size = 11, base_family = font_family) +
     ggplot2::theme(
       panel.grid.minor = ggplot2::element_blank(),
       panel.grid.major.x = ggplot2::element_blank(),
       panel.grid.major.y = ggplot2::element_line(colour = "#E7E3E5", linewidth = 0.3),
       plot.title = ggplot2::element_text(face = "bold", colour = "#271A2B"),
       plot.subtitle = ggplot2::element_text(margin = ggplot2::margin(b = 10)),
-      plot.caption = ggplot2::element_text(hjust = 0, colour = "#625A5E", size = 9),
+      axis.text = ggplot2::element_text(size = 11),
+      axis.text.y = ggplot2::element_text(margin = ggplot2::margin(r = 2)),
+      axis.title.y = ggplot2::element_text(margin = ggplot2::margin(r = 2)),
+      plot.margin = ggplot2::margin(5.5, 2, 5.5, 2),
       plot.background = ggplot2::element_rect(fill = "white", colour = NA)
     )
   attr(plot, "population_percentages") <- percentages
   attr(plot, "descriptives") <- descriptives
   attr(plot, "density_data") <- density_data
   attr(plot, "density_bandwidth") <- bandwidth
+  attr(plot, "report_note") <- note
   plot
+}
+
+performance_plot_note <- function(config) {
+  note <- paste0("Die Angaben beziehen sich auf alle ausgewerteten Sch\u00fclerinnen und Sch\u00fcler ",
+    "der jeweiligen Skala; es wurden keine Gewichte verwendet. Die Kompetenzstufenanteile ",
+    "wurden f\u00fcr jeden Plausible Value berechnet und anschlie\u00dfend gemittelt. ",
+    "Rundungsbedingt k\u00f6nnen sich die Prozentanteile geringf\u00fcgig von 100,0 % unterscheiden.")
+  if (identical(config$report$data_origin, "synthetic")) {
+    note <- paste0("Synthetisches Beispiel mit illustrativen Stufengrenzen. ", note)
+  }
+  note
 }

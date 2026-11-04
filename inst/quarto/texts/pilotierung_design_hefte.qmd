@@ -1,0 +1,38 @@
+Die Testaufgaben wurden zunächst zu
+`r results$design$totals$n_blocks` Blöcken zusammengefasst und anschließend
+verschiedenen Testheften zugewiesen, sodass einzelne Schülerinnen und Schüler
+nur Teilmengen des gesamten Itempools bearbeiteten. Insgesamt kamen
+`r results$design$totals$n_booklets` Testhefte zum Einsatz.
+
+```{r}
+#| label: pilotierung_design_hefttabellen
+#| results: asis
+design_parts <- eatTechReport:::study_design_tables(results$design)
+for (i in seq_along(design_parts)) {
+  part <- design_parts[[i]]
+  rule <- part$rule
+  cat("\n\n", eatTechReport:::report_markdown_text(rule$assignment_description), "\n\n", sep = "")
+  for (j in seq_along(part$parts)) {
+    id <- paste0("tbl-pilotierung-design-", i, "-", j)
+    continuation <- if (length(part$parts) > 1L) paste0(" (Teil ", j, " von ", length(part$parts), ")") else ""
+    title <- if (config$report$subject == "ma") {
+      paste0("Modularisiertes Testdesign der Pilotierungsstudie ", config$report$pilot_year)
+    } else paste0("Teildesign der Pilotierungsstudie ", config$report$pilot_year,
+                  " für den Kompetenzbereich „", rule$label, "“")
+    cat("\n\n@", id, " zeigt die Abfolge der Testblöcke", continuation, ".\n\n", sep = "")
+    cat("\n\nTable: ", eatTechReport:::report_markdown_text(paste0(title, continuation)),
+        ". {#", id, "}\n\n", sep = "")
+    cat(eatTechReport:::study_design_table_markdown(part$parts[[j]]))
+  }
+  cat("\n\n::: {custom-style=\"TableNote\"}\n\n*Anmerkungen.* ",
+      "Die Spalten geben die Reihenfolge der Testblöcke wieder. ",
+      "Dunkel hinterlegte Zellen kennzeichnen ausdrücklich als Normierungsblöcke angegebene Blöcke. ",
+      "Ein Gedankenstrich bezeichnet einen nicht belegten Block. ", sep = "")
+  if (any(part$slots$kind == "pause")) {
+    cat("Die schmale Leerspalte trennt die Blöcke vor und nach der Pause. ")
+  }
+  if (config$report$subject == "ma") cat("BM = Basismodul; EM = Ergänzungsmodul. ")
+  cat(eatTechReport:::report_markdown_text(eatTechReport:::study_design_timing_note(part)),
+      "\n\n:::\n\n", sep = "")
+}
+```

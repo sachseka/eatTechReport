@@ -1,0 +1,304 @@
+---
+title: "Haupttest-Auswahl und Module"
+lang: de
+format:
+  html:
+    minimal: true
+execute:
+  warning: false
+  message: false
+---
+
+Der Umfang `haupttest_struktur` ergänzt die Pilotierungsabschnitte um die
+ausgewählten Aufgaben und Items der Hauptstudie sowie deren Modulzuordnung.
+Er beschreibt auch ihre Herkunft aus einer oder mehreren Pilotierungswellen.
+Mit `scope = "bericht"` kommen Itemkennwerte, Umrechnungsformeln sowie die
+abschließenden Hinweise zur Auswertung, Rückmeldung und Literatur hinzu.
+Die Auswahl erfolgt in der vorgelagerten Auswertung; das Berichtspaket trifft
+keine Auswahlentscheidung anhand automatisch gesetzter Gütekriterien.
+
+## Beispiel und Ergebnisse
+
+```{r}
+library(eatTechReport)
+demo <- example_report(scope = "haupttest_struktur", n_persons = 24)
+validate_report_input(demo)
+haupttest <- summarise_report_input(demo)$main_test
+knitr::kable(haupttest$totals)
+knitr::kable(haupttest$modules)
+```
+
+Diese Daten einschließlich Zeiten, Auswahl und Pilotierungsjahren sind
+**synthetisch**. Das Beispiel enthält wiederverwendete Items, mehrere Module
+derselben Domäne und Items aus einer früheren Pilotierungswelle. Für Mathematik
+steht `example_report("v3_ma_mg_mm", scope = "haupttest_struktur")` bereit;
+alle Leitideen bleiben der Skala `MO` zugeordnet.
+
+Schema `0.4.0-draft` benötigt neben `population`, `pvs`, `design` und `sample`
+den Baustein `main_test`. Die bisherigen Umfänge bleiben unverändert gültig;
+`example_report()` verwendet weiterhin standardmäßig `pilotierung`.
+
+## Eingabetabellen
+
+`data$main_test` enthält fünf erforderliche nicht leere R-Datentabellen. IDs und
+Bezeichnungen sind Zeichenketten. Ein Item steht genau einmal im Inventar;
+Wiederverwendungen werden in den Zuordnungstabellen erfasst.
+
+| Tabelle | Spalten | Bedeutung |
+| --- | --- | --- |
+| `items` | `item_id`, `task_id`, `task_label`, `domain_id` | Ausgewählte Items und ihre Aufgabe. Eine Aufgabe hat eine konsistente Bezeichnung und Domäne. |
+| `modules` | `module_id`, `label`, `module_type`, `position`, `duration_minutes` | Modulbezeichnung, Typ (`base`, `supplement`, `domain`), Darstellungsreihenfolge und vorgegebene Bearbeitungszeit. |
+| `module_items` | `module_id`, `item_id`, `task_position`, `item_position` | Ausgewählte Items je Modul; Aufgabenreihenfolge im Modul und Itemreihenfolge innerhalb der Aufgabe. |
+| `waves` | `wave_id`, `pilot_year`, `label` | Dokumentierte Pilotierungswellen mit Jahr und Bezeichnung. Mehrere Wellen im selben Jahr sind möglich. |
+| `item_waves` | `item_id`, `wave_id` | Eine oder mehrere dokumentierte Pilotierungswellen je ausgewähltem Item. |
+| `item_levels` (optional) | `item_id`, `level_label` | Eine fachlich gelieferte Kompetenzstufe je ausgewähltem Item für die Stufengrafiken. |
+
+Jedes Item benötigt mindestens eine Modul- und eine Wellenzuordnung. Jedes
+angegebene Modul und jede Welle müssen verwendet werden. Die ausgewählten Items
+müssen nicht im Itempool der aktuell beschriebenen Pilotierung vorkommen:
+Wiederverwendungen aus früheren Wellen sind ausdrücklich möglich.
+
+Positionsangaben sind positive ganze Zahlen. `modules$position` ordnet die
+Darstellung der Module im Bericht; sie beschreibt **keine Testheftzusammenstellung**.
+In einem Modul hat jede Aufgabe eine eindeutige Position. Innerhalb der Aufgabe
+haben ihre Items jeweils eindeutige Positionen. Lücken in den Positionen sind
+zulässig. Alle Zeiten werden ausdrücklich geliefert, nicht aus Pilotblöcken
+oder Fachnamen abgeleitet. Die Modulzeiten werden nicht zu einer individuellen
+Testzeit summiert.
+
+Mehrere Module einer Deutsch-Domäne sowie Basis- und Ergänzungsmodule sind
+möglich. Ein Modul kann Items mehrerer Domänen enthalten. Domäne und
+psychometrische Skala werden über `config$domains` verbunden; Module erzeugen
+keine zusätzlichen Skalen.
+
+## Aufgabentitel direkt aus R übergeben
+
+Die Aufgabenmatrix übernimmt ihre Texte aus `data$main_test$items$task_label`.
+Alle Items mit derselben `task_id` benötigen denselben Titel. Eine separate
+CSV-Datei oder nachträgliches Ändern der Word-Tabelle ist dafür nicht nötig.
+Eine benannte Zuordnung aus dem Aufgabenkatalog lässt sich direkt übernehmen:
+
+```{r}
+benannt <- demo
+aufgabentitel <- c(
+  DL_T1 = "Beispieltext A",
+  DL_T_ALT = "Beispieltext B",
+  DH_T1 = "Hörbeispiel A",
+  DH_T_ALT = "Hörbeispiel B"
+)
+items <- benannt$data$main_test$items
+stopifnot(all(items$task_id %in% names(aufgabentitel)))
+benannt$data$main_test$items$task_label <- unname(aufgabentitel[items$task_id])
+validate_report_input(benannt)
+knitr::kable(unique(benannt$data$main_test$items[c("task_id", "task_label")]))
+```
+
+Die IDs steuern weiterhin die Zuordnung; redigierbar ist die sichtbare
+Bezeichnung. Für die Word-Ausgabe wird anschließend `benannt$config` mit
+`benannt$data` an `render_report()` übergeben.
+
+## Zählregeln
+
+Gesamtzahlen zählen eindeutige Aufgaben- und Item-IDs. Ein Item in zwei Modulen
+wird insgesamt einmal und in jedem dieser Module einmal gezählt. Die
+Aufgabenliste zeigt jeweils die Anzahl der tatsächlich dem Modul zugeordneten
+Items; verschiedene Module dürfen unterschiedliche Teile derselben Aufgabe
+enthalten.
+
+```{r}
+knitr::kable(haupttest$tasks)
+knitr::kable(haupttest$waves)
+```
+
+Wellenzahlen können sich überschneiden, wenn ein Item in mehreren Wellen
+pilotiert wurde. Sie sind dann keine addierbare Zerlegung der Gesamtauswahl.
+Das Ergebnis kennzeichnet diesen Fall mit `source_overlap`; auch im Bericht
+wird auf ihn hingewiesen.
+
+Die Word-Ausgabe enthält außerdem eine **Aufgabenmatrix** wie Tabelle 3.2 der
+bisherigen Berichte, mit kurzen Modulbezeichnungen als Spalten und den
+Aufgabenpositionen als Zeilen. Jede Zelle nennt die an
+dieser Position vorgesehene Aufgabe. Damit lassen sich
+die Aufgabenfolgen von Basismodul und Ergänzungsmodulen unmittelbar vergleichen.
+Ein Gedankenstrich bezeichnet eine nicht belegte Position. Wiederverwendete
+Aufgaben erscheinen in jedem zugehörigen Modul; ihre Position kann sich dabei
+unterscheiden.
+
+Im Mathematikbeispiel stehen Basismodul und jeweils zwei Ergänzungsmodule
+der beiden Leitideen in einer Tabelle mit fünf Modulspalten nebeneinander.
+In Deutsch wird die Matrix je Kompetenzbereich dargestellt. Schattierungen
+in den Corporate-Farben unterscheiden Basis- und Ergänzungsmodule. Die vollständigen
+Modulbezeichnungen werden unter der Tabelle in den *Anmerkungen* erläutert.
+Beschriftung und Verweis im Fließtext erhalten die Kapitelnummer automatisch.
+
+## Itemverteilung auf die Kompetenzstufen
+
+Die optionale Tabelle `item_levels` enthält für jedes ausgewählte Item genau
+eine Stufenzuordnung. `level_label` verwendet eine der Bezeichnungen seiner
+konfigurierten Skala, derzeit Ia, Ib, II, III oder IV. Unbekannte Items,
+doppelte Zuordnungen, fehlende Items und unzulässige Stufen werden zurückgewiesen.
+
+Die Zuordnung erfolgt in der vorgelagerten fachlichen Auswertung. Das Paket
+leitet Itemstufen weder aus den Personen-PVs noch aus deren numerischen Cuts ab.
+Für polytome Items muss dort ebenfalls eine fachlich festgelegte Itemstufe
+geliefert werden; diese Grafik zählt Items, nicht einzelne Schwellen.
+
+```{r}
+demo$data$main_test$item_levels
+```
+
+Die folgenden Grafiken verwenden ausschließlich **synthetische Zuordnungen**.
+Auch bei null Items bleiben die vorgesehenen Kompetenzstufen sichtbar.
+Im Modulvergleich erscheint ein wiederverwendetes Item in jedem zugehörigen
+Modul einmal. Die Anordnung folgt den bisherigen Berichten: In Deutsch
+werden die Module einer Skala gemeinsam verglichen.
+
+```{r}
+#| fig-width: 6.1
+#| fig-height: 3.31
+#| fig-cap: "Verteilung der Items in den Testmodulen Lesen auf die Kompetenzstufen (synthetisches Beispiel)."
+#| fig-alt: "Schmale gruppierte Balken für DL-BM, DL-EM-A und DL-EM-B; kurze Legende rechts."
+plot_item_levels(demo, "DL", by = "module")
+```
+
+*Anmerkungen.* DL-BM = Lesen Basismodul, DL-EM-A = Lesen Ergänzungsmodul A,
+DL-EM-B = Lesen Ergänzungsmodul B. Sämtliche Stufenzuordnungen sind synthetisch.
+
+In Mathematik steht das globale Basismodul in einer eigenen Abbildung.
+Die Ergänzungsmodule werden je Leitidee gemeinsam verglichen; alle verwenden
+weiterhin die globale Kompetenzskala `MO` und dieselbe Größenachse.
+
+```{r}
+#| fig-width: 6.1
+#| fig-height: 3.31
+#| fig-cap: "Verteilung der Items des Mathematik-Basismoduls auf die Kompetenzstufen (synthetisches Beispiel)."
+#| fig-alt: "Einzelne schmale Balken für das globale Basismodul MO-BM; Legende rechts."
+ma <- example_report("v3_ma_mg_mm", scope = "haupttest_struktur", n_persons = 24)
+plot_item_levels(ma, "MO", by = "module", module_ids = "MA_BM")
+```
+
+*Anmerkung.* MO-BM = Mathematik Basismodul. Die Modul-ID `MA_BM` ist ein
+interner Schlüssel des Beispiels; die Abbildung verwendet das Skalenkürzel `MO`.
+
+```{r}
+#| fig-width: 6.1
+#| fig-height: 3.31
+#| fig-cap: "Verteilung der Items in den Ergänzungsmodulen Größen und Messen (synthetisches Beispiel)."
+#| fig-alt: "Gruppierte schmale Balken für MG-EM-A und MG-EM-B; Legende rechts."
+plot_item_levels(ma, "MO", by = "module", module_ids = c("MG_EM", "MG_EM_B"))
+```
+
+*Anmerkungen.* MG-EM-A und MG-EM-B = Größen und Messen Ergänzungsmodule A und B.
+
+```{r}
+#| fig-width: 6.1
+#| fig-height: 3.31
+#| fig-cap: "Verteilung der Items in den Ergänzungsmodulen Muster und Strukturen (synthetisches Beispiel)."
+#| fig-alt: "Gruppierte schmale Balken für MM-EM-A und MM-EM-B; Legende rechts."
+plot_item_levels(ma, "MO", by = "module", module_ids = c("MM_EM", "MM_EM_B"))
+```
+
+*Anmerkungen.* MM-EM-A und MM-EM-B = Muster und Strukturen / Funktionaler
+Zusammenhang Ergänzungsmodule A und B.
+
+Die Corporate-Farben beginnen in jeder Abbildungsgruppe erneut mit Weinrot,
+Türkis und bei einer dritten Reihe Rosa. Dadurch verwendet zum Beispiel
+Zuhören dieselbe Palette wie Lesen. Die kurzen Legenden stehen rechts;
+bei einer einzigen Reihe in Deutsch entfällt die Legende. Direkte Zahlen
+auf den Balken sowie Titel und Anmerkungen innerhalb der Grafik entfallen.
+Im Bericht stehen Beschriftung, Fließtextverweis und Anmerkungen außerhalb.
+
+Mit `module_ids` lassen sich weitere Teilmengen darstellen. Die Größenachse
+berücksichtigt weiterhin alle Module derselben Skala; Farben und Kurzlabels
+bleiben bei Teilmengen erhalten. Die zusätzliche API-Ansicht
+`plot_item_levels(demo, "DL", by = "selection")` zählt jedes ausgewählte
+Item einmal. Der Bericht ergänzt damit keine weitere Gesamtauswahlgrafik.
+
+Bestehende Eingaben ohne `item_levels` bleiben gültig. Dann steht im
+Auswahlkapitel ein sichtbarer Platzhalter für die noch benötigte Zuordnung;
+es werden keine Stufen angenommen. Die Beispiele aus `example_report()`
+enthalten bereits illustrative Zuordnungen.
+
+## Itemkennwerte und Umrechnungen im vollständigen Bericht
+
+`scope = "bericht"` verwendet Schema `0.5.0-draft`. Zusätzlich zu den oben
+beschriebenen Eingaben benötigt dieser Umfang `data$main_test_results` mit
+genau den folgenden drei Bausteinen:
+
+| Baustein | Spalten beziehungsweise Felder | Bedeutung |
+| --- | --- | --- |
+| `item_statistics` | `item_id`, `p_correct`, `logit` | Genau eine Zeile je ausgewähltem Item: Lösungshäufigkeit als Anteil zwischen 0 und 1 sowie Itemschwierigkeit auf der dokumentierten Logit-Metrik. |
+| `transformations` | `scale_id`, `target`, `intercept`, `slope`, `source_label` | Je verwendeter Skala eine Zeile für Personen (`person`) und eine für Items (`item`); endliche Koeffizienten mit positivem `slope` sowie eine Quellen- oder Standangabe. |
+| `definitions` | `p_correct`, `logit`, `population` | Benannte Liste mit je einem Beschreibungstext für Lösungshäufigkeit, Logit-Metrik und zugrunde liegende Auswertungspopulation. |
+
+Die Tabellen haben genau die angegebenen Spalten. Itemkennwerte müssen
+vollständig sein; unbekannte oder doppelte Item-IDs werden zurückgewiesen.
+Die Definition der Lösungshäufigkeit muss Erfolgskriterium und Prozentnenner
+erläutern, insbesondere für mehrstufig bewertete Items. Die Logitwerte müssen
+innerhalb einer Skala auf derselben, ausdrücklich beschriebenen Metrik liegen.
+Die Kennwerte beziehen sich auf die Pilotierungsdaten der ausgewählten Items.
+
+```{r}
+vollstaendig <- example_report(scope = "bericht", n_persons = 24)
+validate_report_input(vollstaendig)
+ergebnisse <- summarise_report_input(vollstaendig)$main_test_results
+knitr::kable(ergebnisse$module_statistics)
+knitr::kable(ergebnisse$transformations)
+```
+
+Die Modulübersicht berichtet ungewichtete Mittelwerte über die zugehörigen
+Items, getrennt nach Skala. Jedes Item geht je Modul einmal ein. Diese
+Mittelwerte beschreiben die Items und sind keine Kennwerte der Personenkompetenz.
+Das Ergebnis `item_statistics` enthält außerdem die aus den gelieferten
+Itemkoeffizienten berechneten Berichtswerte (`report_score`).
+
+Für beide Transformationsziele gilt:
+
+$$
+\text{Berichtswert} = \text{intercept} + \text{slope} \cdot \text{Logitwert}
+$$
+
+**Die Koeffizienten im Beispiel sind ausschließlich synthetisch und keine
+freigegebenen VERA-Umrechnungen.** Reale Koeffizienten einschließlich einer
+gegebenenfalls nötigen Anpassung des Lösungswahrscheinlichkeitskriteriums
+für Items werden in der vorgelagerten Auswertung festgelegt. Das Paket leitet
+sie weder aus den Personen-PVs noch aus den Kompetenzstufengrenzen ab.
+Personen-PVs liegen bereits auf der 500er-Berichtsskala vor und werden für
+die Kompetenzdarstellung nicht erneut umgerechnet.
+
+## Redaktion und Word-Ausgabe
+
+```{r}
+#| eval: false
+edit_report_texts("lokal/redaktion-bericht", scope = "bericht")
+bericht <- render_report(
+  config = vollstaendig$config,
+  data = vollstaendig$data,
+  text_dir = "lokal/redaktion-bericht",
+  output_dir = "lokal/bericht-de"
+)
+```
+
+Der vollständige Umfang verwendet **15 öffentliche Quarto-Bausteine**.
+Zu den zehn Bausteinen von `haupttest_struktur`, einschließlich
+`haupttest_auswahl.qmd` und `haupttest_module.qmd`, kommen fünf hinzu:
+
+- `haupttest_itemprofil.qmd`: Itemkennwerte der Testmodule;
+- `haupttest_transformation.qmd`: getrennte Personen- und Itemumrechnungen;
+- `haupttest_auswertungshinweise.qmd`: Hinweise zur Auswertung;
+- `rueckmeldung_empfehlungen.qmd`: Empfehlungen für die Rückmeldung;
+- `literatur.qmd`: Literaturverzeichnis.
+
+Die Voreinstellung `pilotierung` bleibt bei acht Bausteinen. Auswahlbegründungen
+und weitere Textvariablen stehen zunächst in eckigen Klammern. Der Textordner
+muss alle Bausteine des beim Rendern gewählten Umfangs enthalten. Vorhandene
+redigierte Dateien sollten beim Ergänzen der neuen Dateien beibehalten werden.
+Optional vorhandene lokale Kompetenz- und Methodentexte werden weiterhin
+eingebunden und archiviert.
+
+Damit lässt sich ein durchgängiger Beispielbericht bis zum Literaturverzeichnis
+erzeugen. Die fachliche Redaktion und Freigabe der Texte sowie die
+durchgangsspezifischen Angaben bleiben für reale Berichte erforderlich.
+Der fachliche Vorjahresvergleich folgt in einer späteren Etappe. Der
+gespeicherte Archivstand enthält die vollständigen Eingaben, Ergebnisse
+und verwendeten Textdateien dieser Erweiterung.

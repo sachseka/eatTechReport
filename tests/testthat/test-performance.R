@@ -1,7 +1,7 @@
 test_that("synthetic profiles use the agreed identifiers and defaults", {
   de <- example_leistung_input()
   ma <- example_leistung_input("v3_ma_mg_mm")
-  expect_identical(example_report(), de)
+  expect_identical(example_report(scope = "pilotierung_leistung"), de)
   expect_identical(names(de$config$scales), c("DL", "DH"))
   expect_identical(de$config$domains$domain_id, c("DL", "DH"))
   expect_identical(de$config$domains$scale_id, c("DL", "DH"))

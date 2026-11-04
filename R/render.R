@@ -1,20 +1,26 @@
 #' Copy editable Quarto text blocks
 #'
-#' Copies the text blocks for the current performance report into a working
+#' Copies the text blocks for the selected report scope into a working
 #' directory. Edit these copies and pass the directory to [render_report()].
 #' The package installation itself is never edited.
 #'
 #' @param path Local directory for the editable text blocks.
 #' @param overwrite Whether existing blocks may be replaced. Defaults to FALSE.
+#' @param scope Report scope: `"pilotierung"` for design, sample and performance,
+#'   `"pilotierung_leistung"` for the performance section only, or
+#'   `"haupttest_struktur"` to also include main-test selection and modules.
+#'   `"bericht"` includes the final chapters and references as well.
 #' @return Invisibly, the paths of the copied Quarto files.
 #' @export
 #' @examples
 #' texts <- tempfile("report-texts-")
 #' edit_report_texts(texts)
-edit_report_texts <- function(path, overwrite = FALSE) {
+edit_report_texts <- function(path, overwrite = FALSE,
+                              scope = c("pilotierung", "pilotierung_leistung", "haupttest_struktur", "bericht")) {
+  scope <- match.arg(scope)
   check_report_path(path, "path")
   check_report_flag(overwrite, "overwrite")
-  sources <- report_text_files()
+  sources <- report_text_files(scope = scope)
   targets <- file.path(path, basename(sources))
   if (!overwrite && any(file.exists(targets))) {
     stop("Textbausteine existieren bereits; zum Ersetzen overwrite = TRUE angeben.", call. = FALSE)
@@ -28,15 +34,18 @@ edit_report_texts <- function(path, overwrite = FALSE) {
   invisible(normalizePath(targets, winslash = "/"))
 }
 
-#' Render the performance chapter with the mandatory corporate Word template
+#' Render a technical report with the corporate Word layout
 #'
-#' This first renderer covers the performance of the pilot sample only. It is
-#' not a complete technical report and does not invent content for other
-#' chapters. Inputs follow [example_leistung_input()] and are validated before
+#' The renderer covers test design, sample composition and performance for the
+#' pilot-study scope, or the performance section alone. Scope `haupttest_struktur`
+#' also adds main-test selection and modules. Scope `bericht` includes item
+#' statistics, supplied transformations, interpretation and references through
+#' the end of the report. Inputs follow [example_report()] and are validated before
 #' rendering. Synthetic data and illustrative cuts are explicitly labelled.
 #'
-#' The private corporate DOTX is required for every report. Its styles, page
-#' geometry, headers and footers are used to prepare a local DOCX reference.
+#' The package includes the corporate DOCX layout. Alternatively, supply a
+#' corporate DOTX or DOCX file. Its styles, page geometry, headers and footers
+#' are used to prepare a local DOCX reference with the report typography.
 #' Template body text is not imported. Missing Pandoc styles are derived from
 #' corporate styles. Quarto must be installed separately.
 #'
@@ -46,11 +55,19 @@ edit_report_texts <- function(path, overwrite = FALSE) {
 #' example `lokal/demo-de`. This snapshot is not a signed-off release archive;
 #' change comparison and margin markers are not implemented yet.
 #'
-#' @param config Report configuration from the performance input contract.
-#' @param data Performance input tables, including population and PV values.
-#' @param corporate_template Path to the mandatory corporate DOTX template.
+#' @param config Report configuration from [example_report()]. The cover uses
+#'   `config$report$authors` (names in display order) and
+#'   `config$report$affiliation` (shared affiliation, optionally multiple lines).
+#'   Earlier inputs without these fields receive visible placeholders.
+#' @param data Input tables including population, PV values and, for the
+#'   pilot-study scope, design and sample information.
+#' @param corporate_template Optional path to a corporate DOTX or DOCX template.
+#'   NULL uses the layout included with the package.
 #' @param text_dir Optional directory containing all editable Quarto blocks
-#'   created by [edit_report_texts()]. NULL uses the package blocks.
+#'   created by [edit_report_texts()]. For the pilot-study scope, optional local
+#'   blocks `grundlagen_kompetenzstufen.qmd`, `pilotierung_durchfuehrung.qmd`
+#'   and `pilotierung_auswertung.qmd` are also rendered and archived when present.
+#'   NULL uses the package blocks.
 #' @param output_dir Private local directory for the report and its snapshot.
 #' @param overwrite Allow replacement of an earlier eatTechReport rendering in
 #'   this directory. The earlier directory is retained as a sibling backup after
@@ -68,28 +85,33 @@ edit_report_texts <- function(path, overwrite = FALSE) {
 #' \dontrun{
 #' demo <- example_report()
 #' result <- render_report(demo$config, demo$data,
-#'                         corporate_template = "lokal/Bericht.dotx",
 #'                         output_dir = "lokal/demo-de")
 #' result$path
 #' }
 render_report <- function(config, data,
-                          corporate_template = "lokal/Bericht.dotx",
+                          corporate_template = NULL,
                           text_dir = NULL, output_dir, overwrite = FALSE,
                           update_fields = c("auto", "word", "none")) {
   update_fields <- match.arg(update_fields)
   input <- list(config = config, data = data)
-  validate_leistung_input(input)
+  validate_report_input(input)
+  if (is.null(corporate_template)) {
+    corporate_template <- system.file("templates", "eatTechReport.docx", package = "eatTechReport")
+    if (!nzchar(corporate_template)) {
+      stop("Die Corporate-Vorlage fehlt in der Paketinstallation.", call. = FALSE)
+    }
+  }
   check_report_path(corporate_template, "corporate_template")
   check_report_path(output_dir, "output_dir")
   check_report_flag(overwrite, "overwrite")
   if (!file.exists(corporate_template) || dir.exists(corporate_template)) {
     stop("Die verbindliche Corporate-Vorlage fehlt: ", corporate_template,
-         ". Es gibt keine Ersatzgestaltung.", call. = FALSE)
+         ".", call. = FALSE)
   }
-  if (tolower(tools::file_ext(corporate_template)) != "dotx") {
-    stop("corporate_template muss auf die freigegebene DOTX-Vorlage verweisen.", call. = FALSE)
+  if (!tolower(tools::file_ext(corporate_template)) %in% c("dotx", "docx")) {
+    stop("corporate_template muss auf eine DOTX- oder DOCX-Vorlage verweisen.", call. = FALSE)
   }
-  sources <- report_text_files(text_dir)
+  sources <- report_text_files(text_dir, scope = config$scope)
   if (!requireNamespace("knitr", quietly = TRUE) || !requireNamespace("rmarkdown", quietly = TRUE)) {
     stop("Die R-Ausfuehrung in Quarto benoetigt knitr und rmarkdown.", call. = FALSE)
   }
@@ -123,7 +145,7 @@ render_report <- function(config, data,
   if (!identical(dirname(output_dir), parent) || !identical(dirname(destination), parent)) {
     stop("Die Ausgabeordner liegen ausserhalb des angegebenen Zielverzeichnisses.", call. = FALSE)
   }
-  writeLines("eatTechReport performance rendering", file.path(output_dir, ".eatTechReport-render"))
+  writeLines("eatTechReport rendering", file.path(output_dir, ".eatTechReport-render"))
   archive_dir <- file.path(output_dir, "archive")
   text_path <- file.path(archive_dir, "texts")
   asset_path <- file.path(output_dir, "figures")
@@ -142,7 +164,7 @@ render_report <- function(config, data,
   if (!all(file.copy(sources, copied_texts, overwrite = TRUE))) {
     stop("Die Textbausteine konnten nicht in den Renderlauf kopiert werden.", call. = FALSE)
   }
-  summaries <- summarise_leistung_input(input)
+  summaries <- summarise_report_input(input)
   saveRDS(input, file.path(archive_dir, "inputs.rds"), version = 3)
   saveRDS(summaries, file.path(archive_dir, "summaries.rds"), version = 3)
   display_labels <- list(
@@ -152,9 +174,20 @@ render_report <- function(config, data,
   saveRDS(display_labels, file.path(archive_dir, "display-labels.rds"), version = 3)
   for (scale_id in names(config$scales)) {
     ggplot2::ggsave(file.path(asset_path, paste0(scale_id, ".png")),
-                    plot = plot_performance(input, scale_id),
-                    width = 6.2, height = 3.7, units = "in", dpi = 200, bg = "white")
+                    plot = plot_performance(input, scale_id, font_family = "Arial"),
+                    width = 15.5, height = 9.4, units = "cm", dpi = 200, bg = "white")
   }
+  item_figures <- main_test_figure_plan(config, summaries$main_test)
+  for (kind in names(item_figures)) {
+    for (figure in item_figures[[kind]]) {
+      ggplot2::ggsave(file.path(asset_path, figure$file),
+        plot = plot_item_levels(input, figure$scale_id,
+          by = if (kind == "selection") "selection" else "module",
+          module_ids = figure$module_ids, font_family = "Arial"),
+        width = figure$width, height = figure$height, units = "cm", dpi = 200, bg = "white")
+    }
+  }
+  saveRDS(item_figures, file.path(archive_dir, "item-figures.rds"), version = 3)
   main_source <- system.file("quarto", "report.qmd", package = "eatTechReport")
   if (!nzchar(main_source)) stop("Die Quarto-Hauptdatei fehlt in der Paketinstallation.", call. = FALSE)
   source <- file.path(output_dir, "report.qmd")
@@ -162,10 +195,9 @@ render_report <- function(config, data,
     stop("Die Quarto-Hauptdatei konnte nicht kopiert werden.", call. = FALSE)
   }
   subject <- if (config$report$subject == "de") "Deutsch" else "Mathematik"
-  title <- paste("Technischer Bericht VERA-3", config$report$main_year, "\u2013", subject)
-  subtitle <- if (config$report$data_origin == "synthetic") {
-    "Leistungsbaustein \u00b7 Synthetisches Beispiel"
-  } else "Leistungsbaustein \u00b7 Entwicklungsfassung"
+  title <- paste(c(paste("Vergleichsarbeiten", config$report$main_year),
+                   "3. Jahrgangsstufe", subject), collapse = "  \n")
+  subtitle <- "Technischer Bericht"
   quarto::quarto_render(
     input = source, output_format = "docx", output_file = "report.docx",
     metadata = list(title = title, subtitle = subtitle),
@@ -173,7 +205,7 @@ render_report <- function(config, data,
   )
   report_path <- file.path(output_dir, "report.docx")
   if (!file.exists(report_path)) stop("Quarto hat keine DOCX-Datei erzeugt.", call. = FALSE)
-  finalise_report_docx(report_path)
+  finalise_report_docx(report_path, report = config$report)
   fields_updated <- FALSE
   if (fields_requested) {
     update_docx_fields(report_path, file.path(archive_dir, "word-fields.log"))
@@ -279,15 +311,42 @@ check_report_flag <- function(value, label) {
   }
 }
 
-report_text_files <- function(text_dir = NULL) {
+report_text_files <- function(text_dir = NULL,
+                              scope = c("pilotierung", "pilotierung_leistung", "haupttest_struktur", "bericht")) {
+  scope <- match.arg(scope)
   expected <- c("grundlagen_ueberblick.qmd", "pilotierung_leistung.qmd", "leistung_methoden.qmd")
+  if (scope %in% c("pilotierung", "haupttest_struktur", "bericht")) expected <- c(expected, study_text_names())
+  if (scope %in% c("haupttest_struktur", "bericht")) {
+    expected <- c(expected, "haupttest_auswahl.qmd", "haupttest_module.qmd")
+  }
+  if (scope == "bericht") expected <- c(expected, report_completion_text_names())
   if (is.null(text_dir)) text_dir <- system.file("quarto", "texts", package = "eatTechReport")
   check_report_path(text_dir, "text_dir")
   paths <- file.path(text_dir, expected)
   if (!all(file.exists(paths)) || any(dir.exists(paths))) {
     stop("text_dir muss alle Textbausteine enthalten: ", paste(expected, collapse = ", "), call. = FALSE)
   }
+  if (scope %in% c("pilotierung", "haupttest_struktur", "bericht")) {
+    optional <- file.path(text_dir, c("grundlagen_kompetenzstufen.qmd",
+                                      "pilotierung_durchfuehrung.qmd",
+                                      "pilotierung_auswertung.qmd"))
+    if (any(dir.exists(optional))) {
+      stop("Optionale Textbausteine muessen Dateien sein, keine Verzeichnisse.", call. = FALSE)
+    }
+    paths <- c(paths, optional[file.exists(optional)])
+  }
   paths
+}
+
+study_text_names <- function() {
+  paste0(c("pilotierung_design_pool", "pilotierung_design_hefte",
+           "pilotierung_stichprobe_ruecklauf", "pilotierung_stichprobe_merkmale",
+           "pilotierung_stichprobe_bearbeitungen"), ".qmd")
+}
+
+report_completion_text_names <- function() {
+  paste0(c("haupttest_itemprofil", "haupttest_transformation",
+           "haupttest_auswertungshinweise", "rueckmeldung_empfehlungen", "literatur"), ".qmd")
 }
 
 word_ns <- function() c(w = "http://schemas.openxmlformats.org/wordprocessingml/2006/main",
@@ -312,7 +371,7 @@ pack_word_package <- function(directory, path) {
             include_directories = FALSE, mode = "mirror")
 }
 
-# Kept inside the output directory: these files contain private corporate assets.
+# Work on a copy: externally supplied templates may contain private material.
 prepare_corporate_reference <- function(template, reference) {
   directory <- tempfile(".corporate-parts-", tmpdir = dirname(reference))
   on.exit(remove_word_parts(directory, dirname(reference)), add = TRUE)
@@ -320,9 +379,10 @@ prepare_corporate_reference <- function(template, reference) {
   content_file <- file.path(directory, "[Content_Types].xml")
   content <- xml2::read_xml(content_file)
   main <- xml2::xml_find_first(content, "//*[local-name()='Override'][@PartName='/word/document.xml']")
-  if (!identical(xml2::xml_attr(main, "ContentType"),
-                 "application/vnd.openxmlformats-officedocument.wordprocessingml.template.main+xml")) {
-    stop("Die Corporate-Datei ist keine Word-DOTX-Vorlage.", call. = FALSE)
+  supported <- paste0("application/vnd.openxmlformats-officedocument.wordprocessingml.",
+                      c("template", "document"), ".main+xml")
+  if (!xml2::xml_attr(main, "ContentType") %in% supported) {
+    stop("Die Corporate-Datei ist keine Word-DOTX- oder DOCX-Vorlage.", call. = FALSE)
   }
   xml2::xml_set_attr(main, "ContentType",
                      "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml")
@@ -406,7 +466,7 @@ prepare_corporate_reference <- function(template, reference) {
   # properties, but their placeholder text is never copied.
   for (i in seq_along(c("Title", "Subtitle"))) {
     target <- find_style(c("Title", "Subtitle")[[i]])
-    cover <- cover_style(i, c("Title", "Subtitel_Zwischenseite")[[i]])
+    cover <- cover_style(i, c("Title", "Subtitle")[[i]])
     if (is.null(cover) || is.null(target)) next
     if (!identical(xml2::xml_path(cover), xml2::xml_path(target))) {
       xml2::xml_remove(xml2::xml_find_all(target, "w:pPr|w:rPr", ns))
@@ -438,25 +498,42 @@ prepare_corporate_reference <- function(template, reference) {
   xml2::xml_remove(children[-length(children)])
   xml2::xml_add_child(body, "w:p", .where = 0)
   xml2::write_xml(doc, document_file)
+  apply_report_layout(directory)
   pack_word_package(directory, reference)
   invisible(reference)
 }
 
-finalise_report_docx <- function(path) {
+finalise_report_docx <- function(path, report = NULL) {
   directory <- tempfile(".report-parts-", tmpdir = dirname(path))
   on.exit(remove_word_parts(directory, dirname(path)), add = TRUE)
   extract_word_package(path, directory)
   ns <- word_ns()
   document_file <- file.path(directory, "word/document.xml")
   doc <- xml2::read_xml(document_file)
+  styles_file <- file.path(directory, "word/styles.xml")
+  styles <- if (file.exists(styles_file)) xml2::read_xml(styles_file) else NULL
+  if (!is.null(report)) {
+    add_report_cover_authors(doc, styles, report, ns)
+    xml2::write_xml(styles, styles_file)
+  }
   contents <- xml2::xml_find_first(doc, "//w:sdt[.//w:instrText[contains(., 'TOC')]]", ns)
   if (!inherits(contents, "xml_missing")) {
     page_break <- xml2::read_xml(paste0('<w:p xmlns:w="', ns[["w"]],
                                       '"><w:r><w:br w:type="page"/></w:r></w:p>'))
     xml2::xml_add_sibling(contents, page_break, .where = "before")
   }
-  # Tables: sparse horizontal rules, repeated header row, no vertical borders.
+  # Tables: strong outer rules, light horizontal separators, no verticals.
   for (table in xml2::xml_find_all(doc, "//w:tbl", ns)) {
+    space_report_table(table, styles, ns)
+    # Captioned figures are layout containers, not data tables. Their image
+    # dimensions and caption placement are finalised after general typography.
+    if (is_report_figure_table(table, styles, ns)) next
+    # Quarto wraps a caption and its data table in an outer layout table. Only
+    # the inner data table receives rules, repeated headings and header shading.
+    if (length(xml2::xml_find_all(table, ".//w:tbl", ns))) {
+      clear_report_layout_table(table, ns)
+      next
+    }
     rows <- xml2::xml_find_all(table, "w:tr", ns)
     if (length(rows) <= 8L) {
       for (i in seq_along(rows)) {
@@ -480,9 +557,50 @@ finalise_report_docx <- function(path) {
     borders <- xml2::xml_add_child(props, "w:tblBorders")
     for (side in c("top", "left", "bottom", "right", "insideH", "insideV")) {
       border <- xml2::xml_add_child(borders, paste0("w:", side))
-      xml2::xml_set_attr(border, "w:val", if (side %in% c("top", "bottom")) "single" else "nil")
-      xml2::xml_set_attr(border, "w:sz", "4")
-      xml2::xml_set_attr(border, "w:color", "808080")
+      xml2::xml_set_attr(border, "w:val", if (side %in% c("top", "bottom", "insideH")) "single" else "nil")
+      xml2::xml_set_attr(border, "w:sz", if (side == "insideH") "4" else "12")
+      xml2::xml_set_attr(border, "w:color", if (side == "insideH") "B3B3B3" else "000000")
+    }
+    # Cell borders take precedence over table borders in Word. Set the outer
+    # rules on the actual cells too, so inherited thin rules cannot win.
+    for (i in seq_along(rows)) {
+      for (cell in xml2::xml_find_all(rows[[i]], "w:tc", ns)) {
+        cell_props <- xml2::xml_find_first(cell, "w:tcPr", ns)
+        if (inherits(cell_props, "xml_missing")) cell_props <- xml2::xml_add_child(cell, "w:tcPr", .where = 0)
+        xml2::xml_set_attr(layout_child(cell_props, "vAlign", ns), "w:val", "center")
+        margins <- layout_child(cell_props, "tcMar", ns)
+        # Word puts most of the extra 1.5-line leading below Arial's visible
+        # glyphs. Compensate above the text instead of adding equal margins:
+        # 6.5 pt above / 0 pt below optically centers one- and multiline cells
+        # while preserving the report's 11 pt font and 1.5-line spacing.
+        for (side in c("top", "bottom")) {
+          margin <- layout_child(margins, side, ns)
+          xml2::xml_set_attrs(margin, c("w:w" = if (side == "top") "130" else "0",
+                                       "w:type" = "dxa"))
+        }
+        layout_order_children(margins, c("top", "start", "left", "bottom", "end", "right"))
+        # Inherited paragraph-after spacing would add a second gap below.
+        # Keep the report line spacing but remove these extra gaps.
+        for (paragraph in xml2::xml_find_all(cell, ".//w:p", ns)) {
+          paragraph_props <- layout_child(paragraph, "pPr", ns, first = TRUE)
+          spacing <- layout_child(paragraph_props, "spacing", ns)
+          xml2::xml_set_attrs(spacing, c("w:before" = "0", "w:after" = "0",
+                                        "w:beforeAutospacing" = "0", "w:afterAutospacing" = "0"))
+          xml2::xml_set_attr(spacing, "w:beforeLines", NULL, ns)
+          xml2::xml_set_attr(spacing, "w:afterLines", NULL, ns)
+        }
+        xml2::xml_remove(xml2::xml_find_all(cell_props, "w:tcBorders", ns))
+        cell_borders <- xml2::xml_add_child(cell_props, "w:tcBorders")
+        for (side in c("top", "left", "bottom", "right")) {
+          outer <- (side == "top" && i == 1L) || (side == "bottom" && i == length(rows))
+          horizontal <- side %in% c("top", "bottom")
+          under_header <- (side == "bottom" && i == 1L) || (side == "top" && i == 2L)
+          border <- xml2::xml_add_child(cell_borders, paste0("w:", side))
+          xml2::xml_set_attrs(border, c("w:val" = if (horizontal) "single" else "nil",
+                                      "w:sz" = if (outer) "12" else "4",
+                                      "w:color" = if (outer || under_header) "000000" else "B3B3B3"))
+        }
+      }
     }
     first_row <- xml2::xml_find_first(table, "w:tr", ns)
     row_props <- xml2::xml_find_first(first_row, "w:trPr", ns)
@@ -498,6 +616,12 @@ finalise_report_docx <- function(path) {
       xml2::xml_set_attr(shade, "w:fill", "F2F2F2")
     }
   }
+  for (props in xml2::xml_find_all(doc, "//w:tcPr", ns)) {
+    layout_order_children(props, c("cnfStyle", "tcW", "gridSpan", "hMerge", "vMerge",
+                                   "tcBorders", "shd", "noWrap", "tcMar", "textDirection",
+                                   "tcFitText", "vAlign", "hideMark", "headers", "cellIns",
+                                   "cellDel", "cellMerge", "tcPrChange"))
+  }
   xml2::write_xml(doc, document_file)
   settings_file <- file.path(directory, "word/settings.xml")
   if (file.exists(settings_file)) {
@@ -507,8 +631,120 @@ finalise_report_docx <- function(path) {
     xml2::xml_set_attr(update, "w:val", "true")
     xml2::write_xml(settings, settings_file)
   }
+  apply_report_layout(directory)
+  doc <- xml2::read_xml(document_file)
+  styles <- xml2::read_xml(styles_file)
+  finalise_report_figures(doc, styles, ns)
+  format_report_design_tables(doc, ns)
+  format_report_task_matrices(doc, ns)
+  normalize_report_page_breaks(doc, ns)
+  xml2::write_xml(doc, document_file)
   pack_word_package(directory, path)
   invisible(path)
+}
+
+clear_report_layout_table <- function(table, ns) {
+  props <- xml2::xml_find_first(table, "w:tblPr", ns)
+  if (inherits(props, "xml_missing")) props <- xml2::xml_add_child(table, "w:tblPr", .where = 0)
+  xml2::xml_remove(xml2::xml_find_all(props, "w:tblBorders | w:shd", ns))
+  borders <- xml2::xml_add_child(props, "w:tblBorders")
+  for (side in c("top", "left", "bottom", "right", "insideH", "insideV")) {
+    border <- xml2::xml_add_child(borders, paste0("w:", side))
+    xml2::xml_set_attr(border, "w:val", "nil")
+  }
+  # A long inner table must still be allowed to break across pages. Repeating
+  # the single wrapper row would repeat its entire caption and data table.
+  xml2::xml_remove(xml2::xml_find_all(table, "w:tr/w:trPr/w:tblHeader | w:tr/w:trPr/w:cantSplit", ns))
+  for (cell in xml2::xml_find_all(table, "w:tr/w:tc", ns)) {
+    cell_props <- xml2::xml_find_first(cell, "w:tcPr", ns)
+    if (inherits(cell_props, "xml_missing")) cell_props <- xml2::xml_add_child(cell, "w:tcPr", .where = 0)
+    xml2::xml_remove(xml2::xml_find_all(cell_props, "w:tcBorders | w:shd", ns))
+    shade <- xml2::xml_add_child(cell_props, "w:shd")
+    xml2::xml_set_attrs(shade, c("w:val" = "clear", "w:fill" = "auto"))
+    for (paragraph in xml2::xml_find_all(cell, "w:p[following-sibling::w:tbl]", ns)) {
+      pprops <- xml2::xml_find_first(paragraph, "w:pPr", ns)
+      if (inherits(pprops, "xml_missing")) pprops <- xml2::xml_add_child(paragraph, "w:pPr", .where = 0)
+      xml2::xml_remove(xml2::xml_find_all(pprops, "w:keepNext", ns))
+      keep <- xml2::xml_add_child(pprops, "w:keepNext")
+      xml2::xml_set_attr(keep, "w:val", "1")
+    }
+  }
+  invisible(table)
+}
+
+# Apply spacing to the neighbouring text paragraphs, outside the table borders.
+# Keep heading spacing; captions sit close to their table.
+space_report_table <- function(table, styles, ns, points = 6) {
+  before <- xml2::xml_find_first(table, "preceding-sibling::*[1]", ns)
+  after <- xml2::xml_find_first(table, "following-sibling::*[1]", ns)
+  if (!inherits(after, "xml_missing") && xml2::xml_name(after) == "tbl") {
+    separator <- xml2::read_xml(paste0('<w:p xmlns:w="', ns[["w"]], '"/>'))
+    xml2::xml_add_sibling(table, separator, .where = "after")
+    after <- xml2::xml_find_first(table, "following-sibling::*[1]", ns)
+  }
+  for (side in c("before", "after")) {
+    paragraph <- if (side == "before") before else after
+    if (inherits(paragraph, "xml_missing") || xml2::xml_name(paragraph) != "p") next
+    props <- xml2::xml_find_first(paragraph, "w:pPr", ns)
+    if (inherits(props, "xml_missing")) props <- xml2::xml_add_child(paragraph, "w:pPr", .where = 0)
+    spacing <- xml2::xml_find_first(props, "w:spacing", ns)
+    if (inherits(spacing, "xml_missing")) spacing <- xml2::xml_add_child(props, "w:spacing")
+    # Pandoc separates successive tables with an empty paragraph. Make that a
+    # single six-point gap rather than adding two margins around a blank line.
+    between_tables <- length(xml2::xml_find_all(paragraph,
+      "preceding-sibling::*[1][self::w:tbl] | following-sibling::*[1][self::w:tbl]", ns)) == 2L
+    has_content <- nzchar(trimws(xml2::xml_text(paragraph))) ||
+      length(xml2::xml_find_all(paragraph, ".//w:br | .//w:drawing | .//w:object | .//w:fldChar", ns)) > 0L
+    if (side == "before" && has_content) {
+      keep <- xml2::xml_find_first(props, "w:keepNext", ns)
+      if (inherits(keep, "xml_missing")) keep <- xml2::xml_add_child(props, "w:keepNext")
+      xml2::xml_set_attr(keep, "w:val", "1")
+    }
+    if (between_tables && !has_content) {
+      xml2::xml_set_attrs(spacing, c("w:before" = "0", "w:after" = "0",
+                                    "w:line" = as.character(points * 20), "w:lineRule" = "exact"))
+    } else {
+      attribute <- if (side == "before") "after" else "before"
+      existing <- report_paragraph_spacing(paragraph, styles, attribute, ns)
+      style_id <- xml2::xml_attr(xml2::xml_find_first(props, "w:pStyle", ns), "w:val", ns)
+      is_caption <- side == "before" && !is.na(style_id) && grepl("caption", style_id, ignore.case = TRUE)
+      gap <- if (is_caption) 40 else max(points * 20, existing)
+      xml2::xml_set_attr(spacing, paste0("w:", attribute), as.character(gap))
+      xml2::xml_set_attr(spacing, paste0("w:", attribute, "Autospacing"), "0")
+    }
+    contextual <- xml2::xml_find_first(props, "w:contextualSpacing", ns)
+    if (inherits(contextual, "xml_missing")) contextual <- xml2::xml_add_child(props, "w:contextualSpacing")
+    xml2::xml_set_attr(contextual, "w:val", "0")
+  }
+  invisible(table)
+}
+
+report_paragraph_spacing <- function(paragraph, styles, side, ns) {
+  read_spacing <- function(node) {
+    value <- xml2::xml_attr(xml2::xml_find_first(node, "w:pPr/w:spacing", ns), paste0("w:", side), ns)
+    suppressWarnings(as.numeric(value))
+  }
+  value <- read_spacing(paragraph)
+  if (!is.na(value)) return(value)
+  if (is.null(styles)) return(0)
+  entries <- xml2::xml_find_all(styles, "w:style[@w:type='paragraph']", ns)
+  ids <- xml2::xml_attr(entries, "w:styleId", ns)
+  id <- xml2::xml_attr(xml2::xml_find_first(paragraph, "w:pPr/w:pStyle", ns), "w:val", ns)
+  if (is.na(id)) {
+    id <- xml2::xml_attr(xml2::xml_find_first(styles, "w:style[@w:type='paragraph'][@w:default='1']", ns), "w:styleId", ns)
+  }
+  visited <- character()
+  while (!is.na(id) && id %in% ids && !id %in% visited) {
+    visited <- c(visited, id)
+    style <- entries[[match(id, ids)]]
+    value <- read_spacing(style)
+    if (!is.na(value)) return(value)
+    id <- xml2::xml_attr(xml2::xml_find_first(style, "w:basedOn", ns), "w:val", ns)
+  }
+  value <- xml2::xml_attr(xml2::xml_find_first(styles, "w:docDefaults/w:pPrDefault/w:pPr/w:spacing", ns),
+                          paste0("w:", side), ns)
+  value <- suppressWarnings(as.numeric(value))
+  if (is.na(value)) 0 else value
 }
 
 remove_word_parts <- function(directory, parent) {

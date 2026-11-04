@@ -8,17 +8,27 @@ execute:
   eval: false
 ---
 
-Der erste Word-Prototyp stellt die Leistung der Pilotierungsstichprobe dar.
-Die weiteren Kapitel des Technischen Berichts werden schrittweise ergänzt.
+Mit `scope = "bericht"` umfasst die Word-Ausgabe alle vorgesehenen Kapitel
+bis zum Literaturverzeichnis: Grundlagen und Pilotierungsstudie,
+Haupttest-Auswahl und Module, Itemkennwerte und Umrechnungsformeln sowie
+Hinweise zur Auswertung und Rückmeldung. Die bisherigen Teilumfänge bleiben
+verfügbar; der Standardumfang ist weiterhin `pilotierung`.
 Die folgenden Aufrufe sind für die lokale Anwendung vorgesehen und werden
 beim Website-Build nicht ausgeführt.
 
-## Corporate-Vorlage bereitstellen
+## Mitgelieferte Corporate-Vorlage verwenden
 
-Für jeden Word-Bericht, auch mit simulierten Daten, wird die freigegebene
-Corporate-Vorlage benötigt. Der vorgesehene Pfad lautet `lokal/Bericht.dotx`.
-Die Vorlage bleibt privat und wird nicht mit dem Paket ausgeliefert. Auf einem
-anderen Rechner kann der Pfad zur gleichen Vorlage angepasst werden.
+Die freigegebene Corporate-Vorlage wird mit dem Paket ausgeliefert. Die
+Voreinstellung `corporate_template = NULL` verwendet sie automatisch, auch
+für Berichte mit simulierten Daten. Im Quellpaket liegt die Vorlage unter
+`inst/templates/eatTechReport.docx`. Ein eigener Pfad zu einer freigegebenen
+DOTX- oder DOCX-Datei kann bei Bedarf über `corporate_template` übergeben werden.
+
+Das Layout verwendet Arial mit mindestens 11 pt und 1,5-fachem Zeilenabstand.
+Überschriften der Ebenen 1 bis 4 erhalten 16, 13, 12 beziehungsweise 11 pt
+und Abstand zum vorausgehenden Text. Auf dem Deckblatt steht der dreizeilige
+Titel in 22 pt, der Untertitel in 18 pt. Tabellenbeschriftungen stehen nah an
+der zugehörigen Tabelle; der Abstand zum übrigen Fließtext bleibt erhalten.
 
 Zusätzlich zu R und eatTechReport muss die Quarto-Kommandozeile verfügbar sein.
 Für ein automatisch befülltes Inhaltsverzeichnis einschließlich Seitenzahlen
@@ -26,12 +36,11 @@ verwendet dieser Stand unter Windows außerdem ein installiertes Microsoft Word.
 
 ```{r}
 library(eatTechReport)
-demo <- example_report(n_persons = 200)
+demo <- example_report(scope = "bericht", n_persons = 200)
 
 bericht <- render_report(
   config = demo$config,
   data = demo$data,
-  corporate_template = "lokal/Bericht.dotx",
   output_dir = "lokal/demo-de"
 )
 
@@ -39,9 +48,56 @@ bericht$path
 bericht$archive_dir
 ```
 
-Der Prototyp kennzeichnet synthetische Eingaben sichtbar und verwendet
-dieselben Kennzahlen wie `summarise_leistung_input()`. Fehlt die Vorlage,
-endet die Dokumenterzeugung mit einer Fehlermeldung.
+Der Beispielbericht kennzeichnet synthetische Eingaben einschließlich der
+Umrechnungskoeffizienten sichtbar und verwendet dieselben Kennzahlen wie
+`summarise_report_input()`. Reale Itemkennwerte und freigegebene
+Personen- und Itemtransformationen werden vorgelagert geliefert.
+
+## Autoren und Affiliation auf dem Deckblatt
+
+Namen und gemeinsame Affiliation sind Berichtseingaben. Sie werden unabhängig
+von den Paketautoren in der DESCRIPTION gesetzt:
+
+```{r}
+demo <- example_report(
+  scope = "bericht",
+  authors = c("Erika Muster", "Max Muster"),
+  affiliation = c("Institut für Beispielstudien", "Universität Musterstadt")
+)
+
+# Auch nachträglich in der Konfiguration editierbar:
+demo$config$report$authors <- c("Erika Muster", "Max Muster")
+demo$config$report$affiliation <- "Institut für Beispielstudien an der Universität Musterstadt"
+```
+
+Die Autoren erscheinen in der angegebenen Reihenfolge unter „Technischer
+Bericht“, danach die Affiliation. Mehrere Einträge in `affiliation` ergeben
+mehrere Zeilen. Namen und Institutionen werden als wörtlicher Text behandelt.
+Ohne Angaben bleiben sichtbare Platzhalter in eckigen Klammern stehen.
+
+Die Tabellen verwenden vertikal zentrierten Text und Innenabstände oberhalb
+und unterhalb des Textes. Kräftige Außenlinien begrenzen die Tabelle;
+dünne horizontale Linien trennen Kopf- und Datenzeilen.
+
+Die Aufgabenmatrix verwendet Corporate-Schattierungen für Basis- und
+Ergänzungsmodule und kurze Modulüberschriften, die in den *Anmerkungen*
+erläutert werden. Aufgabentitel kommen aus `data$main_test$items$task_label`;
+eine [Zuordnung eigener Titel](haupttest.html#aufgabentitel-direkt-aus-r-übergeben)
+lässt sich direkt in R vornehmen.
+
+Die Heftdesign-Matrix folgt der Blockreihenfolge der Eingaben. Normierungsblöcke
+werden nur bei `data$design$blocks$is_norming = TRUE` dunkel hinterlegt;
+Pausen erscheinen als schmale leere Spalten. Die Zellen zeigen ausschließlich
+Blockbezeichnungen. Zeiten stehen in der Anmerkung unterhalb der Tabelle.
+
+Abbildungen und Tabellen erhalten Beschriftungen mit Kapitelnummern, zum
+Beispiel „Abbildung 2.1“ oder „Tabelle 3.2“. Die Quarto-IDs verbinden sie mit
+den Verweisen im Fließtext. Bei der Textredaktion sollten diese IDs und
+Verweise erhalten bleiben, etwa `@fig-kompetenz-dl` oder
+`@tbl-haupttest-aufgabenmatrix-1`; die Nummern werden beim Rendern erzeugt.
+Hinweise und Abkürzungserklärungen stehen als *Anmerkungen* außerhalb der
+Grafiken. Die Kompetenzverteilung zeigt die deskriptiven Kennwerte und
+Stufenanteile ohne zusätzliche Tabellen mit denselben PV-Ergebnissen.
 
 ## Inhaltsverzeichnis und Seitenzahlen aktualisieren
 
@@ -73,8 +129,31 @@ abgeschlossenen Word-Schritt benötigt, verwendet `update_fields = "word"`.
 Die Texte lassen sich in einen eigenen lokalen Arbeitsordner kopieren:
 
 ```{r}
-edit_report_texts("lokal/redaktion")
+edit_report_texts("lokal/redaktion", scope = "bericht")
 ```
+
+Der vollständige Umfang `scope = "bericht"` kopiert 15 öffentliche Bausteine:
+
+| Datei | Inhalt |
+| --- | --- |
+| `grundlagen_ueberblick.qmd` | Allgemeine Informationen und Datenherkunft. |
+| `pilotierung_design_pool.qmd` | Aufgaben, Items und ihre Rollen. |
+| `pilotierung_design_hefte.qmd` | Heftaufbau, Zeiten, Zuweisung und Blöcke. |
+| `pilotierung_stichprobe_ruecklauf.qmd` | Teilnahme, Rücklauf und Auswertungspopulation. |
+| `pilotierung_stichprobe_merkmale.qmd` | Alter, Geschlecht, Familiensprache und Testbedingungen. |
+| `pilotierung_stichprobe_bearbeitungen.qmd` | Gültige Antworten je Item und Ankeritem-Fußnote. |
+| `pilotierung_leistung.qmd` | PV-Kennzahlen, Kompetenzstufen und Dichtegrafiken. |
+| `leistung_methoden.qmd` | Berechnungsregeln der Kompetenzdarstellung. |
+| `haupttest_auswahl.qmd` | Haupttest-Auswahl und Herkunftswellen. |
+| `haupttest_module.qmd` | Modulübersicht, Stufengrafiken nach der ursprünglichen Modulgruppierung und Aufgabenmatrix. |
+| `haupttest_itemprofil.qmd` | Itemkennwerte der Testmodule. |
+| `haupttest_transformation.qmd` | Umrechnung von Personen- und Itemwerten in die Berichtsskala. |
+| `haupttest_auswertungshinweise.qmd` | Hinweise zur Auswertung des Haupttests. |
+| `rueckmeldung_empfehlungen.qmd` | Empfehlungen für die Rückmeldung an Schulen. |
+| `literatur.qmd` | Literaturverzeichnis. |
+
+Ohne `scope` werden weiterhin die ersten acht Bausteine für `pilotierung`
+kopiert. `scope = "haupttest_struktur"` umfasst die ersten zehn Bausteine.
 
 Die erzeugten `.qmd`-Dateien werden in RStudio oder VS Code geöffnet. Absätze,
 Überschriften und Erläuterungen lassen sich dort kapitelweise redigieren.
@@ -86,7 +165,6 @@ bericht <- render_report(
   config = demo$config,
   data = demo$data,
   text_dir = "lokal/redaktion",
-  corporate_template = "lokal/Bericht.dotx",
   output_dir = "lokal/demo-redigiert"
 )
 ```
@@ -94,6 +172,39 @@ bericht <- render_report(
 Der Arbeitsordner enthält redigierbare Quellen. Die installierten
 Standardbausteine werden dabei nicht verändert. Der Quarto-Text beeinflusst
 die Inhalte; die verbindliche Corporate-Vorlage bestimmt die Gestaltung.
+
+Für Kapiteltexte aus dem eigenen Arbeitsbestand können im selben Ordner drei
+weitere Quarto-Dateien angelegt werden:
+
+| Optionale Datei | Position im Bericht |
+| --- | --- |
+| `grundlagen_kompetenzstufen.qmd` | Nach den allgemeinen Informationen, vor Kapitel 2. |
+| `pilotierung_durchfuehrung.qmd` | Nach der Stichprobenbeschreibung. |
+| `pilotierung_auswertung.qmd` | Nach der Durchführung, vor der Kompetenzdarstellung. |
+
+Diese Dateien werden bei den Umfängen `pilotierung`, `haupttest_struktur` und
+`bericht` automatisch eingefügt und mit dem Renderstand archiviert.
+Nicht vorhandene Dateien werden ausgelassen.
+Andere Dateien im Redaktionsordner werden nicht übernommen. Die zusätzlichen
+Kapitel können auf dieselben Objekte `config`, `input` und `results` zugreifen
+wie die mitgelieferten Bausteine. Private Originaltexte bleiben im lokalen
+Redaktionsordner; sie sind kein Bestandteil des Pakets oder der Website.
+
+Historische Kompetenzbeschreibungen müssen ihre Modellversion, Stufen und
+Grenzwerte behalten, solange eine fachlich bestätigte neue Zuordnung fehlt.
+Eine Änderung der Stufenbezeichnungen allein ersetzt diese Zuordnung nicht.
+
+Für den früheren Umfang für Kompetenzkennwerte werden drei Bausteine benötigt:
+
+```{r}
+leistung <- example_report(scope = "pilotierung_leistung")
+edit_report_texts("lokal/redaktion-leistung", scope = "pilotierung_leistung")
+```
+
+Der Renderer erwartet die zum gewählten Umfang passenden Dateien. Für einen
+Wechsel zu einem größeren Umfang lässt sich ein neuer Ordner mit den passenden
+Bausteinen anlegen. Die bisherigen Textanpassungen werden anschließend dorthin
+übertragen. Vorhandene Dateien werden standardmäßig nicht überschrieben.
 
 ## Ausgaben und Renderablage
 
@@ -109,14 +220,20 @@ Ersetzen bleibt der vorherige Stand in einem benachbarten Sicherungsordner
 erhalten; dessen Pfad steht in `previous_output_dir`. Ein fehlgeschlagener
 Renderlauf ersetzt den vorhandenen Bericht nicht.
 
-Vorlage, abgeleitete Referenzdateien, Eingaben, redigierte Texte, erzeugte
+Die freigegebene Layoutvorlage ist Bestandteil des Pakets. Altberichte,
+abgeleitete Referenzdateien, reale Eingaben, redigierte Texte, erzeugte
 Corporate-Dokumente und Renderablagen bleiben unter `lokal/`. Die Ablage ist
 ein technischer Renderstand; fachliche Freigabe, Vorjahresvergleich und
 automatische Ausrufezeichen am rechten Rand werden später ergänzt.
 
-## Umfang der ersten Fassung
+## Umgesetzter Umfang
 
-Der Prototyp dient dazu, den Leistungsabschnitt und den Weg von R-Eingaben über
-Quarto zum Corporate-DOCX zu prüfen. Ein vollständiger Technischer Bericht,
-der Abgleich mit realen Eingaben und die abschließende Prüfung sämtlicher
-Word-Layoutvarianten stehen noch aus.
+Der Umfang `pilotierung` verbindet Testdesign, Stichprobenbeschreibung und
+Kompetenz im Corporate-DOCX. `haupttest_struktur` ergänzt Haupttest-Auswahl,
+Module, Aufgabenmatrix und Stufengrafiken; `bericht` vervollständigt den
+Beispielbericht mit Itemkennwerten, Umrechnungsformeln und den Schlusskapiteln
+bis zur Literatur. Die fachliche Textredaktion und die Anbindung aktueller
+realer Auswertungsobjekte werden weitergeführt; Vorjahresvergleiche und
+Randmarkierungen folgen später. Die Eingabestrukturen sind unter
+[Testdesign und Stichprobe](pilotierung.html) sowie
+[Haupttest-Auswahl und Module](haupttest.html) beschrieben.

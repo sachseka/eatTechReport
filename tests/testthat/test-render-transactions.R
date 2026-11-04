@@ -9,10 +9,27 @@ render_fixture <- function() {
        input = example_report("v3_ma_mg_mm", n_persons = 2L, n_pv = 1L))
 }
 
-fake_quarto_render <- function(input, output_file, ...) {
+fake_quarto_render <- function(input, output_file, metadata, ...) {
   directory <- dirname(input)
-  file.copy(file.path(directory, "corporate-reference.docx"),
-            file.path(directory, output_file))
+  parts <- tempfile("fake-quarto-parts-")
+  extract_word_package(file.path(directory, "corporate-reference.docx"), parts)
+  ns <- word_ns()
+  styles <- xml2::read_xml(file.path(parts, "word/styles.xml"))
+  doc <- xml2::read_xml(file.path(parts, "word/document.xml"))
+  body <- xml2::xml_find_first(doc, "w:body", ns)
+  for (name in c("Subtitle", "Title")) {
+    style <- xml2::xml_find_first(styles, paste0("w:style[w:name/@w:val='", name, "']"), ns)
+    paragraph <- xml2::read_xml(paste0('<w:p xmlns:w="', ns[["w"]], '"/>'))
+    props <- xml2::xml_add_child(paragraph, "w:pPr")
+    xml2::xml_set_attr(xml2::xml_add_child(props, "w:pStyle"), "w:val",
+                        xml2::xml_attr(style, "w:styleId", ns))
+    run <- xml2::xml_add_child(paragraph, "w:r")
+    text_node <- xml2::xml_add_child(run, "w:t")
+    xml2::xml_text(text_node) <- metadata[[tolower(name)]]
+    xml2::xml_add_child(body, paragraph, .where = 0)
+  }
+  xml2::write_xml(doc, file.path(parts, "word/document.xml"))
+  pack_word_package(parts, file.path(directory, output_file))
   invisible(NULL)
 }
 
@@ -47,7 +64,7 @@ test_that("a successful rendering archives exact inputs and records pending fiel
   expect_identical(tools::md5sum(fixture$template), original_template)
   expect_identical(readRDS(file.path(result$archive_dir, "inputs.rds")), fixture$input)
   expect_identical(readRDS(file.path(result$archive_dir, "summaries.rds")),
-                    summarise_leistung_input(fixture$input))
+                    summarise_report_input(fixture$input))
   expect_identical(result$manifest$report_md5, unname(tools::md5sum(result$path)))
   expect_identical(result$manifest$main_source_md5,
                     unname(tools::md5sum(file.path(fixture$output, "report.qmd"))))
@@ -183,8 +200,20 @@ test_that("missing Quarto and invalid file arguments fail before output creation
   expect_false(dir.exists(fixture$output))
   expect_error(render_fixture_report(fixture, overwrite = NA), "TRUE oder FALSE")
   expect_error(edit_report_texts(NA_character_), "Dateipfad")
-  renamed <- sub("dotx$", "docx", fixture$template)
+  renamed <- sub("dotx$", "txt", fixture$template)
   file.copy(fixture$template, renamed)
   fixture$template <- renamed
-  expect_error(render_fixture_report(fixture), "DOTX-Vorlage")
+  expect_error(render_fixture_report(fixture), "DOTX- oder DOCX-Vorlage")
+})
+
+test_that("the bundled layout is the default without a local template", {
+  fixture <- render_fixture()
+  local_render_boundaries()
+  result <- suppressWarnings(render_report(fixture$input$config, fixture$input$data,
+                                            output_dir = fixture$output))
+  bundled <- system.file("templates", "eatTechReport.docx", package = "eatTechReport")
+  expect_true(file.exists(bundled))
+  expect_identical(result$manifest$template_file, "eatTechReport.docx")
+  expect_identical(result$manifest$template_md5, unname(tools::md5sum(bundled)))
+  expect_true(file.exists(result$path))
 })

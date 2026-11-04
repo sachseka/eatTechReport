@@ -2,12 +2,12 @@
 % Please edit documentation in R/render.R
 \name{render_report}
 \alias{render_report}
-\title{Render the performance chapter with the mandatory corporate Word template}
+\title{Render a technical report with the corporate Word layout}
 \usage{
 render_report(
   config,
   data,
-  corporate_template = "lokal/Bericht.dotx",
+  corporate_template = NULL,
   text_dir = NULL,
   output_dir,
   overwrite = FALSE,
@@ -15,14 +15,22 @@ render_report(
 )
 }
 \arguments{
-\item{config}{Report configuration from the performance input contract.}
+\item{config}{Report configuration from \code{\link[=example_report]{example_report()}}. The cover uses
+\code{config$report$authors} (names in display order) and
+\code{config$report$affiliation} (shared affiliation, optionally multiple lines).
+Earlier inputs without these fields receive visible placeholders.}
 
-\item{data}{Performance input tables, including population and PV values.}
+\item{data}{Input tables including population, PV values and, for the
+pilot-study scope, design and sample information.}
 
-\item{corporate_template}{Path to the mandatory corporate DOTX template.}
+\item{corporate_template}{Optional path to a corporate DOTX or DOCX template.
+NULL uses the layout included with the package.}
 
 \item{text_dir}{Optional directory containing all editable Quarto blocks
-created by \code{\link[=edit_report_texts]{edit_report_texts()}}. NULL uses the package blocks.}
+created by \code{\link[=edit_report_texts]{edit_report_texts()}}. For the pilot-study scope, optional local
+blocks \code{grundlagen_kompetenzstufen.qmd}, \code{pilotierung_durchfuehrung.qmd}
+and \code{pilotierung_auswertung.qmd} are also rendered and archived when present.
+NULL uses the package blocks.}
 
 \item{output_dir}{Private local directory for the report and its snapshot.}
 
@@ -42,14 +50,17 @@ A list of class \code{eat_report} with \code{path}, \code{archive_dir}, \code{ma
 \code{summaries}, \code{config} and \code{previous_output_dir}. Paths are absolute.
 }
 \description{
-This first renderer covers the performance of the pilot sample only. It is
-not a complete technical report and does not invent content for other
-chapters. Inputs follow \code{\link[=example_leistung_input]{example_leistung_input()}} and are validated before
+The renderer covers test design, sample composition and performance for the
+pilot-study scope, or the performance section alone. Scope \code{haupttest_struktur}
+also adds main-test selection and modules. Scope \code{bericht} includes item
+statistics, supplied transformations, interpretation and references through
+the end of the report. Inputs follow \code{\link[=example_report]{example_report()}} and are validated before
 rendering. Synthetic data and illustrative cuts are explicitly labelled.
 }
 \details{
-The private corporate DOTX is required for every report. Its styles, page
-geometry, headers and footers are used to prepare a local DOCX reference.
+The package includes the corporate DOCX layout. Alternatively, supply a
+corporate DOTX or DOCX file. Its styles, page geometry, headers and footers
+are used to prepare a local DOCX reference with the report typography.
 Template body text is not imported. Missing Pandoc styles are derived from
 corporate styles. Quarto must be installed separately.
 
@@ -63,7 +74,6 @@ change comparison and margin markers are not implemented yet.
 \dontrun{
 demo <- example_report()
 result <- render_report(demo$config, demo$data,
-                        corporate_template = "lokal/Bericht.dotx",
                         output_dir = "lokal/demo-de")
 result$path
 }

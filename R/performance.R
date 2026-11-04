@@ -10,6 +10,11 @@
 #' @param n_pv Number of plausible values per person and scale, at least one.
 #' @param main_year Main assessment year recorded in the configuration.
 #' @param pilot_year Pilot year, supplied independently of `main_year`.
+#' @param authors Character vector of report authors in display order.
+#'   NULL uses visible placeholders. Stored in `config$report$authors`.
+#' @param affiliation Shared affiliation for the authors. A character vector
+#'   supplies separate lines. NULL uses a visible placeholder. Stored in
+#'   `config$report$affiliation`.
 #'
 #' @return A list with `config` and `data`. `data$population` specifies the
 #'   expected person-scale pairs independently of the long `data$pvs` table.
@@ -29,7 +34,8 @@ example_leistung_input <- function(profile = "v3_de_lesen_zuhoeren",
                                   n_persons = 24L,
                                   n_pv = 15L,
                                   main_year = 2027L,
-                                  pilot_year = 2026L) {
+                                  pilot_year = 2026L,
+                                  authors = NULL, affiliation = NULL) {
   profiles <- c("v3_de_lesen_zuhoeren", "v3_ma_mg_mm")
   if (!is.character(profile) || length(profile) != 1L ||
       is.na(profile) || !profile %in% profiles) {
@@ -92,7 +98,9 @@ example_leistung_input <- function(profile = "v3_de_lesen_zuhoeren",
     schema_version = "0.2.0-draft",
     scope = "pilotierung_leistung",
     report = list(study = "vera3", subject = subject, main_year = as.integer(main_year),
-                  pilot_year = as.integer(pilot_year), data_origin = "synthetic"),
+                  pilot_year = as.integer(pilot_year), data_origin = "synthetic",
+                  authors = if (is.null(authors)) c("[Autorin/Autor 1]", "[Autorin/Autor 2]") else authors,
+                  affiliation = if (is.null(affiliation)) "[Affiliation]" else affiliation),
     domains = domains,
     focus_domains = focus_domains,
     performance = list(population = "all", weighted = FALSE, subgroups = FALSE),
@@ -143,6 +151,7 @@ example_leistung_input <- function(profile = "v3_de_lesen_zuhoeren",
 #' validate_leistung_input(example_leistung_input())
 #' @export
 validate_leistung_input <- function(input) {
+  input <- performance_component(input)
   fail <- function(message) stop(message, call. = FALSE)
   exact_names <- function(x, expected, label, is_table = FALSE) {
     if ((is_table && !is.data.frame(x)) || (!is_table && (!is.list(x) || is.data.frame(x))) ||
@@ -173,8 +182,10 @@ validate_leistung_input <- function(input) {
       !identical(config$scope, "pilotierung_leistung")) {
     fail("Erwartet werden schema_version = '0.2.0-draft' und scope = 'pilotierung_leistung'.")
   }
-  exact_names(config$report, c("study", "subject", "main_year", "pilot_year", "data_origin"),
+  cover_fields <- intersect(c("authors", "affiliation"), names(config$report))
+  exact_names(config$report, c("study", "subject", "main_year", "pilot_year", "data_origin", cover_fields),
               "config$report")
+  for (field in cover_fields) strings(config$report[[field]], paste0("config$report$", field))
   if (!identical(config$report$study, "vera3") ||
       !is.character(config$report$subject) || length(config$report$subject) != 1L ||
       is.na(config$report$subject) || !config$report$subject %in% c("de", "ma")) {
@@ -339,12 +350,22 @@ summarise_leistung_input <- function(input) {
 
 #' Generate example inputs for the implemented report scope
 #'
-#' A convenient entry point for synthetic report inputs. The current scope is
-#' the performance chapter only; this function does not invent input fields for
-#' the remaining chapters.
+#' A convenient entry point for synthetic report inputs. By default this includes
+#' test design, sample composition and performance. All example populations,
+#' item counts, booklet arrangements and cuts are illustrative, not real study
+#' results. The performance-only scope remains available explicitly.
 #'
 #' @inheritParams example_leistung_input
-#' @return The same `config` and `data` list as [example_leistung_input()].
+#' @param scope `"pilotierung"` includes the implemented pilot-study sections;
+#'   `"pilotierung_leistung"` returns the earlier performance-only example;
+#'   `"haupttest_struktur"` also includes main-test selection and module structure.
+#'   `"bericht"` adds item statistics, illustrative transformations and all final
+#'   report chapters through the reference list.
+#' @return A `config` and `data` list. The pilot-study scope uses schema
+#'   `0.3.0-draft` and adds `design` and `sample` to the performance input tables.
+#'   The extended scope uses schema `0.4.0-draft` and also adds `main_test`.
+#'   Scope `bericht` uses `0.5.0-draft` and adds `main_test_results`; its affine
+#'   transformation coefficients and item statistics are synthetic examples.
 #' @seealso [render_report()]
 #' @examples
 #' demo <- example_report(profile = "v3_ma_mg_mm", seed = 42)
@@ -352,8 +373,28 @@ summarise_leistung_input <- function(input) {
 #' @export
 example_report <- function(profile = "v3_de_lesen_zuhoeren", seed = 42L,
                            n_persons = 24L, n_pv = 15L,
-                           main_year = 2027L, pilot_year = 2026L) {
-  example_leistung_input(profile = profile, seed = seed,
-                         n_persons = n_persons, n_pv = n_pv,
-                         main_year = main_year, pilot_year = pilot_year)
+                           main_year = 2027L, pilot_year = 2026L,
+                           scope = c("pilotierung", "pilotierung_leistung", "haupttest_struktur", "bericht"),
+                           authors = NULL, affiliation = NULL) {
+  scope <- match.arg(scope)
+  input <- example_leistung_input(profile = profile, seed = seed,
+                                  n_persons = n_persons, n_pv = n_pv,
+                                  main_year = main_year, pilot_year = pilot_year,
+                                  authors = authors, affiliation = affiliation)
+  if (scope %in% c("pilotierung", "haupttest_struktur", "bericht")) {
+    input$config$scope <- scope
+    input$config$schema_version <- "0.3.0-draft"
+    input$data$design <- example_design_data(input$config)
+    input$data$sample <- example_sample_data(input)
+    if (scope %in% c("haupttest_struktur", "bericht")) {
+      input$config$schema_version <- "0.4.0-draft"
+      input$data$main_test <- example_main_test_data(input$config)
+    }
+    if (scope == "bericht") {
+      input$config$schema_version <- "0.5.0-draft"
+      input$data$main_test_results <- example_main_test_results(input$config, input$data$main_test)
+    }
+    validate_report_input(input)
+  }
+  input
 }

@@ -1,0 +1,34 @@
+## Allgemeine Empfehlungen für die Rückmeldung an die Schulen {#rueckmeldung_empfehlungen}
+
+Die Rückmeldung soll die Einordnung von Lernständen und die Weiterentwicklung
+des Unterrichts unterstützen. Ergebnisse können auf Klassen- und Schulebene
+sowie für einzelne Schülerinnen und Schüler dargestellt werden. Dabei sind
+die jeweilige Datengrundlage und die Unsicherheit der Schätzung zu beachten.
+
+Die begrenzte Testzeit erlaubt nur eine Auswahl von Aufgaben. Insbesondere
+individuelle Punktwerte und Kompetenzstufenzuordnungen sind deshalb mit
+Messunsicherheit verbunden. Soweit geeignete Unsicherheitsmaße vorliegen,
+sollen sie zusammen mit den Punktschätzungen berichtet und verständlich
+erläutert werden. Ein einzelner Testwert allein bietet keine hinreichende
+Grundlage für eine umfassende Beurteilung der individuellen Leistung.
+
+Für die pädagogische Interpretation sind weitere Informationen aus dem
+Unterricht heranzuziehen, beispielsweise Klassenarbeiten, mündliche Leistungen
+und Unterrichtsgespräche. Für die Verwendung der Ergebnisse im Zusammenhang
+mit Benotungen oder Schullaufbahnempfehlungen wird auf die Vereinbarung zur
+Weiterentwicklung von VERA (KMK, 2012) verwiesen.
+
+```{asis, rueckmeldung_skalen_de, echo=identical(config$report$subject, "de")}
+Die Ergebnisse der untersuchten Deutsch-Kompetenzbereiche werden getrennt
+zurückgemeldet. Eine Zusammenfassung zu einem gemeinsamen Deutsch-Gesamtwert
+ist nicht vorgesehen.
+```
+
+```{asis, rueckmeldung_skalen_ma, echo=identical(config$report$subject, "ma")}
+Für Mathematik erfolgt die Rückmeldung auf der globalen Skala MO. Die
+Zuordnung der Aufgaben zu Leitideen dient der inhaltlichen Einordnung.
+```
+
+Die Plausible Values der Pilotierungsstichprobe dienen der Beschreibung
+der Kompetenzverteilung der Gesamtstichprobe. Sie sind keine individuellen
+Diagnosewerte für die Rückmeldung an einzelne Schülerinnen und Schüler.

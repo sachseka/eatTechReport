@@ -1,5 +1,7 @@
 ---
 lang: de-DE
+crossref:
+  chapters: true
 format:
   docx:
     reference-doc: corporate-reference.docx
@@ -27,6 +29,63 @@ decimal <- function(x) formatC(x, format = "f", digits = 1, decimal.mark = ",")
 
 {{< include archive/texts/grundlagen_ueberblick.qmd >}}
 
-{{< include archive/texts/pilotierung_leistung.qmd >}}
+```{r}
+#| label: grundlagen_optionale_bausteine
+#| results: asis
+if (config$scope %in% c("pilotierung", "haupttest_struktur", "bericht") &&
+    file.exists("archive/texts/grundlagen_kompetenzstufen.qmd")) {
+  cat(knitr::knit_child("archive/texts/grundlagen_kompetenzstufen.qmd",
+                        envir = environment(), quiet = TRUE), sep = "\n")
+}
+```
+
+```{r}
+#| label: pilotierung_abschnitte
+#| results: asis
+performance_text <- readLines("archive/texts/pilotierung_leistung.qmd", encoding = "UTF-8")
+if (config$scope %in% c("pilotierung", "haupttest_struktur", "bericht")) {
+  # Keep the editable chapter heading and insert design/sample before performance.
+  start <- grep("^## .*\\{#pilotierung_leistung\\}", performance_text)
+  if (length(start) != 1L || start < 2L) {
+    stop("pilotierung_leistung.qmd braucht eine Kapitelüberschrift und die Abschnitts-ID {#pilotierung_leistung}.")
+  }
+  cat(knitr::knit_child(text = performance_text[seq_len(start - 1L)],
+                        envir = environment(), quiet = TRUE), sep = "\n")
+  for (block in eatTechReport:::study_text_names()) {
+    cat(knitr::knit_child(file.path("archive/texts", block),
+                          envir = environment(), quiet = TRUE), sep = "\n")
+  }
+  for (block in c("pilotierung_durchfuehrung.qmd", "pilotierung_auswertung.qmd")) {
+    path <- file.path("archive/texts", block)
+    if (file.exists(path)) {
+      cat(knitr::knit_child(path, envir = environment(), quiet = TRUE), sep = "\n")
+    }
+  }
+  performance_text <- performance_text[start:length(performance_text)]
+  cat("\n\n{{< pagebreak >}}\n\n")
+}
+cat(knitr::knit_child(text = performance_text,
+                      envir = environment(), quiet = TRUE), sep = "\n")
+```
+
+{{< pagebreak >}}
 
 {{< include archive/texts/leistung_methoden.qmd >}}
+
+```{r}
+#| label: haupttest_abschnitte
+#| results: asis
+if (config$scope %in% c("haupttest_struktur", "bericht")) {
+  cat("\n\n{{< pagebreak >}}\n\n")
+  for (block in c("haupttest_auswahl.qmd", "haupttest_module.qmd")) {
+    cat(knitr::knit_child(file.path("archive/texts", block),
+                          envir = environment(), quiet = TRUE), sep = "\n")
+  }
+  if (config$scope == "bericht") {
+    for (block in eatTechReport:::report_completion_text_names()) {
+      cat(knitr::knit_child(file.path("archive/texts", block),
+                            envir = environment(), quiet = TRUE), sep = "\n")
+    }
+  }
+}
+```

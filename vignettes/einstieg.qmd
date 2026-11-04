@@ -1,5 +1,5 @@
 ---
-title: "Einstieg: vom PV-Datensatz zur Leistungsdarstellung"
+title: "Einstieg: Pilotierungsberichte aus R"
 lang: de
 format:
   html:
@@ -9,9 +9,14 @@ execute:
   message: false
 ---
 
-Der erste Paketstand berechnet die Leistung der Pilotierungsstichprobe und
-stellt sie je auswertbarer Skala dar. Für Deutsch sind mehrere
-Kompetenzbereiche möglich; Mathematik erhält eine gemeinsame globale Skala.
+Der aktuelle Paketstand verbindet Testdesign, Stichprobenbeschreibung und
+Kompetenzdarstellung. Die Eingaben liegen als R-Objekte vor; dieselben
+berechneten Ergebnisse werden in Tabellen und redigierbaren Quarto-Texten
+verwendet. Für Deutsch sind mehrere Kompetenzbereiche möglich; Mathematik
+erhält eine gemeinsame globale Kompetenzskala. Der größere Umfang
+`scope = "bericht"` ergänzt Haupttest-Auswahl und Module, Itemkennwerte und
+Umrechnungsformeln sowie die abschließenden Kapitel bis zur Literatur.
+Der Einstieg beginnt mit dem unveränderten Standardumfang `pilotierung`.
 
 ## Installation
 
@@ -40,26 +45,41 @@ demo <- example_report(
   pilot_year = 2026
 )
 
-validate_leistung_input(demo)
+validate_report_input(demo)
 ```
 
 `main_year` bezeichnet das Haupttestjahr; `pilot_year` das ausdrücklich
 angegebene Pilotierungsjahr. **2026 ist hier nur eine Demoannahme.** `seed`
 steuert die Wiederholbarkeit der Simulation und hat keine Jahresbedeutung.
+Auch Testdesign, Hintergrundmerkmale und Antwortzahlen sind in diesem
+Beispiel synthetisch.
+
+## Testdesign und Stichprobe prüfen
 
 ```{r}
-kennzahlen <- summarise_leistung_input(demo)
-knitr::kable(kennzahlen$descriptives, digits = 1)
+kennzahlen <- summarise_report_input(demo)
+knitr::kable(kennzahlen$design$pool)
+knitr::kable(kennzahlen$sample$totals)
+knitr::kable(kennzahlen$sample$characteristics$gender, digits = 1)
 ```
 
-Die Tabelle enthält je Skala die Personenanzahl, PV-Anzahl, den Mittelwert und
-die Standardabweichung. Die Berechnung verwendet ungerundete Werte; `digits`
-legt hier lediglich die Anzeige fest.
+Der Itempool zählt eindeutige Aufgaben und Items. Teilnahme und
+Auswertungspopulation sind getrennt ausgewiesen. Die Zusammensetzung bezieht
+sich auf die Auswertungspersonen; fehlende kategoriale Angaben erscheinen als
+eigene Kategorie und bleiben im Prozentnenner.
+
+## Kompetenz der Pilotierungsstichprobe
+
+Die Dichtegrafik zeigt die Kompetenzverteilung, die Stufenanteile und die
+Kennwerte *N*, *M* und *SD*. Die Berechnung verwendet ungerundete Werte. Im
+Word-Bericht werden dieselben Kennwerte nicht noch einmal als separate
+PV-Tabelle ausgegeben; sie bleiben im R-Ergebnis `kennzahlen$descriptives`
+und `kennzahlen$percentages` verfügbar.
 
 ```{r}
 #| fig-width: 8
 #| fig-height: 4.8
-#| fig-alt: "Simulierte Leistungsverteilung für Lesen mit Kompetenzstufengrenzen und Prozentanteilen."
+#| fig-alt: "Simulierte Kompetenzverteilung für Lesen mit Kompetenzstufengrenzen und Prozentanteilen."
 plot_performance(demo, scale_id = "DL")
 ```
 
@@ -77,7 +97,6 @@ ma <- example_report(
 )
 
 knitr::kable(ma$config$domains)
-knitr::kable(summarise_leistung_input(ma)$descriptives, digits = 1)
 ```
 
 Die fünf Leitideen verweisen alle auf `MO`. Die Modulschwerpunkte `MG` und `MM`
@@ -86,13 +105,41 @@ erzeugen keine zusätzlichen psychometrischen Skalen oder Untergruppen.
 ```{r}
 #| fig-width: 8
 #| fig-height: 4.8
-#| fig-alt: "Simulierte globale Mathematik-Leistungsverteilung mit Kompetenzstufengrenzen und Prozentanteilen."
+#| fig-alt: "Simulierte globale Mathematik-Kompetenzverteilung mit Kompetenzstufengrenzen und Prozentanteilen."
 plot_performance(ma, scale_id = "MO")
 ```
 
 ## Weiterarbeiten
 
-Der Artikel [Leistungskennzahlen und PVs](leistung.html) beschreibt den
-Eingabevertrag und die Aggregation. Unter
+Mit `example_report(scope = "haupttest_struktur")` lassen sich zusätzlich die
+[Haupttest-Auswahl und Module](haupttest.html) darstellen, einschließlich
+Herkunftswellen und Aufgabenreihenfolgen. Die Auswahl wird als eigenes R-Objekt
+geliefert und nicht automatisch aus der Pilotierung abgeleitet.
+
+Für einen durchgängigen Beispielbericht bis zum Literaturverzeichnis:
+
+```{r}
+vollstaendig <- example_report(scope = "bericht", n_persons = 24)
+validate_report_input(vollstaendig)
+knitr::kable(summarise_report_input(vollstaendig)$main_test_results$module_statistics)
+```
+
+Dieser Umfang verwendet Schema `0.5.0-draft`. Die Demo-Itemkennwerte und
+Umrechnungskoeffizienten sind **rein synthetisch**. Reale Kennwerte und
+freigegebene Transformationen für Personen und Items kommen aus der
+vorgelagerten Auswertung. Der Haupttest-Artikel beschreibt die zusätzliche
+Eingabe `data$main_test_results`, eigene Aufgabentitel für die Aufgabenmatrix
+und die Stufengrafiken: in Deutsch gemeinsam je Skala, in Mathematik mit
+separatem Basismodul und Ergänzungsmodulen gemeinsam je Leitidee.
+
+`example_report()` verwendet standardmäßig `scope = "pilotierung"` und Schema
+`0.3.0-draft`. Für die Kompetenzdarstellung allein steht
+`example_report(scope = "pilotierung_leistung")` zur Verfügung; dieser Umfang
+behält Schema `0.2.0-draft`. Die Funktionen `summarise_leistung_input()` und
+`plot_performance()` können auch mit dem größeren Berichtsobjekt arbeiten.
+
+Der Artikel [Testdesign und Stichprobe](pilotierung.html) beschreibt die neuen
+Eingaben und Zählregeln. [Kompetenzkennwerte und PVs](leistung.html) erläutert
+den PV-Eingabevertrag und die Aggregation. Unter
 [Word-Bericht und Textredaktion](textredaktion.html) folgt der lokale
 Renderaufruf mit der verbindlichen Corporate-Vorlage.

@@ -1,5 +1,5 @@
 ---
-title: "Leistungskennzahlen und Plausible Values"
+title: "Kompetenzkennwerte und Plausible Values"
 lang: de
 format:
   html:
@@ -9,7 +9,7 @@ execute:
   message: false
 ---
 
-Der Leistungsbaustein erwartet bereits vorliegende Plausible Values (PVs) auf
+Der Baustein zur Kompetenz erwartet bereits vorliegende Plausible Values (PVs) auf
 der 500er-Berichtsskala. Er berücksichtigt die gesamte angegebene Population
 je Skala, ohne Gewichte und ohne Untergruppen. Vollständige PV-Datensätze sind
 Voraussetzung; das Berichtssystem schätzt keine fehlenden Werte nach.
@@ -24,8 +24,8 @@ names(demo$data)
 ```
 
 `config` enthält Durchgangsangaben, Bereichs- und Skalenzuordnung sowie
-PV-Kennungen, Kompetenzstufengrenzen und ihre Herkunft. `data` enthält zwei
-Tabellen:
+PV-Kennungen, Kompetenzstufengrenzen und ihre Herkunft. Der Kompetenzbaustein
+verwendet zwei Tabellen aus `data`:
 
 | Tabelle | Eine Zeile beschreibt | Eindeutiger Schlüssel |
 | --- | --- | --- |
@@ -58,7 +58,7 @@ nicht erforderlich.
 
 `MO` steht für Mathematik global (overall). Die Kennzahlen werden je
 auswertbarer Skala berechnet. Die fünf Leitideen vervielfachen daher weder
-Personen noch Leistungsdarstellungen.
+Personen noch Kompetenzdarstellungen.
 
 Voraussichtlich werden 15 PVs geliefert. Die konkrete Anzahl ergibt sich aus
 `config$scales[[scale_id]]$pv_ids` und ist keine feste Begrenzung.
@@ -68,7 +68,7 @@ Voraussichtlich werden 15 PVs geliefert. Die konkrete Anzahl ergibt sich aus
 Die Personenwerte werden für jeden PV getrennt ausgewertet. Anschließend
 werden die Ergebnisse über die PVs zusammengefasst:
 
-- **N:** Anzahl der erwarteten Personen je Skala.
+- ***N*:** Anzahl der erwarteten Personen je Skala.
 - **Mittelwert:** Mittel der Mittelwerte je PV.
 - **Standardabweichung:** Quadratwurzel des Mittels der Stichprobenvarianzen
   je PV; die Varianzen verwenden den Nenner `N - 1`.
@@ -81,15 +81,15 @@ PV-Beobachtungen berechnet und hängen nicht von der Glättung der Dichte ab.
 
 ```{r}
 ergebnis <- summarise_leistung_input(demo)
-knitr::kable(ergebnis$percentages, digits = 2)
+names(ergebnis)
 ```
 
-`per_pv` enthält die Ergebnisse der einzelnen PVs und erlaubt die Kontrolle
-der Zusammenfassung:
-
-```{r}
-knitr::kable(head(ergebnis$per_pv), digits = 2)
-```
+`descriptives` enthält die zusammengefassten Kennwerte, `percentages` die
+Stufenanteile. `per_pv` enthält zusätzlich die Ergebnisse der einzelnen PVs
+und erlaubt die Kontrolle der Zusammenfassung. Diese R-Ergebnisse bleiben
+vollständig verfügbar. Im Word-Bericht stehen die zentralen Kennwerte und
+Prozentanteile bei der Dichtegrafik; zusätzliche Tabellen mit denselben Werten
+werden dort nicht ausgegeben.
 
 ## Dichte und Prozentangaben
 
@@ -106,9 +106,14 @@ bleiben dabei unverändert:
 ```{r}
 #| fig-width: 8
 #| fig-height: 4.8
-#| fig-alt: "Simulierte Leistungsverteilung für Lesen mit einer ausdrücklich gewählten Glättungsbandbreite."
+#| fig-alt: "Simulierte Kompetenzverteilung für Lesen mit einer ausdrücklich gewählten Glättungsbandbreite."
 plot_performance(demo, scale_id = "DL", bandwidth = 30)
 ```
+
+Im Bericht erhält die Grafik eine Beschriftung mit Kapitelnummer, einen
+Verweis im Fließtext und eine getrennte *Anmerkung* zur Berechnung und
+Datengrundlage. Die Funktionsnamen `plot_performance()`,
+`summarise_leistung_input()` und `validate_leistung_input()` bleiben unverändert.
 
 ## Reale Eingaben vorbereiten
 

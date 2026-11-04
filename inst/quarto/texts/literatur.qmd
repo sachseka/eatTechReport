@@ -1,0 +1,10 @@
+{{< pagebreak >}}
+
+# Literatur {#literatur}
+
+```{r}
+#| label: literatur_eintraege
+#| results: asis
+cat(eatTechReport:::report_completion_bibliography(config), sep = "\n\n")
+cat("\n\n")
+```

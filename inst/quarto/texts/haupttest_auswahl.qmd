@@ -1,0 +1,45 @@
+# Informationen zur Hauptstudie `r config$report$main_year` {#haupttest}
+
+## Auswahl der Aufgaben {#haupttest_auswahl}
+
+Für die Hauptstudie `r config$report$main_year` wurden insgesamt
+`r results$main_test$totals$n_tasks` Aufgaben mit
+`r results$main_test$totals$n_items` Items ausgewählt.
+
+```{r}
+#| label: haupttest_auswahl_text
+#| results: asis
+for (i in seq_len(nrow(results$main_test$pool))) {
+  row <- results$main_test$pool[i, ]
+  domain <- config$domains$label[match(row$domain_id, config$domains$domain_id)]
+  cat("Auf den Kompetenzbereich „", eatTechReport:::report_markdown_text(domain),
+      "“ entfallen ", row$n_tasks, " Aufgaben mit ", row$n_items, " Items.\n\n", sep = "")
+}
+if (config$report$subject == "ma") {
+  cat("Die Skalierung erfolgt für Mathematik insgesamt (MO). Die Zuordnung ",
+      "zu den Leitideen beschreibt den Inhalt der Aufgaben.\n\n", sep = "")
+}
+```
+
+[Kriterien und Begründung der Aufgabenauswahl ergänzen.]
+
+```{r}
+#| label: haupttest_auswahl_herkunft
+#| results: asis
+for (i in seq_len(nrow(results$main_test$waves))) {
+  row <- results$main_test$waves[i, ]
+  cat("In der Pilotierungsstudie ", row$pilot_year, " („",
+      eatTechReport:::report_markdown_text(row$label), "“) wurden davon ",
+      row$n_tasks, " Aufgaben mit ", row$n_items, " Items erprobt.\n\n", sep = "")
+}
+if (results$main_test$source_overlap) {
+  cat("Einzelne Items wurden in mehreren Pilotierungen eingesetzt. Die Zahlen dürfen ",
+      "deshalb nicht zu einer Gesamtzahl addiert werden.\n\n", sep = "")
+} else {
+  cat("Items sind jeweils einer Pilotierung zugeordnet. Aufgaben können Items aus mehreren ",
+      "Pilotierungen enthalten und daher mehrfach gezählt werden.\n\n", sep = "")
+}
+if (is.null(results$main_test$item_levels)) {
+  cat("[Stufenzuordnung der ausgewählten Items für die Kompetenzstufengrafiken ergänzen.]\n\n")
+}
+```

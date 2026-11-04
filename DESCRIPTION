@@ -8,11 +8,13 @@ Authors@R: c(
         comment = c(ORCID = "0000-0001-6688-1267")),
     person("Kilian-Kristoph", "Schumann", role = "aut",
         comment = c(ORCID = "0000-0001-9502-6083")))
-Description: Validate plausible values and population definitions for VERA-3
-    assessments, calculate performance summaries, and plot distributions
-    with proficiency-level percentages. Assemble an editable Quarto performance
-    section into a Word document using a locally supplied corporate template.
-    Synthetic examples support development without access to assessment data.
+Description: Validate and summarise test designs, sample characteristics, valid
+    item-response counts, plausible values, and main-test selections and modules
+    for VERA-3 assessments. Present supplied item statistics and scale
+    transformations, plot performance and item distributions, and assemble
+    editable Quarto sections into Word documents using the bundled
+    corporate template. Synthetic examples support development without access
+    to assessment data.
 License: GPL (>= 2)
 Encoding: UTF-8
 Depends: R (>= 4.1.0)
