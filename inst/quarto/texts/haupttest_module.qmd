@@ -22,6 +22,23 @@ Die Bearbeitungszeit bezieht sich auf das jeweilige Modul.
 [Zusammenstellung der Testhefte, Einsatz der Module und gegebenenfalls
 Instruktions- und Pausenzeiten ergänzen.]
 
+```{r}
+#| label: haupttest_module_stufengrafiken
+#| results: asis
+item_figures <- eatTechReport:::main_test_figure_plan(config, results$main_test)
+if (length(item_figures$modules)) {
+  cat("\n\nDie folgenden Abbildungen zeigen die Verteilung der Items auf die ",
+      "Kompetenzstufen innerhalb der einzelnen Testmodule. Für die Module ",
+      "derselben Skala wird eine gemeinsame Größenachse verwendet. ",
+      "Mehrfach eingesetzte Items werden in jedem zugehörigen Modul einmal gezählt.\n\n", sep = "")
+  for (figure in item_figures$modules) {
+    cat("\n\n![Verteilung der Items auf die Kompetenzstufen nach Testmodul: ",
+        eatTechReport:::report_markdown_text(figure$label), ".](figures/",
+        figure$file, "){#", figure$id, " width=15.5cm}\n\n", sep = "")
+  }
+}
+```
+
 Die folgenden Tabellen geben die Reihenfolge der Aufgaben innerhalb der
 einzelnen Module wieder. Die Itemzahl bezeichnet jeweils die in das Modul
 aufgenommenen Items der Aufgabe.

@@ -38,6 +38,10 @@ performance_component <- function(input) {
 #'   `data$main_test`: selected items, modules, ordered item membership and
 #'   documented pilot-wave membership. It extends the draft with main-test
 #'   selection and structure, not item-quality profiles or transformations.
+#'   Optional `data$main_test$item_levels` supplies exactly one `level_label`
+#'   per selected `item_id`, using the labels of its configured scale. These
+#'   upstream assignments enable item-level figures; no assignment is inferred
+#'   from person PVs or numerical cut values.
 #'   Sample composition describes the distinct persons in `data$population`;
 #'   participation and class returns are reported separately. Missing categorical
 #'   values form a separate category and remain in percentage denominators.
@@ -76,6 +80,8 @@ validate_report_input <- function(input) {
 #'   Scope `haupttest_struktur` additionally returns `main_test` with distinct
 #'   overall/domain counts, module counts, ordered tasks and pilot-wave counts.
 #'   Wave counts can overlap; module durations are not added to a test duration.
+#'   When supplied, `main_test$item_levels` contains complete competence-level
+#'   item counts for `selection` and `modules`, including zero-count levels.
 #' @seealso [example_report()], [validate_report_input()]
 #' @examples
 #' results <- summarise_report_input(example_report())

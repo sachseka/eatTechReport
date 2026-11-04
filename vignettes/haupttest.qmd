@@ -38,7 +38,7 @@ den Baustein `main_test`. Die bisherigen Umfänge bleiben unverändert gültig;
 
 ## Eingabetabellen
 
-`data$main_test` enthält genau fünf nicht leere R-Datentabellen. IDs und
+`data$main_test` enthält fünf erforderliche nicht leere R-Datentabellen. IDs und
 Bezeichnungen sind Zeichenketten. Ein Item steht genau einmal im Inventar;
 Wiederverwendungen werden in den Zuordnungstabellen erfasst.
 
@@ -49,6 +49,7 @@ Wiederverwendungen werden in den Zuordnungstabellen erfasst.
 | `module_items` | `module_id`, `item_id`, `task_position`, `item_position` | Ausgewählte Items je Modul; Aufgabenreihenfolge im Modul und Itemreihenfolge innerhalb der Aufgabe. |
 | `waves` | `wave_id`, `pilot_year`, `label` | Dokumentierte Pilotierungswellen mit Jahr und Bezeichnung. Mehrere Wellen im selben Jahr sind möglich. |
 | `item_waves` | `item_id`, `wave_id` | Eine oder mehrere dokumentierte Pilotierungswellen je ausgewähltem Item. |
+| `item_levels` (optional) | `item_id`, `level_label` | Eine fachlich gelieferte Kompetenzstufe je ausgewähltem Item für die Stufengrafiken. |
 
 Jedes Item benötigt mindestens eine Modul- und eine Wellenzuordnung. Jedes
 angegebene Modul und jede Welle müssen verwendet werden. Die ausgewählten Items
@@ -86,6 +87,52 @@ pilotiert wurde. Sie sind dann keine addierbare Zerlegung der Gesamtauswahl.
 Das Ergebnis kennzeichnet diesen Fall mit `source_overlap`; auch im Bericht
 wird auf ihn hingewiesen.
 
+## Itemverteilung auf die Kompetenzstufen
+
+Die optionale Tabelle `item_levels` enthält für jedes ausgewählte Item genau
+eine Stufenzuordnung. `level_label` verwendet eine der Bezeichnungen seiner
+konfigurierten Skala, derzeit Ia, Ib, II, III oder IV. Unbekannte Items,
+doppelte Zuordnungen, fehlende Items und unzulässige Stufen werden zurückgewiesen.
+
+Die Zuordnung erfolgt in der vorgelagerten fachlichen Auswertung. Das Paket
+leitet Itemstufen weder aus den Personen-PVs noch aus deren numerischen Cuts ab.
+Für polytome Items muss dort ebenfalls eine fachlich festgelegte Itemstufe
+geliefert werden; diese Grafik zählt Items, nicht einzelne Schwellen.
+
+```{r}
+demo$data$main_test$item_levels
+```
+
+Die folgenden Grafiken verwenden ausschließlich **synthetische Zuordnungen**.
+Auch bei null Items bleiben die vorgesehenen Kompetenzstufen sichtbar.
+Die Gesamtauswahl zählt jedes Item einmal. Im Modulvergleich erscheint ein
+wiederverwendetes Item in jedem zugehörigen Modul einmal.
+
+```{r}
+#| fig-width: 6.1
+#| fig-height: 3.23
+#| fig-alt: "Synthetische Itemanzahl je Kompetenzstufe in der Gesamtauswahl für Lesen."
+plot_item_levels(demo, "DL")
+```
+
+```{r}
+#| fig-width: 6.1
+#| fig-height: 4.81
+#| fig-alt: "Synthetische Itemanzahl je Kompetenzstufe im Basis- und Ergänzungsmodul für Lesen."
+plot_item_levels(demo, "DL", by = "module")
+```
+
+Mit `module_ids` lässt sich eine Auswahl von Modulen darstellen. Die gemeinsame
+Größenachse berücksichtigt weiterhin alle Module dieser Skala, sodass mehrere
+Abbildungen vergleichbar bleiben. In Word teilt das Paket die Module automatisch
+auf Abbildungen mit höchstens drei Modulen auf. Schrift und Abbildungsbreite
+entsprechen dem Berichtsdesign.
+
+Bestehende Eingaben ohne `item_levels` bleiben gültig. Dann steht im
+Auswahlkapitel ein sichtbarer Platzhalter für die noch benötigte Zuordnung;
+es werden keine Stufen angenommen. Die Beispiele aus `example_report()`
+enthalten bereits illustrative Zuordnungen.
+
 ## Redaktion und Word-Ausgabe
 
 ```{r}
@@ -106,7 +153,7 @@ Vorhandene redigierte Dateien sollten beim Ergänzen der zwei neuen Dateien
 beibehalten werden. Optional vorhandene lokale Kompetenz- und Methodentexte
 werden weiterhin eingebunden und archiviert.
 
-Itemprofile, verbindliche Umrechnungsformeln, die Zusammenstellung vollständiger
+Weitere Itemkennwerte, verbindliche Umrechnungsformeln, die Zusammenstellung vollständiger
 Haupttesthefte und der fachliche Vorjahresvergleich folgen in späteren Etappen.
 Der gespeicherte Archivstand enthält bereits die vollständigen Eingaben,
 Ergebnisse und verwendeten Textdateien dieser Erweiterung.

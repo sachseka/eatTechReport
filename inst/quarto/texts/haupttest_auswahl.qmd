@@ -52,3 +52,21 @@ if (results$main_test$source_overlap) {
 ```
 
 [Besonderheiten bei der Zusammenstellung der Hauptstudie ergänzen.]
+
+```{r}
+#| label: haupttest_auswahl_stufengrafiken
+#| results: asis
+item_figures <- eatTechReport:::main_test_figure_plan(config, results$main_test)
+if (length(item_figures$selection)) {
+  cat("\n\nDie folgenden Abbildungen zeigen, wie sich die ausgewählten Items ",
+      "auf die Kompetenzstufen verteilen. Jedes Item wird je Skala einmal gezählt, ",
+      "auch wenn es in mehreren Modulen eingesetzt wird.\n\n", sep = "")
+  for (figure in item_figures$selection) {
+    cat("\n\n![Verteilung der ausgewählten Items auf die Kompetenzstufen: ",
+        eatTechReport:::report_markdown_text(figure$label), ".](figures/",
+        figure$file, "){#", figure$id, " width=15.5cm}\n\n", sep = "")
+  }
+} else {
+  cat("\n\n[Stufenzuordnung der ausgewählten Items für die Kompetenzstufengrafiken ergänzen.]\n\n")
+}
+```

@@ -19,6 +19,8 @@ PV-Kennzahlen und Dichtegrafiken. Die Word-Ausgabe verwendet die mitgelieferte,
 freigegebene Corporate-Vorlage. Weitere Kapitel werden schrittweise ergänzt.
 Mit `scope = "haupttest_struktur"` kommen die Haupttest-Auswahl, ihre
 Pilotierungswellen sowie Modulübersichten und Aufgabenreihenfolgen hinzu.
+Die üblichen Grafiken zur Verteilung der Items auf die Kompetenzstufen zeigen
+die Gesamtauswahl und die einzelnen Module, sobald Itemstufen vorliegen.
 
 ## Installation und erster Einstieg
 
@@ -67,7 +69,13 @@ demo_haupttest <- example_report(scope = "haupttest_struktur")
 haupttest <- summarise_report_input(demo_haupttest)$main_test
 haupttest$modules
 haupttest$tasks
+plot_item_levels(demo_haupttest, "DL")
+plot_item_levels(demo_haupttest, "DL", by = "module")
 ```
+
+Die optionale R-Tabelle `data$main_test$item_levels` enthält `item_id` und
+`level_label` für jedes ausgewählte Item. Die Stufenzuordnung stammt aus der
+vorgelagerten Auswertung; die Beispieldaten enthalten illustrative Zuordnungen.
 
 ## Word-Bericht und Textredaktion
 

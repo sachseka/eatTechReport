@@ -59,6 +59,20 @@ test_that("Quarto renders a report with the installed layout and no private inpu
   expect_match(xml2::xml_text(doc), "synthetisch", ignore.case = TRUE)
   expect_gt(length(xml2::xml_find_all(doc, "//w:tbl", ns)), 0L)
   expect_gt(length(xml2::xml_find_all(doc, "//w:drawing", ns)), 0L)
+  expect_length(xml2::xml_find_all(doc, "//w:body//w:drawing", ns), 3L)
+  figure_plan <- readRDS(file.path(result$archive_dir, "item-figures.rds"))
+  figure_files <- vapply(c(figure_plan$selection, figure_plan$modules), `[[`, character(1), "file")
+  expect_length(figure_files, 2L)
+  expect_true(all(file.exists(file.path(output, "figures", figure_files))))
+  expect_match(xml2::xml_text(doc), "Verteilung der Items auf die Kompetenzstufen nach Testmodul", fixed = TRUE)
+  figure_tables <- xml2::xml_find_all(doc, "//w:tbl[.//w:drawing]", ns)
+  expect_length(figure_tables, 2L)
+  expect_length(xml2::xml_find_all(figure_tables,
+    ".//w:shd[not(@w:fill='auto' or @w:fill='FFFFFF')] | .//w:tblHeader", ns), 0L)
+  expect_true(all(xml2::xml_attr(xml2::xml_find_all(figure_tables,
+    "w:tblPr/w:tblBorders/* | w:tr/w:tc/w:tcPr/w:tcBorders/*", ns), "w:val", ns) == "nil"))
+  expect_identical(xml2::xml_attr(xml2::xml_find_all(figure_tables,
+    ".//*[local-name()='inline']/*[local-name()='extent']"), "cx"), rep("5580000", 2L))
   expect_match(xml2::xml_text(doc), "Auswahl", fixed = TRUE)
   expect_true(all(c("haupttest_auswahl.qmd", "haupttest_module.qmd") %in%
                     list.files(file.path(result$archive_dir, "texts"))))

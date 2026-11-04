@@ -46,6 +46,7 @@ reference:
       - summarise_report_input
       - summarise_leistung_input
       - plot_performance
+      - plot_item_levels
   - title: Word-Bericht und Textredaktion
     contents:
       - render_report

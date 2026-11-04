@@ -175,6 +175,17 @@ render_report <- function(config, data,
                     plot = plot_performance(input, scale_id, font_family = "Arial"),
                     width = 15.5, height = 9.4, units = "cm", dpi = 200, bg = "white")
   }
+  item_figures <- main_test_figure_plan(config, summaries$main_test)
+  for (kind in names(item_figures)) {
+    for (figure in item_figures[[kind]]) {
+      ggplot2::ggsave(file.path(asset_path, figure$file),
+        plot = plot_item_levels(input, figure$scale_id,
+          by = if (kind == "selection") "selection" else "module",
+          module_ids = figure$module_ids, font_family = "Arial"),
+        width = figure$width, height = figure$height, units = "cm", dpi = 200, bg = "white")
+    }
+  }
+  saveRDS(item_figures, file.path(archive_dir, "item-figures.rds"), version = 3)
   main_source <- system.file("quarto", "report.qmd", package = "eatTechReport")
   if (!nzchar(main_source)) stop("Die Quarto-Hauptdatei fehlt in der Paketinstallation.", call. = FALSE)
   source <- file.path(output_dir, "report.qmd")
@@ -506,6 +517,9 @@ finalise_report_docx <- function(path, report = NULL) {
   # Tables: strong outer rules, light horizontal separators, no verticals.
   for (table in xml2::xml_find_all(doc, "//w:tbl", ns)) {
     space_report_table(table, styles, ns)
+    # Captioned figures are layout containers, not data tables. Their image
+    # dimensions and caption placement are finalised after general typography.
+    if (is_report_figure_table(table, styles, ns)) next
     # Quarto wraps a caption and its data table in an outer layout table. Only
     # the inner data table receives rules, repeated headings and header shading.
     if (length(xml2::xml_find_all(table, ".//w:tbl", ns))) {
@@ -610,6 +624,10 @@ finalise_report_docx <- function(path, report = NULL) {
     xml2::write_xml(settings, settings_file)
   }
   apply_report_layout(directory)
+  doc <- xml2::read_xml(document_file)
+  styles <- xml2::read_xml(styles_file)
+  finalise_report_figures(doc, styles, ns)
+  xml2::write_xml(doc, document_file)
   pack_word_package(directory, path)
   invisible(path)
 }

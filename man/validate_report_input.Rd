@@ -25,6 +25,10 @@ Scope \code{haupttest_struktur} uses schema \verb{0.4.0-draft} and additionally 
 \code{data$main_test}: selected items, modules, ordered item membership and
 documented pilot-wave membership. It extends the draft with main-test
 selection and structure, not item-quality profiles or transformations.
+Optional \code{data$main_test$item_levels} supplies exactly one \code{level_label}
+per selected \code{item_id}, using the labels of its configured scale. These
+upstream assignments enable item-level figures; no assignment is inferred
+from person PVs or numerical cut values.
 Sample composition describes the distinct persons in \code{data$population};
 participation and class returns are reported separately. Missing categorical
 values form a separate category and remain in percentage denominators.

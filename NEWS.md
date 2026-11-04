@@ -1,5 +1,12 @@
 # eatTechReport 0.0.0.9000
 
+* Add competence-level item-count graphics for the main-test selection and its
+  modules, using the report colours, direct count labels and shared module axes.
+  `plot_item_levels()` also returns these plots for use outside Word reports.
+* Accept optional, complete upstream item-level assignments in
+  `data$main_test$item_levels`. Count reused items once overall and once per
+  module, and display empty levels explicitly. Synthetic examples include
+  illustrative assignments; no item stages are inferred from person PVs/cuts.
 * Add the opt-in `haupttest_struktur` scope (schema `0.4.0-draft`) with main-test
   selection, pilot-wave provenance and ordered module contents. Support reused
   items, partial tasks and multiple waves without inflating overall counts.

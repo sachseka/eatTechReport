@@ -67,7 +67,84 @@ test_that("unused configured domains have zero counts and domain modules are per
   expect_false(summarise_main_test_data(data, config)$source_overlap)
   config$domains <- data.frame(domain_id = c("DO", "DS"), label = c("Orthografie", "Sprachgebrauch"),
                                scale_id = c("DO", "DS"))
+  names(config$scales) <- c("DO", "DS")
   expect_setequal(example_main_test_data(config)$items$domain_id, c("DO", "DS"))
+})
+
+test_that("supplied item levels retain zeros and count distinct selected items", {
+  for (profile in c("v3_de_lesen_zuhoeren", "v3_ma_mg_mm")) {
+    config <- example_leistung_input(profile)$config
+    data <- example_main_test_data(config)
+    result <- summarise_main_test_data(data, config)
+    expect_equal(sum(result$item_levels$selection$n_items), nrow(data$items))
+    expect_gt(sum(result$item_levels$modules$n_items), nrow(data$items))
+    for (scale_id in unique(config$domains$scale_id)) {
+      selected <- result$item_levels$selection[result$item_levels$selection$scale_id == scale_id, ]
+      expect_identical(selected$level_label, config$scales[[scale_id]]$level_labels)
+      expect_equal(selected$n_items,
+        if (profile == "v3_ma_mg_mm") rep(4L, 5L) else c(1L, 1L, 1L, 1L, 0L))
+    }
+    for (id in result$modules$module_id) {
+      expect_equal(sum(result$item_levels$modules$n_items[result$item_levels$modules$module_id == id]),
+                     result$modules$n_items[result$modules$module_id == id])
+    }
+    legacy <- data
+    legacy$item_levels <- NULL
+    expect_true(validate_main_test_data(legacy, config))
+    expect_null(summarise_main_test_data(legacy, config)$item_levels)
+    result$item_levels <- NULL
+    expect_identical(summarise_main_test_data(legacy, config), result)
+  }
+})
+
+test_that("item-level summaries follow scale labels and filter mixed-domain modules", {
+  config <- example_leistung_input()$config
+  data <- example_main_test_data(config)
+  data$module_items <- rbind(data$module_items,
+    data.frame(module_id = "DH_BM", item_id = "DL_P01", task_position = 3L, item_position = 1L))
+  config$scales$DL$level_labels <- c("IV", "III", "II", "Ib", "Ia")
+  result <- summarise_main_test_data(data, config)$item_levels
+  expect_identical(result$selection$level_label[result$selection$scale_id == "DL"],
+                   config$scales$DL$level_labels)
+  mixed <- result$modules[result$modules$module_id == "DH_BM", ]
+  expect_equal(sum(mixed$n_items[mixed$scale_id == "DL"]), 1L)
+  expect_equal(sum(mixed$n_items[mixed$scale_id == "DH"]), 3L)
+  expect_equal(mixed$n_items[mixed$scale_id == "DL" & mixed$level_label == "Ia"], 1L)
+  # Changing population cuts must never reassign item levels.
+  config$scales$DL$cuts <- c(0, 1, 2, 3)
+  expect_identical(summarise_main_test_data(data, config)$item_levels, result)
+})
+
+test_that("supplied item levels require complete valid assignments on each scale", {
+  config <- example_leistung_input()$config
+  original <- example_main_test_data(config)
+  bad <- original
+  bad$item_levels <- bad$item_levels[-1L, ]
+  expect_error(validate_main_test_data(bad, config), "item_levels.*Jede definierte ID")
+  bad <- original
+  bad$item_levels$item_id[1L] <- "unknown"
+  expect_error(validate_main_test_data(bad, config), "item_levels.*unbekannte IDs")
+  bad <- original
+  bad$item_levels <- rbind(bad$item_levels, bad$item_levels[1L, ])
+  expect_error(validate_main_test_data(bad, config), "item_levels.*Duplikate")
+  for (value in list(NA_character_, "", " ", "invalid\nlabel", "unknown")) {
+    bad <- original
+    bad$item_levels$level_label[1L] <- value
+    expect_error(validate_main_test_data(bad, config), "item_levels.*(Fehlwerte|unbekannte Stufen)")
+  }
+  for (value in list(data.frame(), original$item_levels[, "item_id", drop = FALSE],
+                    cbind(original$item_levels, extra = 1L), list(item_id = "x"))) {
+    bad <- original
+    bad$item_levels <- value
+    expect_error(validate_main_test_data(bad, config), "item_levels.*nichtleere Tabelle")
+  }
+  config$scales$DL$level_labels <- c("reading_low", "reading_high")
+  original$item_levels$level_label[grepl("^DL", original$item_levels$item_id)] <- "reading_low"
+  expect_true(validate_main_test_data(original, config))
+  original$item_levels$level_label[grepl("^DH", original$item_levels$item_id)][1L] <- "reading_low"
+  expect_error(validate_main_test_data(original, config), "unbekannte Stufen fuer Skala DH")
+  config$scales$DL$level_labels <- NULL
+  expect_error(validate_main_test_data(original, config), "level_labels muss Stufenbezeichnungen")
 })
 
 test_that("main-test references and unique IDs reject inconsistent selections", {

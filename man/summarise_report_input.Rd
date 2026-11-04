@@ -19,6 +19,8 @@ percentages for empty populations and undefined sample SDs are NA.
 Scope \code{haupttest_struktur} additionally returns \code{main_test} with distinct
 overall/domain counts, module counts, ordered tasks and pilot-wave counts.
 Wave counts can overlap; module durations are not added to a test duration.
+When supplied, \code{main_test$item_levels} contains complete competence-level
+item counts for \code{selection} and \code{modules}, including zero-count levels.
 }
 \description{
 Build the common numerical source for editable text, tables and graphics.

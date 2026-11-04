@@ -9,6 +9,9 @@ validate_main_test_data <- function(data, config) {
     waves = c("wave_id", "pilot_year", "label"),
     item_waves = c("item_id", "wave_id")
   )
+  if (is.list(data) && "item_levels" %in% names(data)) {
+    tables$item_levels <- c("item_id", "level_label")
+  }
   if (!is.list(data) || is.data.frame(data) || is.null(names(data)) ||
       anyDuplicated(names(data)) || !setequal(names(data), names(tables))) {
     fail(paste0("data$main_test erwartet genau: ", paste(names(tables), collapse = ", "), "."))
@@ -127,6 +130,26 @@ validate_main_test_data <- function(data, config) {
   foreign(sources$wave_id, waves$wave_id, "main_test$item_waves$wave_id")
   complete(sources$item_id, items$item_id, "main_test$item_waves$item_id")
   complete(sources$wave_id, waves$wave_id, "main_test$item_waves$wave_id")
+  if ("item_levels" %in% names(data)) {
+    levels <- data$item_levels
+    strings(levels$item_id, "main_test$item_levels$item_id", TRUE)
+    strings(levels$level_label, "main_test$item_levels$level_label")
+    foreign(levels$item_id, items$item_id, "main_test$item_levels$item_id")
+    complete(levels$item_id, items$item_id, "main_test$item_levels$item_id")
+    item_scales <- config$domains$scale_id[match(items$domain_id, config$domains$domain_id)]
+    assigned <- levels$level_label[match(items$item_id, levels$item_id)]
+    for (scale_id in unique(item_scales)) {
+      labels <- config$scales[[scale_id]]$level_labels
+      if (is.null(labels) || !length(labels)) {
+        fail(paste0("config$scales$", scale_id, "$level_labels muss Stufenbezeichnungen enthalten."))
+      }
+      strings(labels, paste0("config$scales$", scale_id, "$level_labels"), TRUE)
+      if (any(!assigned[item_scales == scale_id] %in% labels)) {
+        fail(paste0("main_test$item_levels$level_label enthaelt unbekannte Stufen fuer Skala ",
+                    scale_id, "."))
+      }
+    }
+  }
   invisible(TRUE)
 }
 
@@ -181,6 +204,36 @@ summarise_main_test_data <- function(data, config) {
   for (name in names(result)[vapply(result, is.data.frame, logical(1))]) {
     rownames(result[[name]]) <- NULL
   }
+  if ("item_levels" %in% names(data)) {
+    # These are supplied item assignments, not levels inferred from person cuts.
+    item_scales <- config$domains$scale_id[match(items$domain_id, config$domains$domain_id)]
+    assigned <- data$item_levels$level_label[match(items$item_id, data$item_levels$item_id)]
+    scale_ids <- unique(config$domains$scale_id[config$domains$scale_id %in% item_scales])
+    selection_levels <- module_levels <- list()
+    for (scale_id in scale_ids) {
+      labels <- config$scales[[scale_id]]$level_labels
+      selected <- which(item_scales == scale_id)
+      selection_levels[[scale_id]] <- data.frame(
+        scale_id = scale_id, level_label = labels,
+        n_items = tabulate(match(assigned[selected], labels), nbins = length(labels)),
+        stringsAsFactors = FALSE)
+      for (module_id in modules$module_id) {
+        ids <- links$item_id[links$module_id == module_id]
+        module_selected <- selected[items$item_id[selected] %in% ids]
+        if (!length(module_selected)) next
+        module_levels[[length(module_levels) + 1L]] <- data.frame(
+          scale_id = scale_id, module_id = module_id, level_label = labels,
+          n_items = tabulate(match(assigned[module_selected], labels), nbins = length(labels)),
+          stringsAsFactors = FALSE)
+      }
+    }
+    result$item_levels <- list(selection = do.call(rbind, selection_levels),
+                              modules = do.call(rbind, module_levels))
+    result$item_levels <- lapply(result$item_levels, function(table) {
+      rownames(table) <- NULL
+      table
+    })
+  }
   result
 }
 
@@ -233,6 +286,20 @@ example_main_test_data <- function(config) {
   item_waves <- rbind(item_waves, data.frame(item_id = items$item_id[2L], wave_id = "demo_previous"))
   result <- list(items = items, modules = do.call(rbind, modules),
                  module_items = do.call(rbind, links), waves = waves, item_waves = item_waves)
+  # Illustrative assignments cycle through the configured labels. They are not
+  # derived from real item parameters or the illustrative population cuts.
+  item_scales <- config$domains$scale_id[match(items$domain_id, config$domains$domain_id)]
+  assigned <- character(nrow(items))
+  for (scale_id in unique(item_scales)) {
+    index <- which(item_scales == scale_id)
+    labels <- config$scales[[scale_id]]$level_labels
+    if (is.null(labels) || !length(labels)) {
+      stop("Das Haupttestbeispiel braucht level_labels fuer Skala ", scale_id, ".", call. = FALSE)
+    }
+    assigned[index] <- rep(labels, length.out = length(index))
+  }
+  result$item_levels <- data.frame(item_id = items$item_id, level_label = assigned,
+                                   stringsAsFactors = FALSE)
   result <- lapply(result, function(table) { rownames(table) <- NULL; table })
   validate_main_test_data(result, config)
   result
