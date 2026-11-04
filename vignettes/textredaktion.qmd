@@ -8,9 +8,11 @@ execute:
   eval: false
 ---
 
-Die Word-Ausgabe umfasst Testdesign, Stichprobenbeschreibung und Leistung der
-Pilotierungsstichprobe. Die weiteren Kapitel des Technischen Berichts werden
-schrittweise ergänzt.
+Mit `scope = "bericht"` umfasst die Word-Ausgabe alle vorgesehenen Kapitel
+bis zum Literaturverzeichnis: Grundlagen und Pilotierungsstudie,
+Haupttest-Auswahl und Module, Itemkennwerte und Umrechnungsformeln sowie
+Hinweise zur Auswertung und Rückmeldung. Die bisherigen Teilumfänge bleiben
+verfügbar; der Standardumfang ist weiterhin `pilotierung`.
 Die folgenden Aufrufe sind für die lokale Anwendung vorgesehen und werden
 beim Website-Build nicht ausgeführt.
 
@@ -34,7 +36,7 @@ verwendet dieser Stand unter Windows außerdem ein installiertes Microsoft Word.
 
 ```{r}
 library(eatTechReport)
-demo <- example_report(n_persons = 200)
+demo <- example_report(scope = "bericht", n_persons = 200)
 
 bericht <- render_report(
   config = demo$config,
@@ -46,8 +48,10 @@ bericht$path
 bericht$archive_dir
 ```
 
-Der Prototyp kennzeichnet synthetische Eingaben sichtbar und verwendet
-dieselben Kennzahlen wie `summarise_report_input()`.
+Der Beispielbericht kennzeichnet synthetische Eingaben einschließlich der
+Umrechnungskoeffizienten sichtbar und verwendet dieselben Kennzahlen wie
+`summarise_report_input()`. Reale Itemkennwerte und freigegebene
+Personen- und Itemtransformationen werden vorgelagert geliefert.
 
 ## Autoren und Affiliation auf dem Deckblatt
 
@@ -56,6 +60,7 @@ von den Paketautoren in der DESCRIPTION gesetzt:
 
 ```{r}
 demo <- example_report(
+  scope = "bericht",
   authors = c("Erika Muster", "Max Muster"),
   affiliation = c("Institut für Beispielstudien", "Universität Musterstadt")
 )
@@ -104,10 +109,10 @@ abgeschlossenen Word-Schritt benötigt, verwendet `update_fields = "word"`.
 Die Texte lassen sich in einen eigenen lokalen Arbeitsordner kopieren:
 
 ```{r}
-edit_report_texts("lokal/redaktion")
+edit_report_texts("lokal/redaktion", scope = "bericht")
 ```
 
-Die Voreinstellung `scope = "pilotierung"` kopiert acht Bausteine:
+Der vollständige Umfang `scope = "bericht"` kopiert 15 öffentliche Bausteine:
 
 | Datei | Inhalt |
 | --- | --- |
@@ -119,6 +124,16 @@ Die Voreinstellung `scope = "pilotierung"` kopiert acht Bausteine:
 | `pilotierung_stichprobe_bearbeitungen.qmd` | Gültige Antworten je Item und Ankeritem-Fußnote. |
 | `pilotierung_leistung.qmd` | PV-Kennzahlen, Kompetenzstufen und Dichtegrafiken. |
 | `leistung_methoden.qmd` | Berechnungsregeln der Leistungsdarstellung. |
+| `haupttest_auswahl.qmd` | Haupttest-Auswahl, Herkunftswellen und Stufengrafiken der Gesamtauswahl. |
+| `haupttest_module.qmd` | Modulübersicht, gemeinsame Modul-Stufengrafiken und Aufgabenmatrix. |
+| `haupttest_itemprofil.qmd` | Itemkennwerte der Testmodule. |
+| `haupttest_transformation.qmd` | Umrechnung von Personen- und Itemwerten in die Berichtsskala. |
+| `haupttest_auswertungshinweise.qmd` | Hinweise zur Auswertung des Haupttests. |
+| `rueckmeldung_empfehlungen.qmd` | Empfehlungen für die Rückmeldung an Schulen. |
+| `literatur.qmd` | Literaturverzeichnis. |
+
+Ohne `scope` werden weiterhin die ersten acht Bausteine für `pilotierung`
+kopiert. `scope = "haupttest_struktur"` umfasst die ersten zehn Bausteine.
 
 Die erzeugten `.qmd`-Dateien werden in RStudio oder VS Code geöffnet. Absätze,
 Überschriften und Erläuterungen lassen sich dort kapitelweise redigieren.
@@ -147,8 +162,9 @@ weitere Quarto-Dateien angelegt werden:
 | `pilotierung_durchfuehrung.qmd` | Nach der Stichprobenbeschreibung. |
 | `pilotierung_auswertung.qmd` | Nach der Durchführung, vor der Leistungsdarstellung. |
 
-Diese Dateien werden beim Umfang `pilotierung` automatisch eingefügt und mit
-dem Renderstand archiviert. Nicht vorhandene Dateien werden ausgelassen.
+Diese Dateien werden bei den Umfängen `pilotierung`, `haupttest_struktur` und
+`bericht` automatisch eingefügt und mit dem Renderstand archiviert.
+Nicht vorhandene Dateien werden ausgelassen.
 Andere Dateien im Redaktionsordner werden nicht übernommen. Die zusätzlichen
 Kapitel können auf dieselben Objekte `config`, `input` und `results` zugreifen
 wie die mitgelieferten Bausteine. Private Originaltexte bleiben im lokalen
@@ -165,11 +181,10 @@ leistung <- example_report(scope = "pilotierung_leistung")
 edit_report_texts("lokal/redaktion-leistung", scope = "pilotierung_leistung")
 ```
 
-Der Renderer erwartet die zum gewählten Umfang passenden Dateien. Wer einen
-bisherigen Ordner mit drei redigierten Bausteinen auf den größeren Umfang
-erweitern möchte, legt einen neuen Ordner mit acht Bausteinen an und überträgt
-die eigenen Textanpassungen dorthin. Vorhandene Dateien werden standardmäßig
-nicht überschrieben.
+Der Renderer erwartet die zum gewählten Umfang passenden Dateien. Für einen
+Wechsel zu einem größeren Umfang lässt sich ein neuer Ordner mit den passenden
+Bausteinen anlegen. Die bisherigen Textanpassungen werden anschließend dorthin
+übertragen. Vorhandene Dateien werden standardmäßig nicht überschrieben.
 
 ## Ausgaben und Renderablage
 
@@ -194,8 +209,11 @@ automatische Ausrufezeichen am rechten Rand werden später ergänzt.
 ## Umgesetzter Umfang
 
 Der Umfang `pilotierung` verbindet Testdesign, Stichprobenbeschreibung und
-Leistung im Corporate-DOCX. Ein vollständiger Technischer Bericht mit
-empirischer Itemgüte und Haupttestkapiteln, die Anbindung aktueller realer
-Auswertungsobjekte sowie Vorjahresvergleiche und Randmarkierungen stehen noch
-aus. Die vollständigen Eingabestrukturen sind unter
-[Testdesign und Stichprobe](pilotierung.html) beschrieben.
+Leistung im Corporate-DOCX. `haupttest_struktur` ergänzt Haupttest-Auswahl,
+Module, Aufgabenmatrix und Stufengrafiken; `bericht` vervollständigt den
+Beispielbericht mit Itemkennwerten, Umrechnungsformeln und den Schlusskapiteln
+bis zur Literatur. Die fachliche Textredaktion und die Anbindung aktueller
+realer Auswertungsobjekte werden weitergeführt; Vorjahresvergleiche und
+Randmarkierungen folgen später. Die Eingabestrukturen sind unter
+[Testdesign und Stichprobe](pilotierung.html) sowie
+[Haupttest-Auswahl und Module](haupttest.html) beschrieben.

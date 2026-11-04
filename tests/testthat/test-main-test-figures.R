@@ -1,4 +1,4 @@
-test_that("figure pagination retains every module with safe unique filenames", {
+test_that("a single figure retains every module with safe unique filenames", {
   input <- example_report("v3_ma_mg_mm", scope = "haupttest_struktur")
   main_test <- summarise_report_input(input)$main_test
   original <- main_test$modules
@@ -14,9 +14,9 @@ test_that("figure pagination retains every module with safe unique filenames", {
   }))
   plan <- main_test_figure_plan(input$config, main_test)
   expect_length(plan$selection, 1L)
-  expect_length(plan$modules, 3L)
+  expect_length(plan$modules, 1L)
   expect_identical(unlist(lapply(plan$modules, `[[`, "module_ids"), use.names = FALSE), ids)
-  expect_equal(vapply(plan$modules, function(x) length(x$module_ids), integer(1)), c(3, 3, 1))
+  expect_equal(vapply(plan$modules, function(x) length(x$module_ids), integer(1)), 7L)
   filenames <- vapply(c(plan$selection, plan$modules), `[[`, character(1), "file")
   expect_identical(filenames, basename(filenames))
   expect_false(anyDuplicated(filenames) > 0L)

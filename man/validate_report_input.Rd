@@ -29,6 +29,10 @@ Optional \code{data$main_test$item_levels} supplies exactly one \code{level_labe
 per selected \code{item_id}, using the labels of its configured scale. These
 upstream assignments enable item-level figures; no assignment is inferred
 from person PVs or numerical cut values.
+Scope \code{bericht} uses schema \verb{0.5.0-draft} and additionally requires
+\code{data$main_test_results}: complete item statistics, explicitly supplied
+affine transformations for persons and items, and their definitions. It
+includes the final report chapters through interpretation and references.
 Sample composition describes the distinct persons in \code{data$population};
 participation and class returns are reported separately. Missing categorical
 values form a separate category and remain in percentage denominators.

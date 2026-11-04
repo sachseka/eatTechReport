@@ -1,0 +1,33 @@
+## Umrechnung in die Berichtsskala {#haupttest_transformation}
+
+Die Umrechnung verbindet die Logit-Metrik mit der Berichtsskala der jeweiligen
+Skala. Personenfähigkeiten und Itemschwierigkeiten können unterschiedliche
+Umrechnungen benötigen und werden deshalb getrennt angegeben. Allgemein gilt
+mit dem Ausgangswert $x$, dem Berichtswert $y$, der Konstanten $a$ und dem
+Skalierungsfaktor $b$:
+
+$$
+y = a + b \cdot x
+$$
+
+```{r}
+#| label: haupttest_transformation_formeln
+#| results: asis
+if (identical(config$report$data_origin, "synthetic")) {
+  cat("\n\n**Synthetisches Beispiel:** Sämtliche folgenden Koeffizienten dienen nur ",
+      "der Darstellung. Sie sind keine freigegebenen Umrechnungen für den ",
+      "VERA-Durchgang ", config$report$main_year, ".\n\n", sep = "")
+}
+cat(eatTechReport:::report_transformation_markdown(results$main_test_results, config))
+```
+
+Dabei bezeichnet $\theta$ die Personenfähigkeit und $\beta$ die
+Itemschwierigkeit auf der jeweils angegebenen Logit-Metrik. Eine gegebenenfalls
+erforderliche Anpassung des Lösungswahrscheinlichkeitskriteriums für Items muss
+bereits in den gelieferten Koeffizienten enthalten sein. Die Umrechnung darf
+nur auf Werte der zugehörigen Skala und Ausgangsmetrik angewandt werden.
+
+Die Plausible Values für die Beschreibung der Pilotierungsstichprobe liegen
+bereits auf der 500er-Berichtsskala vor. Sie werden für die Leistungskennwerte,
+Dichtegrafiken und Kompetenzstufenanteile unverändert verwendet und nicht
+erneut umgerechnet.

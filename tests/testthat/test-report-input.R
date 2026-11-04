@@ -79,3 +79,24 @@ test_that("main-test text editing requires both new blocks only for its scope", 
   unlink(file.path(destination, "haupttest_module.qmd"))
   expect_error(report_text_files(destination, "haupttest_struktur"), "haupttest_module")
 })
+
+test_that("complete report inputs extend the draft through final results", {
+  for (profile in c("v3_de_lesen_zuhoeren", "v3_ma_mg_mm")) {
+    input <- example_report(profile, scope = "bericht", n_persons = 2, n_pv = 1)
+    previous <- example_report(profile, scope = "haupttest_struktur", n_persons = 2, n_pv = 1)
+    expect_true(validate_report_input(input))
+    expect_identical(input$config$schema_version, "0.5.0-draft")
+    expect_identical(performance_component(input), performance_component(previous))
+    result <- summarise_report_input(input)
+    expect_identical(result[names(result) != "main_test_results"], summarise_report_input(previous))
+    expect_equal(nrow(result$main_test_results$item_statistics), nrow(input$data$main_test$items))
+    input$data$main_test_results$item_statistics$p_correct[1L] <- 2
+    expect_error(render_report(input$config, input$data, output_dir = tempfile()), "p_correct")
+    input$data$main_test_results <- NULL
+    expect_error(validate_report_input(input), "main_test_results")
+  }
+  destination <- tempfile("complete-texts-")
+  expect_length(edit_report_texts(destination, scope = "bericht"), 15L)
+  expect_true(all(report_completion_text_names() %in% basename(report_text_files(destination, "bericht"))))
+  expect_length(report_text_files(destination, "haupttest_struktur"), 10L)
+})

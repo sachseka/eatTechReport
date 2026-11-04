@@ -12,15 +12,16 @@
 
 eatTechReport entwickelt Technische Berichte für VERA-3 aus vorhandenen
 Auswertungsergebnissen und redigierbaren Quarto-Textbausteinen. Der aktuelle
-Paketstand umfasst **Testdesign, Stichprobenbeschreibung und Leistung der
-Pilotierungsstichprobe**: Eingabeprüfung, Aufgaben- und Itemzahlen,
-Testheftaufbau, Rücklauf, Hintergrundmerkmale, gültige Antwortzahlen,
-PV-Kennzahlen und Dichtegrafiken. Die Word-Ausgabe verwendet die mitgelieferte,
-freigegebene Corporate-Vorlage. Weitere Kapitel werden schrittweise ergänzt.
-Mit `scope = "haupttest_struktur"` kommen die Haupttest-Auswahl, ihre
-Pilotierungswellen sowie Modulübersichten und Aufgabenreihenfolgen hinzu.
-Die üblichen Grafiken zur Verteilung der Items auf die Kompetenzstufen zeigen
-die Gesamtauswahl und die einzelnen Module, sobald Itemstufen vorliegen.
+Paketstand erzeugt mit `scope = "bericht"` einen **durchgängigen Beispielbericht
+bis zum Literaturverzeichnis**: Grundlagen, Testdesign, Stichprobenbeschreibung
+und Leistung der Pilotierungsstichprobe, Haupttest-Auswahl und Module,
+Itemkennwerte, Umrechnungsformeln sowie Hinweise zur Auswertung und Rückmeldung.
+Die Word-Ausgabe verwendet die mitgelieferte, freigegebene Corporate-Vorlage.
+Die Aufgabenmatrix stellt die Aufgabenfolgen der Module nebeneinander dar.
+Stufengrafiken zeigen die Gesamtauswahl und einen gemeinsamen Vergleich der
+Basis- und Ergänzungsmodule mit schmalen, gruppierten Balken je Skala.
+Die bisherigen Teilumfänge bleiben verfügbar; die fachliche Textredaktion
+wird weitergeführt.
 
 ## Installation und erster Einstieg
 
@@ -77,6 +78,28 @@ Die optionale R-Tabelle `data$main_test$item_levels` enthält `item_id` und
 `level_label` für jedes ausgewählte Item. Die Stufenzuordnung stammt aus der
 vorgelagerten Auswertung; die Beispieldaten enthalten illustrative Zuordnungen.
 
+Für den vollständigen Beispielbericht steht Schema `0.5.0-draft` bereit:
+
+```r
+demo_bericht <- example_report(scope = "bericht")
+validate_report_input(demo_bericht)
+ergebnisse <- summarise_report_input(demo_bericht)
+ergebnisse$main_test_results$module_statistics
+ergebnisse$main_test_results$transformations
+```
+
+Dieser Umfang benötigt zusätzlich `data$main_test_results` mit den Tabellen
+`item_statistics` (`item_id`, `p_correct`, `logit`) und `transformations`
+(`scale_id`, `target`, `intercept`, `slope`, `source_label`) sowie den
+Beschreibungstexten `definitions$p_correct`, `definitions$logit` und
+`definitions$population`. Je Skala werden eigene Koeffizienten für Personen
+(`target = "person"`) und Items (`target = "item"`) geliefert. Die Umrechnung
+lautet `Berichtswert = intercept + slope * Logitwert`.
+**Die Demokoeffizienten sind rein synthetisch.** Reale Itemkennwerte und
+freigegebene Transformationen kommen aus der vorgelagerten Auswertung.
+Bereits auf der Berichtsskala vorliegende Personen-PVs werden nicht erneut
+umgerechnet. Die bestehenden Umfänge und die Voreinstellung bleiben unverändert.
+
 ## Word-Bericht und Textredaktion
 
 Für die Dokumenterzeugung wird zusätzlich [Quarto](https://quarto.org/) benötigt.
@@ -94,8 +117,8 @@ erzeugt, aber die noch ausstehende Feldaktualisierung ausdrücklich gemeldet.
 
 ```r
 bericht <- render_report(
-  config = demo$config,
-  data = demo$data,
+  config = demo_bericht$config,
+  data = demo_bericht$data,
   output_dir = "lokal/demo-de"
 )
 bericht$path
@@ -105,34 +128,37 @@ bericht$manifest$fields_updated
 Autoren und gemeinsame Affiliation vor dem Rendern in der Berichtskonfiguration setzen:
 
 ```r
-demo$config$report$authors <- c("Erika Muster", "Max Muster")
-demo$config$report$affiliation <- "Institut für Beispielstudien an der Universität Musterstadt"
+demo_bericht$config$report$authors <- c("Erika Muster", "Max Muster")
+demo_bericht$config$report$affiliation <- "Institut für Beispielstudien an der Universität Musterstadt"
 ```
 
 Alternativ können beide Angaben direkt an `example_report()` übergeben werden.
 Ohne Angaben erscheinen Platzhalter in eckigen Klammern auf dem Deckblatt.
 
-Der Bericht enthält derzeit die Abschnitte Testdesign, Stichprobe und Leistung
-und kennzeichnet synthetische Eingaben sichtbar. Ein vollständiger Technischer
-Bericht mit empirischer Itemgüte, Itemprofilen und Umrechnungsformeln ist noch
-nicht umgesetzt. Auswahl und Modulstruktur der Hauptstudie sind optional verfügbar.
-Bestehende Ausgaben werden standardmäßig nicht überschrieben.
+Der Umfang `bericht` enthält alle vorgesehenen Kapitel bis zur Literatur und
+kennzeichnet synthetische Eingaben einschließlich der Umrechnungskoeffizienten
+sichtbar. Durchgangsspezifische Textvariablen stehen zunächst in eckigen Klammern.
+Die fachliche Prüfung und Redaktion der Texte bleiben Teil der Vorbereitung
+eines realen Berichts. Bestehende Ausgaben werden standardmäßig nicht überschrieben.
 
 Die Texte lassen sich als Quarto-Dateien in einen eigenen Arbeitsordner kopieren:
 
 ```r
-edit_report_texts("lokal/redaktion")
+edit_report_texts("lokal/redaktion", scope = "bericht")
 
 # Quarto-Texte in lokal/redaktion bearbeiten, dann erneut erzeugen:
 bericht <- render_report(
-  config = demo$config,
-  data = demo$data,
+  config = demo_bericht$config,
+  data = demo_bericht$data,
   text_dir = "lokal/redaktion",
   output_dir = "lokal/demo-redigiert"
 )
 ```
 
-Die Voreinstellung kopiert acht Bausteine für `scope = "pilotierung"`.
+Für `scope = "bericht"` werden 15 öffentliche Quarto-Bausteine kopiert,
+einschließlich Itemkennwerten, Transformationen, Auswertungshinweisen,
+Rückmeldungsempfehlungen und Literatur. Die Voreinstellung ohne `scope`
+kopiert weiterhin acht Bausteine für `scope = "pilotierung"`.
 Mit `scope = "haupttest_struktur"` werden zehn Bausteine kopiert, darunter
 `haupttest_auswahl.qmd` und `haupttest_module.qmd`.
 Mit `scope = "pilotierung_leistung"` werden die drei bisherigen Bausteine für
@@ -170,7 +196,8 @@ erläutert die zusätzlichen R-Objekte `data$design` und `data$sample`.
 [Leistungskennzahlen und Plausible Values](vignettes/leistung.qmd) beschreibt
 die PV-Eingaben und ihre Berechnungsregeln.
 [Haupttest-Auswahl und Module](vignettes/haupttest.qmd) beschreibt das separate
-Haupttestinventar, Wiederverwendungen, Herkunftswellen und Aufgabenreihenfolgen.
+Haupttestinventar, Wiederverwendungen, Herkunftswellen, Aufgabenmatrix und
+Stufengrafiken sowie die Eingaben für den vollständigen Beispielbericht.
 
 ## Dokumentation und Entwicklung
 

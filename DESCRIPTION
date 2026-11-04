@@ -10,8 +10,8 @@ Authors@R: c(
         comment = c(ORCID = "0000-0001-9502-6083")))
 Description: Validate and summarise test designs, sample characteristics, valid
     item-response counts, plausible values, and main-test selections and modules
-    for VERA-3 assessments. Plot
-    performance distributions with proficiency-level percentages and assemble
+    for VERA-3 assessments. Present supplied item statistics and scale
+    transformations, plot performance and item distributions, and assemble
     editable Quarto sections into Word documents using the bundled
     corporate template. Synthetic examples support development without access
     to assessment data.
@@ -20,6 +20,7 @@ Encoding: UTF-8
 Depends: R (>= 4.1.0)
 Imports:
     ggplot2 (>= 3.4.0),
+    grDevices,
     knitr,
     processx,
     quarto,

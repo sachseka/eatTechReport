@@ -13,7 +13,10 @@ Der aktuelle Paketstand verbindet Testdesign, Stichprobenbeschreibung und
 Leistungsdarstellung. Die Eingaben liegen als R-Objekte vor; dieselben
 berechneten Ergebnisse werden in Tabellen und redigierbaren Quarto-Texten
 verwendet. Für Deutsch sind mehrere Kompetenzbereiche möglich; Mathematik
-erhält eine gemeinsame globale Leistungsskala.
+erhält eine gemeinsame globale Leistungsskala. Der größere Umfang
+`scope = "bericht"` ergänzt Haupttest-Auswahl und Module, Itemkennwerte und
+Umrechnungsformeln sowie die abschließenden Kapitel bis zur Literatur.
+Der Einstieg beginnt mit dem unveränderten Standardumfang `pilotierung`.
 
 ## Installation
 
@@ -115,6 +118,21 @@ Mit `example_report(scope = "haupttest_struktur")` lassen sich zusätzlich die
 [Haupttest-Auswahl und Module](haupttest.html) darstellen, einschließlich
 Herkunftswellen und Aufgabenreihenfolgen. Die Auswahl wird als eigenes R-Objekt
 geliefert und nicht automatisch aus der Pilotierung abgeleitet.
+
+Für einen durchgängigen Beispielbericht bis zum Literaturverzeichnis:
+
+```{r}
+vollstaendig <- example_report(scope = "bericht", n_persons = 24)
+validate_report_input(vollstaendig)
+knitr::kable(summarise_report_input(vollstaendig)$main_test_results$module_statistics)
+```
+
+Dieser Umfang verwendet Schema `0.5.0-draft`. Die Demo-Itemkennwerte und
+Umrechnungskoeffizienten sind **rein synthetisch**. Reale Kennwerte und
+freigegebene Transformationen für Personen und Items kommen aus der
+vorgelagerten Auswertung. Der Haupttest-Artikel beschreibt die zusätzliche
+Eingabe `data$main_test_results`, die Aufgabenmatrix und die gemeinsamen
+Stufengrafiken für Basis- und Ergänzungsmodule.
 
 `example_report()` verwendet standardmäßig `scope = "pilotierung"` und Schema
 `0.3.0-draft`. Für die Leistung allein steht

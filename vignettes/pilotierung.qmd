@@ -38,9 +38,11 @@ eine Demoannahme für das Pilotierungsjahr.** Die Beispiel-Cuts sind keine
 freigegebenen Kompetenzstufengrenzen.
 
 `example_report()` erzeugt standardmäßig den Umfang `scope = "pilotierung"`
-mit Schema `0.3.0-draft`. Dazu gehören Testdesign, Stichprobe und Leistung; ein
-vollständiger Technischer Bericht mit sämtlichen weiteren Kapiteln folgt
-schrittweise. Reine Leistungseingaben bleiben mit `example_leistung_input()`
+mit Schema `0.3.0-draft`. Dazu gehören Testdesign, Stichprobe und Leistung.
+Ein durchgängiger Beispielbericht bis zum Literaturverzeichnis steht mit
+`scope = "bericht"` bereit; die zusätzlichen Eingaben beschreibt
+[Haupttest-Auswahl und Module](haupttest.html).
+Reine Leistungseingaben bleiben mit `example_leistung_input()`
 oder `example_report(scope = "pilotierung_leistung")` verfügbar; sie verwenden
 weiterhin Schema `0.2.0-draft`.
 

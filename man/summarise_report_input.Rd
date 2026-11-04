@@ -21,6 +21,9 @@ overall/domain counts, module counts, ordered tasks and pilot-wave counts.
 Wave counts can overlap; module durations are not added to a test duration.
 When supplied, \code{main_test$item_levels} contains complete competence-level
 item counts for \code{selection} and \code{modules}, including zero-count levels.
+Scope \code{bericht} also returns \code{main_test_results} with module summaries of
+supplied item statistics and item report scores calculated using the supplied
+transformations. Person PV values are never transformed again.
 }
 \description{
 Build the common numerical source for editable text, tables and graphics.

@@ -17,7 +17,7 @@ plot_item_levels(
 
 \item{scale_id}{A configured scale code, for example \code{"DL"} or \code{"MO"}.}
 
-\item{by}{Plot the complete \code{"selection"} or individual \code{"module"} panels.}
+\item{by}{Plot the complete \code{"selection"} or a grouped \code{"module"} comparison.}
 
 \item{module_ids}{Optional character vector selecting modules for \code{by = "module"}. Their configured presentation order is retained. NULL shows
 every module containing items of the selected scale.}
@@ -31,8 +31,8 @@ counts shown; \code{scale_id} and \code{by} identify the selected view.
 \code{suggested_height_cm} provides a useful height when saving at 15.5 cm width.
 }
 \description{
-Draw item counts for a scale's complete main-test selection or separately
-for its test modules. Counts use the supplied item-to-level assignments.
+Draw item counts for a scale's complete main-test selection or compare its
+test modules in one grouped bar chart. Counts use the supplied assignments.
 }
 \details{
 Requires the optional \code{data$main_test$item_levels} table with one

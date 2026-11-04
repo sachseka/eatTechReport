@@ -16,14 +16,12 @@ main_test_figure_plan <- function(config, main_test) {
     ids <- main_test$modules$module_id[
       main_test$modules$module_id %in% levels$modules$module_id[
         levels$modules$scale_id == scale_id]]
-    groups <- split(ids, ceiling(seq_along(ids) / 3L))
-    for (i in seq_along(groups)) {
-      result$modules[[length(result$modules) + 1L]] <- list(
-        scale_id = scale_id, label = label, module_ids = unname(groups[[i]]),
-        file = paste0("item-levels-modules-", scale_id, "-", i, ".png"),
-        id = paste0("fig-item-levels-modules-", tolower(scale_id), "-", i),
-        width = 15.5, height = 4.2 + 4 * length(groups[[i]]))
-    }
+    modules <- main_test$modules[match(ids, main_test$modules$module_id), , drop = FALSE]
+    result$modules[[length(result$modules) + 1L]] <- list(
+      scale_id = scale_id, label = label, module_ids = unname(ids),
+      file = paste0("item-levels-modules-", scale_id, "-1.png"),
+      id = paste0("fig-item-levels-modules-", tolower(scale_id), "-1"),
+      width = 15.5, height = item_module_legend_layout(modules)$height_cm)
   }
   result
 }

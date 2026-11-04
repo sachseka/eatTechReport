@@ -1,5 +1,18 @@
 # eatTechReport 0.0.0.9000
 
+* Add the opt-in `bericht` scope (schema `0.5.0-draft`) for a complete example
+  report through item statistics, transformations, analysis and feedback
+  guidance, and references. Its 15 editable public Quarto blocks include five
+  new final-chapter blocks. Existing scopes and the default remain unchanged.
+* Validate `data$main_test_results` with complete per-item solution proportions
+  and logits, separate upstream person/item transformation coefficients per
+  scale, and explicit metric and population definitions. Summarise module item
+  statistics without transforming person PVs again. Demo coefficients are
+  clearly synthetic and must be replaced with approved upstream results.
+* Compare all base and supplementary modules in one plot per scale using
+  narrow, grouped bars and a shared axis, with stable module colours and a
+  wrapped legend. Remove module facets and figure pagination.
+* Add a task matrix placing module task sequences side by side by task position.
 * Add competence-level item-count graphics for the main-test selection and its
   modules, using the report colours, direct count labels and shared module axes.
   `plot_item_levels()` also returns these plots for use outside Word reports.

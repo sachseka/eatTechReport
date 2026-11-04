@@ -1,11 +1,11 @@
 #' Plot selected items across competence levels
 #'
-#' Draw item counts for a scale's complete main-test selection or separately
-#' for its test modules. Counts use the supplied item-to-level assignments.
+#' Draw item counts for a scale's complete main-test selection or compare its
+#' test modules in one grouped bar chart. Counts use the supplied assignments.
 #'
 #' @inheritParams validate_report_input
 #' @param scale_id A configured scale code, for example `"DL"` or `"MO"`.
-#' @param by Plot the complete `"selection"` or individual `"module"` panels.
+#' @param by Plot the complete `"selection"` or a grouped `"module"` comparison.
 #' @param module_ids Optional character vector selecting modules for `by =
 #'   "module"`. Their configured presentation order is retained. NULL shows
 #'   every module containing items of the selected scale.
@@ -56,9 +56,10 @@ plot_item_levels <- function(input, scale_id, by = c("selection", "module"),
   if (!nrow(counts) || sum(counts$n_items) == 0) {
     stop("Fuer diese Skala sind keine Haupttestitems ausgewaehlt.", call. = FALSE)
   }
-  # Keep count axes comparable when a long module list spans several figures.
+  # Keep count axes and colours comparable when the caller selects a subset.
   maximum <- max(counts$n_items)
   modules <- results$main_test$modules
+  all_modules <- modules
   if (by == "module") {
     available <- modules$module_id[modules$module_id %in% counts$module_id]
     if (!is.null(module_ids) &&
@@ -80,8 +81,17 @@ plot_item_levels <- function(input, scale_id, by = c("selection", "module"),
   plotting$level_label <- factor(plotting$level_label, levels = scale$level_labels)
   if (by == "module") {
     plotting$module_id <- factor(plotting$module_id, levels = modules$module_id)
-    plotting$module_type <- modules$module_type[match(plotting$module_id, modules$module_id)]
-  } else plotting$module_type <- "base"
+    plotting$series <- plotting$module_id
+    colours <- item_module_colours(all_modules)
+    legend <- item_module_legend_layout(modules)
+    dodge <- ggplot2::position_dodge(width = 0.75, preserve = "single")
+    bar_width <- min(0.7, 0.35 * nrow(modules))
+  } else {
+    plotting$series <- factor("selection")
+    colours <- c(selection = "#B40036")
+    dodge <- ggplot2::position_identity()
+    bar_width <- 0.35
+  }
   y_breaks <- pretty(c(0, maximum), n = 4L)
   y_breaks <- y_breaks[y_breaks >= 0 & y_breaks <= maximum & y_breaks == floor(y_breaks)]
   if (length(y_breaks) < 2L) y_breaks <- unique(c(0, maximum))
@@ -91,13 +101,17 @@ plot_item_levels <- function(input, scale_id, by = c("selection", "module"),
   if (identical(input$config$report$data_origin, "synthetic")) {
     caption <- paste0("Synthetisches Beispiel; illustrative Stufenzuordnungen.\n", caption)
   }
-  level_label <- n_items <- module_type <- module_id <- NULL
-  plot <- ggplot2::ggplot(plotting, ggplot2::aes(x = level_label, y = n_items, fill = module_type)) +
-    ggplot2::geom_col(width = 0.58, show.legend = FALSE) +
+  level_label <- n_items <- series <- NULL
+  plot <- ggplot2::ggplot(plotting,
+                         ggplot2::aes(x = level_label, y = n_items, fill = series, group = series)) +
+    ggplot2::geom_col(width = bar_width, position = dodge, show.legend = by == "module") +
     ggplot2::geom_text(ggplot2::aes(label = n_items), vjust = -0.45,
+                       position = dodge,
                        family = font_family, size = 11 * 25.4 / 72.27,
                        colour = "#271A2B", show.legend = FALSE) +
-    ggplot2::scale_fill_manual(values = c(base = "#B40036", supplement = "#008698", domain = "#6A5165")) +
+    ggplot2::scale_fill_manual(values = colours,
+      breaks = if (by == "module") modules$module_id else "selection",
+      labels = if (by == "module") legend$labels else NULL) +
     ggplot2::scale_x_discrete(limits = scale$level_labels, drop = FALSE,
                               expand = ggplot2::expansion(add = 0.65)) +
     ggplot2::scale_y_continuous(breaks = y_breaks, limits = c(0, maximum + max(0.35, maximum * 0.23)),
@@ -105,7 +119,7 @@ plot_item_levels <- function(input, scale_id, by = c("selection", "module"),
                                expand = ggplot2::expansion(mult = 0)) +
     ggplot2::labs(title = scale$label,
                    subtitle = if (by == "selection") paste0("Ausgew\u00e4hlte Items: ", sum(counts$n_items)) else "Items je Testmodul",
-                   x = "Kompetenzstufe", y = "Anzahl der Items", caption = caption) +
+                   x = "Kompetenzstufe", y = "Anzahl der Items", fill = NULL, caption = caption) +
     ggplot2::theme_minimal(base_size = 11, base_family = font_family) +
     ggplot2::theme(
       panel.grid.minor = ggplot2::element_blank(),
@@ -120,25 +134,52 @@ plot_item_levels <- function(input, scale_id, by = c("selection", "module"),
       plot.subtitle = ggplot2::element_text(margin = ggplot2::margin(b = 10), size = 11),
       plot.caption = ggplot2::element_text(hjust = 0, colour = "#625A5E", size = 11,
                                             margin = ggplot2::margin(t = 10)),
-      strip.text = ggplot2::element_text(hjust = 0, face = "bold", size = 11,
-                                          colour = "#271A2B", margin = ggplot2::margin(7, 7, 7, 7)),
-      strip.background = ggplot2::element_rect(fill = "#F5F1F2", colour = NA),
-      panel.spacing.y = ggplot2::unit(9, "pt"),
+      legend.position = "bottom",
+      legend.justification = "left",
+      legend.text = ggplot2::element_text(size = 11, colour = "#40383C"),
+      legend.key.width = ggplot2::unit(12, "pt"),
+      legend.key.height = ggplot2::unit(12, "pt"),
+      legend.margin = ggplot2::margin(t = 5, r = 0, b = 0, l = 0),
       plot.margin = ggplot2::margin(5.5, 5.5, 5.5, 5.5),
       plot.background = ggplot2::element_rect(fill = "white", colour = NA)
     )
   if (by == "module") {
-    module_labels <- stats::setNames(vapply(modules$label, function(label) {
-      paste(strwrap(label, width = 58L), collapse = "\n")
-    }, character(1)), modules$module_id)
-    # Separate x axes repeat the level labels in every panel; explicit limits
-    # keep their order and positions identical. The count axis stays shared.
-    plot <- plot + ggplot2::facet_wrap(~module_id, ncol = 1L, scales = "free_x",
-                                       labeller = ggplot2::as_labeller(module_labels))
+    plot <- plot + ggplot2::guides(fill = ggplot2::guide_legend(ncol = legend$ncol, byrow = TRUE))
   }
   attr(plot, "item_level_counts") <- counts
   attr(plot, "scale_id") <- scale_id
   attr(plot, "by") <- by
-  attr(plot, "suggested_height_cm") <- if (by == "selection") 8.2 else 4.2 + 4 * nrow(modules)
+  attr(plot, "suggested_height_cm") <- if (by == "selection") 8.2 else legend$height_cm
   plot
+}
+
+# Assign colours using the complete module inventory so subset plots retain
+# their colours. Different supplement modules must remain distinguishable.
+item_module_colours <- function(modules) {
+  palettes <- list(
+    base = c("#B40036", "#76213E", "#D85A7D"),
+    supplement = c("#008698", "#D49835", "#446A8C", "#7A945B", "#AC657D"),
+    domain = c("#6A5165", "#AD758D", "#597B8B")
+  )
+  colours <- character(nrow(modules))
+  for (type in names(palettes)) {
+    index <- which(modules$module_type == type)
+    if (!length(index)) next
+    palette <- palettes[[type]]
+    colours[index] <- if (length(index) <= length(palette)) {
+      palette[seq_along(index)]
+    } else grDevices::colorRampPalette(palette)(length(index))
+  }
+  stats::setNames(colours, modules$module_id)
+}
+
+item_module_legend_layout <- function(modules) {
+  columns <- if (nrow(modules) > 1L) 2L else 1L
+  wrapped <- lapply(modules$label, strwrap, width = if (columns == 2L) 30L else 58L)
+  labels <- vapply(wrapped, paste, character(1), collapse = "\n")
+  lines <- vapply(wrapped, length, integer(1))
+  rows <- split(lines, ceiling(seq_along(lines) / columns))
+  line_count <- sum(vapply(rows, max, integer(1)))
+  list(labels = stats::setNames(labels, modules$module_id), ncol = columns,
+       height_cm = 8.2 + 0.6 * max(2L, line_count))
 }

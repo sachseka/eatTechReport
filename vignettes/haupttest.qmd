@@ -12,6 +12,8 @@ execute:
 Der Umfang `haupttest_struktur` ergänzt die Pilotierungsabschnitte um die
 ausgewählten Aufgaben und Items der Hauptstudie sowie deren Modulzuordnung.
 Er beschreibt auch ihre Herkunft aus einer oder mehreren Pilotierungswellen.
+Mit `scope = "bericht"` kommen Itemkennwerte, Umrechnungsformeln sowie die
+abschließenden Hinweise zur Auswertung, Rückmeldung und Literatur hinzu.
 Die Auswahl erfolgt in der vorgelagerten Auswertung; das Berichtspaket trifft
 keine Auswahlentscheidung anhand automatisch gesetzter Gütekriterien.
 
@@ -87,6 +89,14 @@ pilotiert wurde. Sie sind dann keine addierbare Zerlegung der Gesamtauswahl.
 Das Ergebnis kennzeichnet diesen Fall mit `source_overlap`; auch im Bericht
 wird auf ihn hingewiesen.
 
+Die Word-Ausgabe enthält außerdem eine **Aufgabenmatrix** mit den Modulnamen
+als Spalten und den Aufgabenpositionen als Zeilen. Jede Zelle nennt die an
+dieser Position vorgesehene Aufgabe. Damit lassen sich
+die Aufgabenfolgen von Basismodul und Ergänzungsmodulen unmittelbar vergleichen.
+Ein Gedankenstrich bezeichnet eine nicht belegte Position. Wiederverwendete
+Aufgaben erscheinen in jedem zugehörigen Modul; ihre Position kann sich dabei
+unterscheiden.
+
 ## Itemverteilung auf die Kompetenzstufen
 
 Die optionale Tabelle `item_levels` enthält für jedes ausgewählte Item genau
@@ -117,43 +127,106 @@ plot_item_levels(demo, "DL")
 
 ```{r}
 #| fig-width: 6.1
-#| fig-height: 4.81
+#| fig-height: 3.7
 #| fig-alt: "Synthetische Itemanzahl je Kompetenzstufe im Basis- und Ergänzungsmodul für Lesen."
 plot_item_levels(demo, "DL", by = "module")
 ```
 
 Mit `module_ids` lässt sich eine Auswahl von Modulen darstellen. Die gemeinsame
 Größenachse berücksichtigt weiterhin alle Module dieser Skala, sodass mehrere
-Abbildungen vergleichbar bleiben. In Word teilt das Paket die Module automatisch
-auf Abbildungen mit höchstens drei Modulen auf. Schrift und Abbildungsbreite
-entsprechen dem Berichtsdesign.
+Abbildungen vergleichbar bleiben. Die Farben der Module bleiben bei dieser
+Auswahl erhalten. Alle Module derselben Skala stehen in **einer gemeinsamen
+Abbildung**: schmale Balken nebeneinander je Kompetenzstufe und eine Legende
+mit den vollständigen Modulbezeichnungen unterhalb der Grafik. Es gibt keine
+Aufteilung in Teilgrafiken oder mehrere Abbildungen. Für Word passt das Paket
+die Abbildungshöhe an die umgebrochenen Legendenzeilen an. Schrift und
+Abbildungsbreite entsprechen dem Berichtsdesign.
 
 Bestehende Eingaben ohne `item_levels` bleiben gültig. Dann steht im
 Auswahlkapitel ein sichtbarer Platzhalter für die noch benötigte Zuordnung;
 es werden keine Stufen angenommen. Die Beispiele aus `example_report()`
 enthalten bereits illustrative Zuordnungen.
 
+## Itemkennwerte und Umrechnungen im vollständigen Bericht
+
+`scope = "bericht"` verwendet Schema `0.5.0-draft`. Zusätzlich zu den oben
+beschriebenen Eingaben benötigt dieser Umfang `data$main_test_results` mit
+genau den folgenden drei Bausteinen:
+
+| Baustein | Spalten beziehungsweise Felder | Bedeutung |
+| --- | --- | --- |
+| `item_statistics` | `item_id`, `p_correct`, `logit` | Genau eine Zeile je ausgewähltem Item: Lösungshäufigkeit als Anteil zwischen 0 und 1 sowie Itemschwierigkeit auf der dokumentierten Logit-Metrik. |
+| `transformations` | `scale_id`, `target`, `intercept`, `slope`, `source_label` | Je verwendeter Skala eine Zeile für Personen (`person`) und eine für Items (`item`); endliche Koeffizienten mit positivem `slope` sowie eine Quellen- oder Standangabe. |
+| `definitions` | `p_correct`, `logit`, `population` | Benannte Liste mit je einem Beschreibungstext für Lösungshäufigkeit, Logit-Metrik und zugrunde liegende Auswertungspopulation. |
+
+Die Tabellen haben genau die angegebenen Spalten. Itemkennwerte müssen
+vollständig sein; unbekannte oder doppelte Item-IDs werden zurückgewiesen.
+Die Definition der Lösungshäufigkeit muss Erfolgskriterium und Prozentnenner
+erläutern, insbesondere für mehrstufig bewertete Items. Die Logitwerte müssen
+innerhalb einer Skala auf derselben, ausdrücklich beschriebenen Metrik liegen.
+Die Kennwerte beziehen sich auf die Pilotierungsdaten der ausgewählten Items.
+
+```{r}
+vollstaendig <- example_report(scope = "bericht", n_persons = 24)
+validate_report_input(vollstaendig)
+ergebnisse <- summarise_report_input(vollstaendig)$main_test_results
+knitr::kable(ergebnisse$module_statistics)
+knitr::kable(ergebnisse$transformations)
+```
+
+Die Modulübersicht berichtet ungewichtete Mittelwerte über die zugehörigen
+Items, getrennt nach Skala. Jedes Item geht je Modul einmal ein. Diese
+Mittelwerte beschreiben die Items und sind keine Personenleistungskennwerte.
+Das Ergebnis `item_statistics` enthält außerdem die aus den gelieferten
+Itemkoeffizienten berechneten Berichtswerte (`report_score`).
+
+Für beide Transformationsziele gilt:
+
+$$
+\text{Berichtswert} = \text{intercept} + \text{slope} \cdot \text{Logitwert}
+$$
+
+**Die Koeffizienten im Beispiel sind ausschließlich synthetisch und keine
+freigegebenen VERA-Umrechnungen.** Reale Koeffizienten einschließlich einer
+gegebenenfalls nötigen Anpassung des Lösungswahrscheinlichkeitskriteriums
+für Items werden in der vorgelagerten Auswertung festgelegt. Das Paket leitet
+sie weder aus den Personen-PVs noch aus den Kompetenzstufengrenzen ab.
+Personen-PVs liegen bereits auf der 500er-Berichtsskala vor und werden für
+die Leistungsdarstellung nicht erneut umgerechnet.
+
 ## Redaktion und Word-Ausgabe
 
 ```{r}
 #| eval: false
-edit_report_texts("lokal/redaktion-haupttest", scope = "haupttest_struktur")
+edit_report_texts("lokal/redaktion-bericht", scope = "bericht")
 bericht <- render_report(
-  config = demo$config,
-  data = demo$data,
-  text_dir = "lokal/redaktion-haupttest",
-  output_dir = "lokal/haupttest-de"
+  config = vollstaendig$config,
+  data = vollstaendig$data,
+  text_dir = "lokal/redaktion-bericht",
+  output_dir = "lokal/bericht-de"
 )
 ```
 
-Die zehn Bausteine enthalten `haupttest_auswahl.qmd` und `haupttest_module.qmd`.
-Auswahlbegründungen und weitere Textvariablen stehen zunächst in eckigen
-Klammern. Der Textordner muss alle Bausteine des gewählten Umfangs enthalten.
-Vorhandene redigierte Dateien sollten beim Ergänzen der zwei neuen Dateien
-beibehalten werden. Optional vorhandene lokale Kompetenz- und Methodentexte
-werden weiterhin eingebunden und archiviert.
+Der vollständige Umfang verwendet **15 öffentliche Quarto-Bausteine**.
+Zu den zehn Bausteinen von `haupttest_struktur`, einschließlich
+`haupttest_auswahl.qmd` und `haupttest_module.qmd`, kommen fünf hinzu:
 
-Weitere Itemkennwerte, verbindliche Umrechnungsformeln, die Zusammenstellung vollständiger
-Haupttesthefte und der fachliche Vorjahresvergleich folgen in späteren Etappen.
-Der gespeicherte Archivstand enthält bereits die vollständigen Eingaben,
-Ergebnisse und verwendeten Textdateien dieser Erweiterung.
+- `haupttest_itemprofil.qmd`: Itemkennwerte der Testmodule;
+- `haupttest_transformation.qmd`: getrennte Personen- und Itemumrechnungen;
+- `haupttest_auswertungshinweise.qmd`: Hinweise zur Auswertung;
+- `rueckmeldung_empfehlungen.qmd`: Empfehlungen für die Rückmeldung;
+- `literatur.qmd`: Literaturverzeichnis.
+
+Die Voreinstellung `pilotierung` bleibt bei acht Bausteinen. Auswahlbegründungen
+und weitere Textvariablen stehen zunächst in eckigen Klammern. Der Textordner
+muss alle Bausteine des beim Rendern gewählten Umfangs enthalten. Vorhandene
+redigierte Dateien sollten beim Ergänzen der neuen Dateien beibehalten werden.
+Optional vorhandene lokale Kompetenz- und Methodentexte werden weiterhin
+eingebunden und archiviert.
+
+Damit lässt sich ein durchgängiger Beispielbericht bis zum Literaturverzeichnis
+erzeugen. Die fachliche Redaktion und Freigabe der Texte sowie die
+durchgangsspezifischen Angaben bleiben für reale Berichte erforderlich.
+Der fachliche Vorjahresvergleich folgt in einer späteren Etappe. Der
+gespeicherte Archivstand enthält die vollständigen Eingaben, Ergebnisse
+und verwendeten Textdateien dieser Erweiterung.

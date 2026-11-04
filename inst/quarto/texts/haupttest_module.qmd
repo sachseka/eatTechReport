@@ -39,19 +39,28 @@ if (length(item_figures$modules)) {
 }
 ```
 
-Die folgenden Tabellen geben die Reihenfolge der Aufgaben innerhalb der
-einzelnen Module wieder. Die Itemzahl bezeichnet jeweils die in das Modul
-aufgenommenen Items der Aufgabe.
+Die folgende Übersicht enthält die Aufgaben in den Testmodulen.
+Die Reihenfolge entspricht der Bearbeitungsreihenfolge im
+jeweiligen Modul. Ein Gedankenstrich bezeichnet eine nicht belegte Position.
 
 ```{r}
 #| label: haupttest_module_aufgabenfolge
 #| results: asis
-for (i in seq_along(main_test_tables$task_lists)) {
-  part <- main_test_tables$task_lists[[i]]
-  cat("\n\nTable: Aufgabenfolge im Modul „",
-      eatTechReport:::report_markdown_text(part$label),
-      "“. {#tbl-haupttest-aufgaben-", i, "}\n\n", sep = "")
+task_matrices <- eatTechReport:::main_test_task_matrices(results$main_test)
+module_types <- results$main_test$modules$module_type
+matrix_caption <- if (sum(module_types == "base") == 1L &&
+    any(module_types == "supplement") && all(module_types %in% c("base", "supplement"))) {
+  paste0("Aufgaben im VERA-3-", config$report$main_year,
+         "-Basismodul und in den Ergänzungsmodulen")
+} else paste0("Aufgaben in den Testmodulen für VERA-3-", config$report$main_year)
+for (i in seq_along(task_matrices)) {
+  part <- task_matrices[[i]]
+  continuation <- if (length(task_matrices) > 1L) paste0(" (Teil ", i, " von ", length(task_matrices), ")") else ""
+  cat("\n\nTable: ", matrix_caption, continuation,
+      ". {#tbl-haupttest-aufgabenmatrix-", i, "}\n\n", sep = "")
+  number_modules <- ncol(part$table) - 1L
   cat(eatTechReport:::study_table_markdown(part$table,
-        c("r", "l", "l", "r"), widths = c(14, 58, 15, 13)))
+        c("r", rep("l", number_modules)),
+        widths = c(14, rep(86 / number_modules, number_modules))))
 }
 ```

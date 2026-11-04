@@ -54,3 +54,33 @@ main_test_tables <- function(main_test, config) {
   list(pool = pool_table, waves = wave_table, modules = module_table,
        task_lists = task_lists)
 }
+
+# Historical task overview: positions are rows, modules are columns. A task may
+# appear at a different position in each module; never align these rows by ID.
+main_test_task_matrices <- function(main_test, max_modules = 4L) {
+  if (length(max_modules) != 1L || !is.numeric(max_modules) ||
+      !is.finite(max_modules) || max_modules < 1 || max_modules != floor(max_modules)) {
+    stop("max_modules muss eine positive ganze Zahl sein.", call. = FALSE)
+  }
+  modules <- main_test$modules
+  groups <- split(seq_len(nrow(modules)), ceiling(seq_len(nrow(modules)) / max_modules))
+  lapply(groups, function(index) {
+    selected <- modules[index, , drop = FALSE]
+    tasks <- main_test$tasks[main_test$tasks$module_id %in% selected$module_id, , drop = FALSE]
+    positions <- sort(unique(tasks$task_position))
+    table <- data.frame(Position = positions, check.names = FALSE)
+    labels <- selected$label
+    repeated <- duplicated(labels) | duplicated(labels, fromLast = TRUE)
+    labels[repeated] <- paste0(labels[repeated], " (", selected$module_id[repeated], ")")
+    # Word can otherwise split this compound in the middle of its final syllable.
+    labels <- gsub("Erg\u00e4nzungsmodul", "Erg\u00e4nzungs\u00admodul", labels, fixed = TRUE)
+    for (i in seq_len(nrow(selected))) {
+      rows <- tasks[tasks$module_id == selected$module_id[i], , drop = FALSE]
+      values <- rows$task_label[match(positions, rows$task_position)]
+      values[is.na(values)] <- "\u2014"
+      table[[i + 1L]] <- values
+    }
+    names(table) <- c("Position", labels)
+    list(module_ids = selected$module_id, table = table)
+  })
+}

@@ -9,13 +9,14 @@
 #' @param scope Report scope: `"pilotierung"` for design, sample and performance,
 #'   `"pilotierung_leistung"` for the performance section only, or
 #'   `"haupttest_struktur"` to also include main-test selection and modules.
+#'   `"bericht"` includes the final chapters and references as well.
 #' @return Invisibly, the paths of the copied Quarto files.
 #' @export
 #' @examples
 #' texts <- tempfile("report-texts-")
 #' edit_report_texts(texts)
 edit_report_texts <- function(path, overwrite = FALSE,
-                              scope = c("pilotierung", "pilotierung_leistung", "haupttest_struktur")) {
+                              scope = c("pilotierung", "pilotierung_leistung", "haupttest_struktur", "bericht")) {
   scope <- match.arg(scope)
   check_report_path(path, "path")
   check_report_flag(overwrite, "overwrite")
@@ -33,12 +34,13 @@ edit_report_texts <- function(path, overwrite = FALSE,
   invisible(normalizePath(targets, winslash = "/"))
 }
 
-#' Render pilot-study sections with the corporate Word layout
+#' Render a technical report with the corporate Word layout
 #'
 #' The renderer covers test design, sample composition and performance for the
 #' pilot-study scope, or the performance section alone. Scope `haupttest_struktur`
-#' also adds main-test selection and modules. It is not yet a complete
-#' technical report. Inputs follow [example_report()] and are validated before
+#' also adds main-test selection and modules. Scope `bericht` includes item
+#' statistics, supplied transformations, interpretation and references through
+#' the end of the report. Inputs follow [example_report()] and are validated before
 #' rendering. Synthetic data and illustrative cuts are explicitly labelled.
 #'
 #' The package includes the corporate DOCX layout. Alternatively, supply a
@@ -310,20 +312,21 @@ check_report_flag <- function(value, label) {
 }
 
 report_text_files <- function(text_dir = NULL,
-                              scope = c("pilotierung", "pilotierung_leistung", "haupttest_struktur")) {
+                              scope = c("pilotierung", "pilotierung_leistung", "haupttest_struktur", "bericht")) {
   scope <- match.arg(scope)
   expected <- c("grundlagen_ueberblick.qmd", "pilotierung_leistung.qmd", "leistung_methoden.qmd")
-  if (scope %in% c("pilotierung", "haupttest_struktur")) expected <- c(expected, study_text_names())
-  if (scope == "haupttest_struktur") {
+  if (scope %in% c("pilotierung", "haupttest_struktur", "bericht")) expected <- c(expected, study_text_names())
+  if (scope %in% c("haupttest_struktur", "bericht")) {
     expected <- c(expected, "haupttest_auswahl.qmd", "haupttest_module.qmd")
   }
+  if (scope == "bericht") expected <- c(expected, report_completion_text_names())
   if (is.null(text_dir)) text_dir <- system.file("quarto", "texts", package = "eatTechReport")
   check_report_path(text_dir, "text_dir")
   paths <- file.path(text_dir, expected)
   if (!all(file.exists(paths)) || any(dir.exists(paths))) {
     stop("text_dir muss alle Textbausteine enthalten: ", paste(expected, collapse = ", "), call. = FALSE)
   }
-  if (scope %in% c("pilotierung", "haupttest_struktur")) {
+  if (scope %in% c("pilotierung", "haupttest_struktur", "bericht")) {
     optional <- file.path(text_dir, c("grundlagen_kompetenzstufen.qmd",
                                       "pilotierung_durchfuehrung.qmd",
                                       "pilotierung_auswertung.qmd"))
@@ -339,6 +342,11 @@ study_text_names <- function() {
   paste0(c("pilotierung_design_pool", "pilotierung_design_hefte",
            "pilotierung_stichprobe_ruecklauf", "pilotierung_stichprobe_merkmale",
            "pilotierung_stichprobe_bearbeitungen"), ".qmd")
+}
+
+report_completion_text_names <- function() {
+  paste0(c("haupttest_itemprofil", "haupttest_transformation",
+           "haupttest_auswertungshinweise", "rueckmeldung_empfehlungen", "literatur"), ".qmd")
 }
 
 word_ns <- function() c(w = "http://schemas.openxmlformats.org/wordprocessingml/2006/main",

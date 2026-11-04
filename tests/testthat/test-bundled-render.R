@@ -28,7 +28,7 @@ test_that("Quarto renders a report with the installed layout and no private inpu
   cli <- quarto::quarto_path()
   skip_if(is.null(cli) || !nzchar(cli), "Quarto CLI is not installed")
   input <- example_report("v3_ma_mg_mm", n_persons = 30L, n_pv = 1L,
-                           scope = "haupttest_struktur",
+                           scope = "bericht",
                            authors = c("Ada Beispiel", "B\u00e9la & Beispiel [2]"),
                            affiliation = c("Institut f\u00fcr Beispielstudien", "Universit\u00e4t Musterstadt"))
   output <- tempfile("bundled-render-")
@@ -74,6 +74,12 @@ test_that("Quarto renders a report with the installed layout and no private inpu
   expect_identical(xml2::xml_attr(xml2::xml_find_all(figure_tables,
     ".//*[local-name()='inline']/*[local-name()='extent']"), "cx"), rep("5580000", 2L))
   expect_match(xml2::xml_text(doc), "Auswahl", fixed = TRUE)
+  expect_match(xml2::xml_text(doc), "Literatur", fixed = TRUE)
+  expect_match(xml2::xml_text(doc), "Umrechnung", fixed = TRUE)
+  expect_match(xml2::xml_text(doc), "Aufgaben im VERA-3-2027-Basismodul", fixed = TRUE)
+  expect_true(all(report_completion_text_names() %in% list.files(file.path(result$archive_dir, "texts"))))
+  expect_identical(readRDS(file.path(result$archive_dir, "inputs.rds"))$data$main_test_results,
+                    input$data$main_test_results)
   expect_true(all(c("haupttest_auswahl.qmd", "haupttest_module.qmd") %in%
                     list.files(file.path(result$archive_dir, "texts"))))
   expect_identical(readRDS(file.path(result$archive_dir, "inputs.rds"))$data$main_test,

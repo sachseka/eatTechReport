@@ -63,8 +63,8 @@ test_that("main-test Quarto blocks render separate captions and escape user labe
   expect_match(rendered, "# Informationen zur Hauptstudie 2027", fixed = TRUE)
   expect_match(rendered, "{#haupttest_auswahl}", fixed = TRUE)
   expect_match(rendered, "{#haupttest_module}", fixed = TRUE)
-  expect_match(rendered, "{#tbl-haupttest-aufgaben-1}", fixed = TRUE)
-  expect_match(rendered, "{#tbl-haupttest-aufgaben-2}", fixed = TRUE)
+  expect_match(rendered, "{#tbl-haupttest-aufgabenmatrix-1}", fixed = TRUE)
+  expect_match(rendered, "Aufgaben im VERA-3-2027-Basismodul und in den Erg\u00e4nzungsmodulen", fixed = TRUE)
   expect_match(rendered, "Zusatz &#124; B", fixed = TRUE)
   expect_match(rendered, "H\u00f6ren \\[A\\]", fixed = TRUE)
   expect_match(rendered, "12,5\u00a0min", fixed = TRUE)
@@ -72,6 +72,28 @@ test_that("main-test Quarto blocks render separate captions and escape user labe
   expect_match(rendered, "nicht zu einer Gesamtzahl addiert", fixed = TRUE)
   expect_match(rendered, "[Kriterien und Begr\u00fcndung", fixed = TRUE)
   expect_false(grepl("\\b(NA|NaN|Inf)\\b| Min", rendered))
+  fixture <- main_test_text_fixture()
+  fixture$modules$module_type[] <- "domain"
+  source <- sub("#| label: ", "#| label: domain_", source, fixed = TRUE)
+  rendered <- render_main_test_blocks(source, config, fixture)
+  expect_match(rendered, "Aufgaben in den Testmodulen f\u00fcr VERA-3-2027", fixed = TRUE)
+  expect_false(grepl("Aufgaben im VERA-3-2027-Basismodul", rendered, fixed = TRUE))
+})
+
+test_that("the joint task matrix aligns positions rather than task identities", {
+  fixture <- main_test_text_fixture()
+  table <- main_test_task_matrices(fixture)[[1L]]$table
+  expect_identical(table$Position, c(1L, 2L, 4L))
+  expect_identical(table[[2L]], c("Lesen | Test", "\u2014", "\u2014"))
+  expect_identical(table[[3L]], c("\u2014", "H\u00f6ren [A]", "Lesen | Test"))
+  expect_identical(names(table)[-1L], fixture$modules$label)
+  parts <- main_test_task_matrices(fixture, max_modules = 1L)
+  expect_length(parts, 2L)
+  expect_identical(unlist(lapply(parts, `[[`, "module_ids"), use.names = FALSE), fixture$modules$module_id)
+  fixture$modules$label[] <- "Gleicher Name"
+  expect_identical(names(main_test_task_matrices(fixture)[[1L]]$table)[-1L],
+                    c("Gleicher Name (core)", "Gleicher Name (extension)"))
+  expect_error(main_test_task_matrices(fixture, max_modules = 0), "positive ganze")
 })
 
 test_that("mathematics text keeps global scaling and distinguishes task from item origins", {

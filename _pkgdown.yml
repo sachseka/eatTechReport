@@ -13,8 +13,8 @@ template:
 home:
   title: Technische VERA-Berichte aus R und Quarto
   description: >
-    Testdesign, Stichprobenbeschreibung und PV-Leistungskennzahlen für VERA-3
-    sowie Word-Abschnitte aus redigierbaren Quarto-Textbausteinen.
+    Technische VERA-3-Berichte aus R und redigierbaren Quarto-Texten:
+    Pilotierung, Haupttestmodule, Itemkennwerte und Umrechnungsformeln.
 navbar:
   structure:
     left: [intro, reference, articles, news]
