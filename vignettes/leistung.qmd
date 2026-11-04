@@ -27,10 +27,14 @@ names(demo$data)
 PV-Kennungen, Kompetenzstufengrenzen und ihre Herkunft. Der Kompetenzbaustein
 verwendet zwei Tabellen aus `data`:
 
-| Tabelle | Eine Zeile beschreibt | Eindeutiger Schlüssel |
+| Tabelle | Spalten | Eine Zeile beschreibt |
 | --- | --- | --- |
-| `population` | Eine erwartete Person in einer Skala. | `person_id`, `scale_id` |
-| `pvs` | Einen PV-Wert dieser Person in dieser Skala. | `person_id`, `scale_id`, `pv_id` |
+| `population` | `person_id`, `scale_id` | Eine erwartete Person in einer Skala; das Paar ist eindeutig. |
+| `pvs` | `person_id`, `scale_id`, `pv_id`, `value` | Einen numerischen PV-Wert; die Kombination aus Person, Skala und PV-Kennung ist eindeutig. |
+
+Die Tabellen haben genau diese Spalten. IDs und PV-Kennungen sind
+Zeichenketten; `value` enthält endliche Zahlen. Jede konfigurierte Skala
+benötigt mindestens zwei Personen und mindestens einen PV je Person.
 
 ```{r}
 knitr::kable(head(demo$data$population))
@@ -60,6 +64,17 @@ nicht erforderlich.
 auswertbarer Skala berechnet. Die fünf Leitideen vervielfachen daher weder
 Personen noch Kompetenzdarstellungen.
 
+`config$domains` hat die Spalten `domain_id`, `label` und `scale_id`.
+Für Deutsch werden nur die tatsächlich verwendeten Bereiche eingetragen;
+`config$focus_domains` ist `character(0)`. Für Mathematik enthält `domains`
+alle fünf Leitideen mit Skala `MO`, und `config$focus_domains` nennt genau
+zwei unterschiedliche Schwerpunkt-Leitideen.
+
+Jeder Eintrag in `config$scales` enthält `label`, `metric`, `pv_ids`, `cuts`,
+`level_labels` und `cut_source`. `metric = "bista_500"` bezeichnet die
+vorausgesetzte Berichtsskala. Die Stufenbezeichnungen sind konfigurierbar;
+ihre Anzahl muss genau um eins größer sein als die Anzahl der Cuts.
+
 Voraussichtlich werden 15 PVs geliefert. Die konkrete Anzahl ergibt sich aus
 `config$scales[[scale_id]]$pv_ids` und ist keine feste Begrenzung.
 
@@ -85,8 +100,11 @@ names(ergebnis)
 ```
 
 `descriptives` enthält die zusammengefassten Kennwerte, `percentages` die
-Stufenanteile. `per_pv` enthält zusätzlich die Ergebnisse der einzelnen PVs
-und erlaubt die Kontrolle der Zusammenfassung. Diese R-Ergebnisse bleiben
+Stufenanteile. `per_pv` enthält Personenzahl, Mittelwert und Stichprobenvarianz
+je PV und erlaubt die Kontrolle der Zusammenfassung. Einzelne Stufenanteile
+je PV werden intern berechnet, aber nicht als eigene Ergebnistabelle
+zurückgegeben. Standardfehler oder Konfidenzintervalle werden nicht geschätzt.
+Diese R-Ergebnisse bleiben
 vollständig verfügbar. Im Word-Bericht stehen die zentralen Kennwerte und
 Prozentanteile bei der Dichtegrafik; zusätzliche Tabellen mit denselben Werten
 werden dort nicht ausgegeben.
@@ -118,8 +136,10 @@ Datengrundlage. Die Funktionsnamen `plot_performance()`,
 ## Reale Eingaben vorbereiten
 
 Für reale Daten werden `config` und `data` mit den tatsächlichen Ergebnissen
-befüllt. `data_origin = "observed"` kennzeichnet reale Eingaben. Die Demo-Cuts
-mit `cut_source = "illustrative_demo_only"` werden dann zurückgewiesen.
+befüllt. `config$report$data_origin = "observed"` kennzeichnet reale Eingaben.
+Demo-Cuts mit `config$scales[[scale_id]]$cut_source = "illustrative_demo_only"`
+werden dann zurückgewiesen. Die Werte werden weder erneut transformiert noch
+auf einen Stichprobenmittelwert von 500 normiert.
 
 Benötigt werden freigegebene Grenzwerte auf derselben 500er-Metrik wie die PVs
 sowie ein nachvollziehbarer Herkunftsnachweis. Das Ändern von `cut_source`

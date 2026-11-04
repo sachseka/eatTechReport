@@ -1,9 +1,9 @@
 # eatTechReport
 
 <!-- badges: start -->
-[![R-CMD-check](https://github.com/sachseka/eatTechReport/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/sachseka/eatTechReport/actions/workflows/R-CMD-check.yaml)
+[![R-CMD-check](https://github.com/sachseka/eatTechReport/actions/workflows/R-CMD-check.yaml/badge.svg?branch=main)](https://github.com/sachseka/eatTechReport/actions/workflows/R-CMD-check.yaml)
 [![Codecov test coverage](https://codecov.io/gh/sachseka/eatTechReport/graph/badge.svg)](https://app.codecov.io/gh/sachseka/eatTechReport)
-[![pkgdown](https://github.com/sachseka/eatTechReport/actions/workflows/pkgdown.yaml/badge.svg)](https://github.com/sachseka/eatTechReport/actions/workflows/pkgdown.yaml)
+[![pkgdown](https://github.com/sachseka/eatTechReport/actions/workflows/pkgdown.yaml/badge.svg?branch=main)](https://github.com/sachseka/eatTechReport/actions/workflows/pkgdown.yaml)
 <!-- badges: end -->
 
 eatTechReport verbindet vorhandene Auswertungsergebnisse mit redigierbaren
@@ -61,8 +61,10 @@ Word-Berichte ist bereits im Paket enthalten.
 
 Die freigegebene Layoutvorlage ist Bestandteil des Pakets und wird mit
 `corporate_template = NULL` automatisch verwendet. Ein eigener Pfad zu einer
-freigegebenen DOTX- oder DOCX-Datei ist optional. Reale Eingaben, Altberichte,
-redigierte Texte und erzeugte Corporate-Dokumente bleiben lokal.
+freigegebenen DOTX- oder DOCX-Datei ist optional. Reale Eingaben, Altberichte
+und redigierte Texte gehören in einen privaten, von Git ausgeschlossenen
+Arbeitsordner. Mit einem privaten `output_dir`, zum Beispiel unter `lokal/`,
+werden auch erzeugte Corporate-Dokumente dort abgelegt.
 Die Beispiele dieser Website verwenden ausschließlich
 synthetische Daten; der Website-Build erzeugt keine Word-Berichte.
 GitHub Actions prüft die Website bei Pull Requests und veröffentlicht den

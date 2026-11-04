@@ -8,7 +8,9 @@ validate_leistung_input(input)
 }
 \arguments{
 \item{input}{A list with \code{config} and \code{data}, as returned by
-\code{\link[=example_leistung_input]{example_leistung_input()}}.}
+\code{\link[=example_leistung_input]{example_leistung_input()}} or \code{\link[=example_report]{example_report()}}. For the extended report
+scopes, only the performance component is checked or summarised here;
+use \code{\link[=validate_report_input]{validate_report_input()}} to validate all supplied report sections.}
 }
 \value{
 Invisibly \code{TRUE} for valid inputs; otherwise an error.
@@ -22,9 +24,16 @@ are dropped or imputed.
 German domain and scale codes are \code{DL}, \code{DH}, \code{DO}, and \code{DS}.
 Mathematics domains \code{MZ}, \code{MG}, \code{MM}, \code{MR}, and \code{MD} all map to \code{MO}.
 Each person-scale pair must have exactly the configured PV identifiers.
+\code{data$population} has exactly the columns \code{person_id} and \code{scale_id};
+\code{data$pvs} has exactly \code{person_id}, \code{scale_id}, \code{pv_id} and numeric \code{value}.
+IDs are nonempty character values. Each scale requires at least two
+persons and at least one PV per person, already on metric \code{bista_500}.
 The population must be supplied independently of the PV table to detect
 entirely missing persons or scales. All cases are unweighted, without
 subgroups. Observed inputs cannot use cuts marked \code{illustrative_demo_only}.
+Cuts must be finite and strictly increasing; the number of distinct
+\code{level_labels} must be one greater than the number of cuts. The example
+uses Ia, Ib, II, III and IV, but labels and cuts are supplied by the caller.
 }
 \examples{
 validate_leistung_input(example_leistung_input())

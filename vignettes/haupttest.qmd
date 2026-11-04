@@ -42,7 +42,9 @@ den Baustein `main_test`. Die bisherigen Umfänge bleiben unverändert gültig;
 
 `data$main_test` enthält fünf erforderliche nicht leere R-Datentabellen. IDs und
 Bezeichnungen sind Zeichenketten. Ein Item steht genau einmal im Inventar;
-Wiederverwendungen werden in den Zuordnungstabellen erfasst.
+Wiederverwendungen werden in den Zuordnungstabellen erfasst. Die Tabellen
+enthalten genau die genannten Spalten. Optional kommt die vollständige Tabelle
+`item_levels` hinzu.
 
 | Tabelle | Spalten | Bedeutung |
 | --- | --- | --- |
@@ -126,7 +128,9 @@ unterscheiden.
 
 Im Mathematikbeispiel stehen Basismodul und jeweils zwei Ergänzungsmodule
 der beiden Leitideen in einer Tabelle mit fünf Modulspalten nebeneinander.
-In Deutsch wird die Matrix je Kompetenzbereich dargestellt. Schattierungen
+In Deutsch werden Module mit derselben Domänenzuordnung zusammen dargestellt.
+Bei domänenreinen Modulen ergibt das eine Matrix je Kompetenzbereich.
+Mehr als fünf Module je Gruppe werden auf mehrere Tabellen verteilt. Schattierungen
 in den Corporate-Farben unterscheiden Basis- und Ergänzungsmodule. Die vollständigen
 Modulbezeichnungen werden unter der Tabelle in den *Anmerkungen* erläutert.
 Beschriftung und Verweis im Fließtext erhalten die Kapitelnummer automatisch.
@@ -246,9 +250,12 @@ knitr::kable(ergebnisse$module_statistics)
 knitr::kable(ergebnisse$transformations)
 ```
 
-Die Modulübersicht berichtet ungewichtete Mittelwerte über die zugehörigen
-Items, getrennt nach Skala. Jedes Item geht je Modul einmal ein. Diese
-Mittelwerte beschreiben die Items und sind keine Kennwerte der Personenkompetenz.
+Das R-Ergebnis `module_statistics` enthält ungewichtete Mittelwerte der
+Lösungshäufigkeit und der Logits sowie Minimum und Maximum der Itemschwierigkeit
+auf der Berichtsskala, jeweils getrennt nach Skala. Die Word-Tabelle zeigt die
+Itemzahl und die beiden Mittelwerte; Lösungshäufigkeiten erscheinen dort in
+Prozent statt als Anteil. Jedes Item geht je Modul einmal ein. Diese Kennwerte
+beschreiben die Items und sind keine Kennwerte der Personenkompetenz.
 Das Ergebnis `item_statistics` enthält außerdem die aus den gelieferten
 Itemkoeffizienten berechneten Berichtswerte (`report_score`).
 

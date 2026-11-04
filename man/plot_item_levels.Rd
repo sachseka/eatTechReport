@@ -29,6 +29,7 @@ default is \code{"sans"}; Word reports use \code{"Arial"}.}
 A ggplot object. Attribute \code{item_level_counts} contains the exact
 counts shown; \code{scale_id} and \code{by} identify the selected view.
 \code{suggested_height_cm} provides a useful height when saving at 15.5 cm width.
+\code{data_origin} records whether the supplied input is synthetic or observed.
 }
 \description{
 Draw item counts for a scale's complete main-test selection or compare its

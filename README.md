@@ -6,10 +6,12 @@
 </picture>
 
 <!-- badges: start -->
-[![R-CMD-check](https://github.com/sachseka/eatTechReport/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/sachseka/eatTechReport/actions/workflows/R-CMD-check.yaml)
+[![R-CMD-check](https://github.com/sachseka/eatTechReport/actions/workflows/R-CMD-check.yaml/badge.svg?branch=main)](https://github.com/sachseka/eatTechReport/actions/workflows/R-CMD-check.yaml)
 [![Codecov test coverage](https://codecov.io/gh/sachseka/eatTechReport/graph/badge.svg)](https://app.codecov.io/gh/sachseka/eatTechReport)
-[![pkgdown](https://github.com/sachseka/eatTechReport/actions/workflows/pkgdown.yaml/badge.svg)](https://github.com/sachseka/eatTechReport/actions/workflows/pkgdown.yaml)
+[![pkgdown](https://github.com/sachseka/eatTechReport/actions/workflows/pkgdown.yaml/badge.svg?branch=main)](https://github.com/sachseka/eatTechReport/actions/workflows/pkgdown.yaml)
 <!-- badges: end -->
+
+[Website und Funktionsreferenz](https://sachseka.github.io/eatTechReport/)
 
 eatTechReport entwickelt Technische Berichte für VERA-3 aus vorhandenen
 Auswertungsergebnissen und redigierbaren Quarto-Textbausteinen. Der aktuelle
@@ -28,12 +30,12 @@ wird weitergeführt.
 
 ## Installation und erster Einstieg
 
-Im ausgecheckten Projekt in R:
+Den Entwicklungsstand von GitHub in R installieren:
 
 ```r
 # Falls noch nicht vorhanden:
 install.packages("remotes")
-remotes::install_local(".", dependencies = NA)
+remotes::install_github("sachseka/eatTechReport", dependencies = NA)
 
 library(eatTechReport)
 demo <- example_report(
@@ -53,6 +55,9 @@ kennzahlen$descriptives
 kennzahlen$percentages
 plot_performance(demo, scale_id = "DL")
 ```
+
+In einem lokalen Checkout stattdessen `remotes::install_local(".", dependencies = NA)`
+verwenden. Die folgenden Beispiele arbeiten mit dem installierten Paket.
 
 `seed` steuert die reproduzierbare Simulation; Haupttest- und Pilotierungsjahr
 sind separate Angaben. Alle Beispielangaben sind synthetisch, einschließlich
@@ -133,6 +138,10 @@ ohne sichtbares Word-Fenster. Ohne verfügbare Word-Automatisierung wird das DOC
 erzeugt, aber die noch ausstehende Feldaktualisierung ausdrücklich gemeldet.
 
 ```r
+# Angaben für das Deckblatt vor dem Rendern setzen:
+demo_bericht$config$report$authors <- c("Erika Muster", "Max Muster")
+demo_bericht$config$report$affiliation <- "Institut für Beispielstudien an der Universität Musterstadt"
+
 bericht <- render_report(
   config = demo_bericht$config,
   data = demo_bericht$data,
@@ -142,14 +151,7 @@ bericht$path
 bericht$manifest$fields_updated
 ```
 
-Autoren und gemeinsame Affiliation vor dem Rendern in der Berichtskonfiguration setzen:
-
-```r
-demo_bericht$config$report$authors <- c("Erika Muster", "Max Muster")
-demo_bericht$config$report$affiliation <- "Institut für Beispielstudien an der Universität Musterstadt"
-```
-
-Alternativ können beide Angaben direkt an `example_report()` übergeben werden.
+Alternativ können Autoren und gemeinsame Affiliation direkt an `example_report()` übergeben werden.
 Ohne Angaben erscheinen Platzhalter in eckigen Klammern auf dem Deckblatt.
 
 Der Umfang `bericht` enthält alle vorgesehenen Kapitel bis zur Literatur und
@@ -183,14 +185,17 @@ eine reine Kompetenzdarstellung kopiert. Der Textordner muss alle Bausteine
 des beim Rendern verwendeten Umfangs enthalten.
 
 Reale Eingaben, Altberichte, redigierte Texte, Corporate-Berichte und ihre
-Archivdateien bleiben lokal. Die freigegebene Layoutvorlage ist Bestandteil
+Archivdateien in einem privaten, von Git ausgeschlossenen Ordner wie `lokal/`
+ablegen. Der Renderer schreibt in das angegebene `output_dir`; er richtet
+keinen Git-Ausschluss ein. Die freigegebene Layoutvorlage ist Bestandteil
 des Pakets. Der Renderer legt einen nachvollziehbaren
 Arbeitsstand ab; fachliche Vorjahresvergleiche und Randmarkierungen folgen später.
 
 ## Eingaben und fachliche Regeln
 
-- PVs liegen bereits auf der 500er-Berichtsskala vor; erwartet werden
-  voraussichtlich 15 vollständige PVs je Person und Skala.
+- PVs liegen bereits auf der 500er-Berichtsskala vor. Die Beispiele erzeugen
+  standardmäßig 15 PVs; die Anzahl ist konfigurierbar. Erforderlich sind
+  vollständige PV-Sätze und mindestens zwei Personen je Skala.
 - Die Kompetenzdarstellung berücksichtigt alle angegebenen Personen,
   ungewichtet und ohne Untergruppen.
 - Deutsch verwendet `DL`, `DH`, `DO`, `DS`. Die Mathematik-Leitideen `MZ`, `MG`,
@@ -234,7 +239,8 @@ Die tatsächliche Word-Automation und die visuelle Kontrolle der Corporate-Ausga
 werden zusätzlich lokal geprüft. Eine hohe R-Testabdeckung ersetzt diese
 Integrationsprüfung nicht.
 
-Die pkgdown-Website wird lokal mit synthetischen Beispielen erzeugt:
+Die Website wird mit pkgdown ab Version 2.1.0 und Quarto ab Version 1.5
+lokal aus synthetischen Beispielen erzeugt:
 
 ```r
 # Falls noch nicht vorhanden:
@@ -242,14 +248,16 @@ install.packages("pkgdown")
 pkgdown::build_site(preview = FALSE)
 ```
 
-Das Ausgabeziel ist `_pkgdown/`. Interne Arbeitsunterlagen werden außerhalb
-des Repositories unter `lokal/planung/` gepflegt.
+Das Ausgabeziel ist `_pkgdown/`. Interne Arbeitsunterlagen werden im von Git
+ausgeschlossenen Projektordner `lokal/planung/` gepflegt.
 Website-Beispiele greifen nicht auf private Dateien oder reale Daten zu.
 Dieser lokale Website-Build veröffentlicht nichts. Der GitHub-Workflow
-`pkgdown.yaml` baut und prüft die Website bei Pull Requests. Auf `main` kann
-er sie über GitHub Pages veröffentlichen; dafür muss in den
+`pkgdown.yaml` baut und prüft die Website bei Pull Requests. Ein erfolgreicher
+Lauf auf `main` veröffentlicht sie über GitHub Pages. Dafür ist in den
 Repository-Einstellungen **Pages → Build and deployment → GitHub Actions**
-gewählt sein. Private Originalberichte und lokale Renderablagen werden
+erforderlich. Der Workflow nutzt die bereits freigegebenen Actions und die
+GitHub-Pages-API; zusätzliche Secrets werden nicht benötigt. Die Badges zeigen
+den Stand von `main`. Private Originalberichte und lokale Renderablagen werden
 auch dabei nicht verwendet.
 
 Unter Windows außerhalb von RStudio benötigt R gegebenenfalls den Pfad zum

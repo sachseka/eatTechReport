@@ -11,7 +11,7 @@ execute:
 
 Die Pilotierungsabschnitte verbinden das Aufgaben- und Iteminventar mit dem
 Testheftaufbau, dem Klassenrücklauf, der Stichprobenzusammensetzung und den
-Kompetenzkennwerte. Tabellen und Quarto-Texte verwenden dieselben berechneten
+Kompetenzkennwerten. Tabellen und Quarto-Texte verwenden dieselben berechneten
 Ergebnisse. Die fachliche Fallauswahl erfolgt in der vorgelagerten Auswertung;
 das Berichtspaket entfernt keine Personen aus der angegebenen Population.
 
@@ -53,7 +53,9 @@ Angaben stehen als R-Objekte unter `data$design` und `data$sample`.
 ## Aufgaben, Items, Blöcke und Testhefte
 
 `data$design` enthält genau sechs Tabellen. IDs werden als Zeichenketten
-geliefert, auch wenn ein Quellsystem dafür Zahlen verwendet.
+geliefert, auch wenn ein Quellsystem dafür Zahlen verwendet. Die Tabellen
+sind nicht leer und enthalten genau die unten genannten Spalten; bei `blocks`
+kann zusätzlich `is_norming` angegeben werden.
 
 | Tabelle | Spalten | Bedeutung und Schlüssel |
 | --- | --- | --- |
@@ -90,7 +92,7 @@ tatsächlich angegebenen Blöcken; Pausen und Instruktionen erhöhen die
 Blocknummer nicht. Normierungsblöcke sind dunkel hinterlegt. Pausen erscheinen
 als schmale leere Spalten an der jeweiligen Blockgrenze. Unterschiedliche
 Pausengrenzen bleiben getrennt erkennbar. Die Zellen enthalten keine
-Minutenangaben; Block-, Pausen- und Instruktionszeiten werden in den
+Minutenangaben; die summierten Block-, Pausen- und Instruktionszeiten je Heft werden in den
 *Anmerkungen* unter der Tabelle erläutert, auch bei unterschiedlichen Heftzeiten.
 Die Eingaben und Zeitberechnungen bleiben dabei unverändert.
 
@@ -158,7 +160,17 @@ Beide Prozentangaben haben damit unterschiedliche, ausdrücklich benannte Nenner
 
 Die vier Schlüssel unter `characteristics` sind verbindlich. Ein Merkmal kann
 ausdrücklich den Wert `NULL` erhalten, wenn es nicht erhoben wurde; daraus wird
-keine Tabelle mit vermeintlich gemessenen Nullprozenten erzeugt.
+keine Tabelle mit vermeintlich gemessenen Nullprozenten erzeugt. In R bleibt
+der Schlüssel mit folgender Zuweisung erhalten:
+
+```{r}
+nicht_erhoben <- demo
+nicht_erhoben$data$sample$characteristics["changed_conditions"] <- list(NULL)
+validate_report_input(nicht_erhoben)
+```
+
+Eine Zuweisung mit `$changed_conditions <- NULL` würde dagegen den
+erforderlichen Listeneintrag entfernen.
 
 | Merkmal | Aufbau |
 | --- | --- |
@@ -234,7 +246,7 @@ Geschlechts- oder Sprachcodes erst nach ihrer dokumentierten Zuordnung in die
 vorgesehenen Kategorien überführt werden. Historische Mathematiklisten sind
 kein verbindliches Schema für neue Deutsch- und Mathematikdaten.
 
-Für reale Berichte werden `data_origin = "observed"`, fachlich freigegebene
+Für reale Berichte werden `config$report$data_origin = "observed"`, fachlich freigegebene
 Cuts und die tatsächlichen Design- und Stichprobenangaben geliefert. Der
 [Word-Bericht mit editierbaren Quarto-Texten](textredaktion.html) verwendet
 automatisch die mitgelieferte, freigegebene Corporate-Vorlage. Ein zusätzlicher

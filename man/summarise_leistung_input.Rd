@@ -8,7 +8,9 @@ summarise_leistung_input(input)
 }
 \arguments{
 \item{input}{A list with \code{config} and \code{data}, as returned by
-\code{\link[=example_leistung_input]{example_leistung_input()}}.}
+\code{\link[=example_leistung_input]{example_leistung_input()}} or \code{\link[=example_report]{example_report()}}. For the extended report
+scopes, only the performance component is checked or summarised here;
+use \code{\link[=validate_report_input]{validate_report_input()}} to validate all supplied report sections.}
 }
 \value{
 A list of three data frames: \code{descriptives} (person count, PV count,

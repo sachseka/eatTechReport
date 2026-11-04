@@ -21,10 +21,18 @@ of valid item responses. No cases are excluded or imputed by the report.
 Scope \code{pilotierung} uses schema \verb{0.3.0-draft} and requires
 \code{data$population}, \code{data$pvs}, \code{data$design} and \code{data$sample}. The earlier
 performance-only scope \code{pilotierung_leistung} remains supported unchanged.
+Lists and tables must contain the fields of the selected schema; arbitrary
+additional fields are rejected. Design blocks may additionally contain
+logical \code{is_norming} values without missing entries. This explicit flag
+controls norming-block shading; anchor items alone do not imply it.
 Scope \code{haupttest_struktur} uses schema \verb{0.4.0-draft} and additionally requires
 \code{data$main_test}: selected items, modules, ordered item membership and
 documented pilot-wave membership. It extends the draft with main-test
 selection and structure, not item-quality profiles or transformations.
+Each selected item's \code{task_label} and \code{domain_id} must agree within its
+\code{task_id}. Labels are supplied in \code{data$main_test$items} and used in the
+report's task matrix. This inventory is independent of the current pilot
+inventory; selected items may originate in earlier pilot waves.
 Optional \code{data$main_test$item_levels} supplies exactly one \code{level_label}
 per selected \code{item_id}, using the labels of its configured scale. These
 upstream assignments enable item-level figures; no assignment is inferred
@@ -33,6 +41,11 @@ Scope \code{bericht} uses schema \verb{0.5.0-draft} and additionally requires
 \code{data$main_test_results}: complete item statistics, explicitly supplied
 affine transformations for persons and items, and their definitions. It
 includes the final report chapters through interpretation and references.
+Item statistics contain finite \code{logit} values and \code{p_correct} values
+between zero and one for every selected item. Each scale used by selected
+items requires one \code{person} and one \code{item} transformation, with finite
+\code{intercept}, positive finite \code{slope} and a nonempty \code{source_label}.
+The formula is \code{report_score = intercept + slope * logit}.
 Sample composition describes the distinct persons in \code{data$population};
 participation and class returns are reported separately. Missing categorical
 values form a separate category and remain in percentage denominators.

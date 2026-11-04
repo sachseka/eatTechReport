@@ -11,7 +11,8 @@ summarise_report_input(input)
 }
 \value{
 The performance components \code{descriptives}, \code{percentages}, \code{per_pv},
-plus \code{design} and \code{sample} for scope \code{pilotierung}. Design includes item
+plus \code{design} and \code{sample} for scopes \code{pilotierung}, \code{haupttest_struktur}
+and \code{bericht}. Design includes item
 pool counts, blocks, booklets and their slots. Sample includes overall and
 state-level participation, characteristics and valid-response summaries
 separated by pilot and anchor roles. Uncollected characteristics are NULL;
@@ -21,8 +22,10 @@ overall/domain counts, module counts, ordered tasks and pilot-wave counts.
 Wave counts can overlap; module durations are not added to a test duration.
 When supplied, \code{main_test$item_levels} contains complete competence-level
 item counts for \code{selection} and \code{modules}, including zero-count levels.
-Scope \code{bericht} also returns \code{main_test_results} with module summaries of
-supplied item statistics and item report scores calculated using the supplied
+Scope \code{bericht} also returns \code{main_test_results} with \code{item_statistics},
+\code{module_statistics}, \code{transformations} and \code{definitions}. Module summaries
+contain unweighted item means of \code{p_correct} and \code{logit}, and minimum and
+maximum item report scores calculated using the supplied item
 transformations. Person PV values are never transformed again.
 }
 \description{

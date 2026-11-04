@@ -1,5 +1,11 @@
 # eatTechReport 0.0.0.9000
 
+* Repair pkgdown publication within the repository's existing Actions policy;
+  use the Pages API for deployment and show main-branch status in badges.
+* Reconcile the package overview, function reference, articles and README with
+  the current input validation, rendering and return values. Repair the
+  standalone example loader after the report code was split into modules.
+
 * Follow the original report figures: compare German modules within each scale;
   show the global mathematics base module separately and compare supplementary
   modules within each focus domain. Use narrow bars, short legends on the right

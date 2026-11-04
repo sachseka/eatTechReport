@@ -6,21 +6,24 @@
 \alias{eatTechReport-package}
 \title{Technical reports for educational assessments}
 \description{
-Tools for VERA-3 test designs, sample descriptions and performance sections.
+Tools for VERA-3 test designs, sample descriptions, competence distributions,
+main-test selections, item statistics and supplied scale transformations.
 Performance inputs contain complete, unweighted plausible values on the
-reporting scale. Participation and sample characteristics are supplied as
-separate R tables. Word output
-requires the locally supplied corporate template; it is not part of the
-package. Other technical-report chapters remain under development.
+reporting scale (\code{bista_500}). Design, participation, sample characteristics and
+main-test results are supplied as separate R tables. The package includes
+the corporate Word template and editable Quarto text blocks. Scope
+\code{bericht} renders the report through the reference list; study-specific
+text review remains necessary. Quarto is required for rendering. Automatic
+field and table-of-contents updates additionally require Microsoft Word on
+Windows. Synthetic examples are available for every implemented scope.
 }
 \seealso{
-Useful links:
-\itemize{
-  \item \url{https://sachseka.github.io/eatTechReport/}
-  \item \url{https://github.com/sachseka/eatTechReport}
-  \item Report bugs at \url{https://github.com/sachseka/eatTechReport/issues}
-}
+\code{\link[=example_report]{example_report()}}, \code{\link[=validate_report_input]{validate_report_input()}},
+\code{\link[=summarise_report_input]{summarise_report_input()}}, \code{\link[=render_report]{render_report()}}, \code{\link[=edit_report_texts]{edit_report_texts()}}
 
+\href{https://sachseka.github.io/eatTechReport/}{Package website},
+\href{https://github.com/sachseka/eatTechReport}{source repository},
+\href{https://github.com/sachseka/eatTechReport/issues}{issue tracker}.
 }
 \author{
 \strong{Maintainer}: Karoline A. Sachse \email{karoline.sachse@iqb.hu-berlin.de} (\href{https://orcid.org/0000-0001-6688-1267}{ORCID})

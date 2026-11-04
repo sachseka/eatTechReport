@@ -139,14 +139,23 @@ example_leistung_input <- function(profile = "v3_de_lesen_zuhoeren",
 #' are dropped or imputed.
 #'
 #' @param input A list with `config` and `data`, as returned by
-#'   [example_leistung_input()].
+#'   [example_leistung_input()] or [example_report()]. For the extended report
+#'   scopes, only the performance component is checked or summarised here;
+#'   use [validate_report_input()] to validate all supplied report sections.
 #' @return Invisibly `TRUE` for valid inputs; otherwise an error.
 #' @details German domain and scale codes are `DL`, `DH`, `DO`, and `DS`.
 #'   Mathematics domains `MZ`, `MG`, `MM`, `MR`, and `MD` all map to `MO`.
 #'   Each person-scale pair must have exactly the configured PV identifiers.
+#'   `data$population` has exactly the columns `person_id` and `scale_id`;
+#'   `data$pvs` has exactly `person_id`, `scale_id`, `pv_id` and numeric `value`.
+#'   IDs are nonempty character values. Each scale requires at least two
+#'   persons and at least one PV per person, already on metric `bista_500`.
 #'   The population must be supplied independently of the PV table to detect
 #'   entirely missing persons or scales. All cases are unweighted, without
 #'   subgroups. Observed inputs cannot use cuts marked `illustrative_demo_only`.
+#'   Cuts must be finite and strictly increasing; the number of distinct
+#'   `level_labels` must be one greater than the number of cuts. The example
+#'   uses Ia, Ib, II, III and IV, but labels and cuts are supplied by the caller.
 #' @examples
 #' validate_leistung_input(example_leistung_input())
 #' @export

@@ -8,7 +8,9 @@ plot_performance(input, scale_id, bandwidth = NULL, font_family = "sans")
 }
 \arguments{
 \item{input}{A list with \code{config} and \code{data}, as returned by
-\code{\link[=example_leistung_input]{example_leistung_input()}}.}
+\code{\link[=example_leistung_input]{example_leistung_input()}} or \code{\link[=example_report]{example_report()}}. For the extended report
+scopes, only the performance component is checked or summarised here;
+use \code{\link[=validate_report_input]{validate_report_input()}} to validate all supplied report sections.}
 
 \item{scale_id}{A configured scale code, for example \code{"DL"} or \code{"MO"}.}
 
