@@ -17,6 +17,12 @@ pool counts, blocks, booklets and their slots. Sample includes overall and
 state-level participation, characteristics and valid-response summaries
 separated by pilot and anchor roles. Uncollected characteristics are NULL;
 percentages for empty populations and undefined sample SDs are NA.
+\code{sample$changed_conditions_participants} is NULL unless editorial input
+explicitly documents exclusion for changed conditions; then it contains
+the corresponding participation-based frequencies. Ordinary background
+characteristics always use the supplied analysis population.
+Mathematical domains in derived summaries follow the canonical order
+\code{MZ}, \code{MG}, \code{MS} (or legacy \code{MM}), \code{MR}, \code{MD}.
 Scope \code{haupttest_struktur} additionally returns \code{main_test} with distinct
 overall/domain counts, module counts, ordered tasks and pilot-wave counts.
 Wave counts can overlap; module durations are not added to a test duration.

@@ -25,7 +25,7 @@ if (config$report$subject == "ma") {
 #| label: haupttest_auswahl_konventionen
 #| results: asis
 if (is.null(config$conventions)) {
-  cat("[Kriterien und Begründung der Aufgabenauswahl ergänzen.]\n\n")
+  cat(value("Kriterien und Begründung der Aufgabenauswahl ergänzen."), "\n\n")
 } else {
   threshold <- function(name) eatTechReport:::report_convention_value(
     config, "item_selection", name, name)
@@ -54,6 +54,6 @@ if (results$main_test$source_overlap) {
       "Pilotierungen enthalten und daher mehrfach gezählt werden.\n\n", sep = "")
 }
 if (is.null(results$main_test$item_levels)) {
-  cat("[Stufenzuordnung der ausgewählten Items für die Kompetenzstufengrafiken ergänzen.]\n\n")
+  cat(value("Stufenzuordnung der ausgewählten Items für die Kompetenzstufengrafiken ergänzen."), "\n\n")
 }
 ```

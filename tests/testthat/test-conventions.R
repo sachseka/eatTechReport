@@ -88,10 +88,10 @@ test_that("convention text distinguishes supplied values from missing placeholde
   config$conventions <- NULL
   config$report$data_origin <- "synthetic"
   expect_identical(report_convention_value(config, "item_selection", "infit_max", "Zielschwelle"),
-                   "\\[Zielschwelle\\]")
+                   '[Zielschwelle]{custom-style="EatSimulatedValue"}' )
   config$conventions <- report_conventions(0.30, 0.15, 1.15, 1.30)
   expect_identical(report_convention_value(config, "linking", "dependent_item_weight", "Gewicht [offen]"),
-                   "\\[Gewicht \\[offen\\]\\]")
+                   '[Gewicht \\[offen\\]]{custom-style="EatSimulatedValue"}' )
   expect_error(report_convention_value(config, "other", "infit_max", "Ziel"), "Unbekannte")
   expect_error(report_convention_value(config, "item_selection", "typo", "Ziel"), "Unbekannte")
   expect_error(report_convention_value(config, "linking", "infit_max", "Ziel"), "Unbekannte")

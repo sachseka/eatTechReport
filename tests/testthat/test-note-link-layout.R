@@ -98,14 +98,64 @@ test_that("internal, visited and external-link styles use corporate colour witho
   expect_identical(unname(tools::md5sum(files)), before)
 })
 
-test_that("documents without note styles gain corporate link styles without shrinking body text", {
+test_that("missing note styles are supplied without shrinking body text", {
   ns <- word_ns()
   styles <- xml2::read_xml(paste0('<w:styles xmlns:w="', ns[["w"]], '">',
     '<w:style w:type="paragraph" w:styleId="Normal"><w:name w:val="Normal"/></w:style></w:styles>'))
   format_report_note_link_styles(styles, ns)
-  expect_length(report_note_style_ids(styles, ns), 0L)
+  expect_setequal(report_note_style_ids(styles, ns), c("ReportFigureNote", "ReportTableNote"))
   expect_setequal(report_link_style_ids(styles, ns), c("Hyperlink", "FollowedHyperlink"))
-  expect_length(xml2::xml_find_all(styles, "//w:sz[@w:val='20']", ns), 0L)
+  expect_length(xml2::xml_find_all(styles, "//w:sz[@w:val='20']", ns), 2L)
+  expect_length(xml2::xml_find_all(styles, "w:style[@w:styleId='Normal']//w:sz", ns), 0L)
+})
+
+test_that("table notes and footnote continuations are compact without changing note references", {
+  directory <- note_link_fixture()
+  ns <- word_ns()
+  styles_path <- file.path(directory, "word/styles.xml")
+  styles <- xml2::read_xml(styles_path)
+  xml2::xml_add_child(styles, xml2::read_xml(paste0('<w:style xmlns:w="', ns[["w"]],
+    '" w:type="paragraph" w:styleId="TableNote"><w:name w:val="TableNote"/></w:style>')))
+  xml2::write_xml(styles, styles_path)
+  doc_path <- file.path(directory, "word/document.xml")
+  doc <- xml2::read_xml(doc_path)
+  for (id in c("ReportTableNote", "TableNote")) {
+    xml2::xml_add_child(xml2::xml_find_first(doc, "w:body", ns), xml2::read_xml(paste0(
+      '<w:p xmlns:w="', ns[["w"]], '"><w:pPr><w:pStyle w:val="', id,
+      '"/><w:spacing w:line="480"/></w:pPr><w:r><w:t>Table annotation.</w:t></w:r></w:p>')))
+  }
+  xml2::xml_add_child(xml2::xml_find_first(doc, "w:body", ns), xml2::read_xml(paste0(
+    '<w:p xmlns:w="', ns[["w"]], '"><w:r><w:t>Body</w:t></w:r><w:r>',
+    '<w:rPr><w:vertAlign w:val="superscript"/></w:rPr><w:footnoteReference w:id="7"/></w:r></w:p>')))
+  xml2::write_xml(doc, doc_path)
+  notes_path <- file.path(directory, "word/footnotes.xml")
+  writeLines(paste0('<w:footnotes xmlns:w="', ns[["w"]], '">',
+    '<w:footnote w:type="separator" w:id="-1"><w:p><w:pPr><w:spacing w:line="120"/></w:pPr>',
+    '<w:r><w:separator/></w:r></w:p></w:footnote>',
+    '<w:footnote w:id="7"><w:p><w:r><w:rPr><w:vertAlign w:val="superscript"/>',
+    '<w:sz w:val="22"/></w:rPr><w:footnoteRef/></w:r>',
+    '<w:r><w:t>First note paragraph.</w:t></w:r></w:p>',
+    '<w:p><w:r><w:t>Continuation.</w:t></w:r></w:p></w:footnote></w:footnotes>'), notes_path)
+  before <- xml2::read_xml(notes_path)
+  separator <- as.character(xml2::xml_find_first(before, "w:footnote[@w:type='separator']", ns))
+  note_ref <- as.character(xml2::xml_find_first(before, "//w:r[w:footnoteRef]", ns))
+  apply_report_layout(directory)
+  notes <- xml2::read_xml(notes_path)
+  expect_identical(as.character(xml2::xml_find_first(notes, "w:footnote[@w:type='separator']", ns)), separator)
+  paragraphs <- xml2::xml_find_all(notes, "w:footnote[@w:id='7']/w:p", ns)
+  expect_identical(xml2::xml_attr(xml2::xml_find_first(paragraphs, "w:pPr/w:spacing", ns), "w:line", ns), rep("240", 2L))
+  expect_identical(xml2::xml_attr(xml2::xml_find_all(notes, "//w:r[w:t]/w:rPr/w:sz", ns), "w:val", ns), rep("20", 2L))
+  # The focused post-Word pass leaves reference runs byte-for-byte unchanged.
+  note_ref <- as.character(xml2::xml_find_first(notes, "//w:r[w:footnoteRef]", ns))
+  styles <- xml2::read_xml(styles_path)
+  format_report_notes_and_links(notes, styles, ns)
+  expect_identical(as.character(xml2::xml_find_first(notes, "//w:r[w:footnoteRef]", ns)), note_ref)
+  doc <- xml2::read_xml(doc_path)
+  tables <- xml2::xml_find_all(doc, "//w:p[w:r/w:t='Table annotation.']", ns)
+  expect_length(tables, 2L)
+  expect_identical(xml2::xml_attr(xml2::xml_find_first(tables, "w:pPr/w:spacing", ns), "w:line", ns), rep("240", 2L))
+  expect_identical(xml2::xml_attr(xml2::xml_find_all(tables, ".//w:sz", ns), "w:val", ns), rep("20", 2L))
+  expect_identical(xml2::xml_attr(xml2::xml_find_first(doc, "//w:r[w:footnoteReference]/w:rPr/w:vertAlign", ns), "w:val", ns), "superscript")
 })
 
 test_that("post-Word correction retains fields and changes only note/link presentation", {

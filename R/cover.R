@@ -1,7 +1,7 @@
 # Cover names are document inputs, independent of the package authors.
 report_cover_data <- function(report) {
-  list(authors = if (is.null(report$authors)) "[Autorinnen und Autoren]" else report$authors,
-       affiliation = if (is.null(report$affiliation)) "[Affiliation]" else report$affiliation)
+  list(authors = if (is.null(report$authors)) "Autorinnen und Autoren" else report$authors,
+       affiliation = if (is.null(report$affiliation)) "Affiliation" else report$affiliation)
 }
 
 add_report_cover_authors <- function(doc, styles, report, ns = word_ns()) {

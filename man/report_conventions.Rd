@@ -52,7 +52,8 @@ Actual application and its empirical results remain upstream inputs.
 
 Report text displays supplied values as numbers, for example \verb{0,30}.
 With synthetic data the number is highlighted in yellow. Missing optional
-conventions retain editorial placeholders in square brackets.
+conventions display an open editorial label without square brackets,
+also highlighted in synthetic mode.
 Existing inputs without \code{config$conventions} remain valid.
 }
 \examples{

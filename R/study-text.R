@@ -139,7 +139,7 @@ study_design_table_markdown <- function(data) {
     }
   }
   headers <- names(data)
-  headers[pauses] <- "\u00a0"
+  headers[pauses] <- "Pause"
   names(data) <- span(headers, ifelse(seq_len(ncol(data)) %in% pauses,
                                      "EatDesignPauseHeader", "EatDesignHeader"))
   paste(c("", knitr::kable(data, format = "pipe", align = "c", row.names = FALSE), "", ""),
@@ -175,8 +175,9 @@ study_design_timing_note <- function(part, config = NULL) {
   paste0(paste(unlist(parts, use.names = FALSE), collapse = "; "), ".")
 }
 
-study_language_tables <- function(data, max_categories = 3L) {
+study_language_tables <- function(data, max_categories = NULL) {
   if (is.null(data) || !nrow(data)) return(list())
+  if (is.null(max_categories)) max_categories <- length(unique(data$category))
   if (length(max_categories) != 1L || !is.numeric(max_categories) ||
       !is.finite(max_categories) || max_categories < 1 ||
       max_categories != floor(max_categories)) {
@@ -188,7 +189,7 @@ study_language_tables <- function(data, max_categories = 3L) {
                  drop = FALSE]
   lapply(groups, function(category_group) {
     table <- data.frame("Land" = states$state_label,
-                        "Personen (N)" = states$denominator, check.names = FALSE)
+                        "N" = states$denominator, check.names = FALSE)
     for (category in category_group) {
       selected <- data[data$category == category, , drop = FALSE]
       table[[paste0(category, " (%)")]] <- study_number(
@@ -196,6 +197,100 @@ study_language_tables <- function(data, max_categories = 3L) {
     }
     table
   })
+}
+
+# Keep every participation percentage tied to the displayed participation N.
+# The analysis population remains the denominator for background characteristics.
+study_sample_table <- function(sample) {
+  state <- sample$by_state
+  total <- sample$totals
+  data.frame(
+    "Land" = c(state$label, "Gesamt"),
+    "Klassen angefragt" = c(state$n_requested_classes, total$n_requested_classes),
+    "Klassen Teilnahme" = c(state$n_participating_classes, total$n_participating_classes),
+    "Personen Teilnahme" = c(state$n_participants, total$n_participants),
+    "Anteil an der Pilotierungsstichprobe (%)" = study_number(c(state$participant_percent, 100)),
+    check.names = FALSE
+  )
+}
+
+study_sample_note <- function(sample, config) {
+  value <- function(x) report_text_value(x, config)
+  text <- paste("Die Prozentangaben beziehen sich auf alle teilnehmenden",
+                "Sch\u00fclerinnen und Sch\u00fcler der Pilotierungsstichprobe.")
+  if (sample$totals$n_not_analysed > 0L) {
+    text <- paste0(text, " Von den Teilnehmenden gehen ",
+                   value(sample$totals$n_not_analysed),
+                   " Personen nicht in die Auswertung ein.")
+    reasons <- config$editorial$exclusion_reasons
+    if (!is.null(reasons)) text <- paste(text, value(reasons))
+  }
+  paste(text, "Die Hintergrundmerkmale beziehen sich auf die ausgewerteten",
+        "Sch\u00fclerinnen und Sch\u00fcler.")
+}
+
+study_characteristic_sentences <- function(sample, config) {
+  characteristics <- sample$characteristics
+  labels <- c(gender = "Geschlecht", family_language = "Familiensprache",
+              changed_conditions = "Ver\u00e4nderte Testbedingungen")
+  value <- function(x) report_text_value(x, config)
+  vapply(names(labels), function(id) {
+    values <- characteristics[[id]]
+    excluded_conditions <- id == "changed_conditions" &&
+      identical(config$editorial$changed_conditions_included, FALSE)
+    if (excluded_conditions) values <- sample$changed_conditions_participants
+    if (is.null(values)) {
+      return(paste0(report_markdown_text(labels[[id]]),
+                    " wurde f\u00fcr diesen Durchgang nicht erhoben."))
+    }
+    percentage <- value(study_number(values$percent))
+    no_answer <- values$category == "keine Angabe"
+    substantive <- which(!no_answer)
+    if (id == "gender") {
+      text <- paste0("Weiterhin waren ",
+        paste0(percentage[substantive], " % ", value(values$category[substantive]),
+               collapse = ", "))
+      if (any(no_answer)) {
+        text <- paste0(text, " und ", percentage[no_answer], " % machten keine Angabe.")
+      } else text <- paste0(text, ".")
+      return(text)
+    }
+    if (id == "family_language") {
+      text <- paste0("Bez\u00fcglich ihrer Familiensprache gaben ",
+        paste0(percentage[substantive], " % \u201e", value(values$category[substantive]),
+               "\u201c", collapse = ", "), " an.")
+    } else if (setequal(values$category, c("ja", "nein", "keine Angabe"))) {
+      text <- paste0("Laut Angaben der Lehrkr\u00e4fte nahmen ",
+        percentage[match("ja", values$category)], " % der ",
+        if (excluded_conditions) "Teilnehmenden" else "Sch\u00fclerinnen und Sch\u00fcler",
+        " unter ver\u00e4nderten Testbedingungen teil, weil sie beispielsweise ",
+        "aufgrund eines bestimmten F\u00f6rderschwerpunktes oder noch unzureichender ",
+        "Deutschkenntnisse eine reduzierte Aufgabenmenge bearbeiteten oder die ",
+        "Bearbeitungszeit erh\u00f6ht wurde. F\u00fcr ",
+        percentage[match("nein", values$category)],
+        " % wurden keine ver\u00e4nderten Testbedingungen angegeben.")
+    } else {
+      text <- paste0("Zu ver\u00e4nderten Testbedingungen wurden folgende Angaben gemacht: ",
+        paste0(value(values$category[substantive]), " (", percentage[substantive], " %)",
+               collapse = ", "), ".")
+    }
+    if (any(no_answer)) {
+      text <- paste0(text, " F\u00fcr ", percentage[no_answer], " % lag keine Angabe vor.")
+    }
+    if (id == "changed_conditions") {
+      rule <- config$editorial$changed_conditions_included
+      if (!is.null(rule)) {
+        text <- paste(text, if (isTRUE(rule)) {
+          value(if (any(values$n[values$category == "ja"] > 0L)) {
+            "Sch\u00fclerinnen und Sch\u00fcler mit ver\u00e4nderten Testbedingungen wurden regul\u00e4r in die Auswertung einbezogen."
+          } else "Ver\u00e4nderte Testbedingungen waren kein Ausschlussgrund.")
+        } else {
+          value("Sch\u00fclerinnen und Sch\u00fcler mit ver\u00e4nderten Testbedingungen wurden von der Auswertung ausgeschlossen.")
+        })
+      }
+    }
+    text
+  }, character(1), USE.NAMES = FALSE)
 }
 
 study_response_sentences <- function(rows, config) {

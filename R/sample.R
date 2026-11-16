@@ -182,6 +182,22 @@ validate_sample_data <- function(sample, input) {
       }
     }
   }
+  condition_rule <- input$config$editorial$changed_conditions_included
+  if (!is.null(condition_rule)) {
+    conditions <- characteristics$changed_conditions
+    if (is.null(conditions) || !setequal(conditions$categories, c("ja", "nein"))) {
+      fail("changed_conditions_included braucht erhobene Testbedingungen mit genau den Kategorien 'ja' und 'nein'.")
+    }
+    if (identical(condition_rule, FALSE)) {
+      if (any(!sample$persons$person_id %in% conditions$values$person_id)) {
+        fail("Bei ausgeschlossenen veraenderten Testbedingungen muessen die Angaben zu changed_conditions alle Teilnehmenden abdecken; Fehlwerte als NA liefern.")
+      }
+      excluded <- conditions$values$person_id[which(conditions$values$value == "ja")]
+      if (any(excluded %in% analysis_ids)) {
+        fail("changed_conditions_included = FALSE widerspricht der Auswertungspopulation: Personen mit veraenderten Testbedingungen sind noch enthalten. Die Population muss vorgelagert festgelegt werden.")
+      }
+    }
+  }
   invisible(TRUE)
 }
 
@@ -235,10 +251,14 @@ summarise_sample_data <- function(sample, input) {
           response_row(responses[responses$role == role, , drop = FALSE]))
   }))
   rownames(responses_by_domain) <- rownames(responses_overall) <- NULL
+  conditions_participants <- if (identical(input$config$editorial$changed_conditions_included, FALSE)) {
+    summarise_sample_categories(sample$characteristics$changed_conditions, persons$person_id)
+  } else NULL
   list(totals = totals, by_state = by_state, by_scale = by_scale,
        response_counts = responses, responses_by_domain = responses_by_domain,
        responses_overall = responses_overall,
        response_definition = sample$response_definition,
+       changed_conditions_participants = conditions_participants,
        characteristics = summarise_sample_characteristics(sample$characteristics,
                                                            persons[persons$analysed, , drop = FALSE],
                                                            sample$states))
@@ -257,19 +277,9 @@ summarise_sample_characteristics <- function(characteristics, analysis_persons, 
                              sd = if (length(valid) >= 2L) stats::sd(valid) else NA_real_,
                              stringsAsFactors = FALSE)
   }
-  category_rows <- function(variable, person_ids) {
-    value <- variable$values$value[match(person_ids, variable$values$person_id)]
-    categories <- c(variable$categories, "keine Angabe")
-    count <- c(vapply(variable$categories, function(category) sum(value == category, na.rm = TRUE),
-                      integer(1)), sum(is.na(value)))
-    data.frame(label = variable$label, category = categories, n = unname(count),
-               denominator = length(person_ids),
-               percent = if (length(person_ids)) 100 * unname(count) / length(person_ids) else NA_real_,
-               stringsAsFactors = FALSE)
-  }
   for (id in c("gender", "family_language", "changed_conditions")) {
     if (!is.null(characteristics[[id]])) {
-      result[[id]] <- category_rows(characteristics[[id]], ids)
+      result[[id]] <- summarise_sample_categories(characteristics[[id]], ids)
     }
   }
   result["family_language_by_state"] <- list(NULL)
@@ -278,10 +288,21 @@ summarise_sample_characteristics <- function(characteristics, analysis_persons, 
       state <- states[i, , drop = FALSE]
       rows <- analysis_persons$state_id == state$state_id
       data.frame(state_id = state$state_id, state_label = state$label,
-                  category_rows(characteristics$family_language, analysis_persons$person_id[rows]),
+                  summarise_sample_categories(characteristics$family_language, analysis_persons$person_id[rows]),
                   stringsAsFactors = FALSE)
     }))
     rownames(result$family_language_by_state) <- NULL
   }
   result
+}
+
+summarise_sample_categories <- function(variable, person_ids) {
+  value <- variable$values$value[match(person_ids, variable$values$person_id)]
+  categories <- c(variable$categories, "keine Angabe")
+  count <- c(vapply(variable$categories, function(category) sum(value == category, na.rm = TRUE),
+                    integer(1)), sum(is.na(value)))
+  data.frame(label = variable$label, category = categories, n = unname(count),
+             denominator = length(person_ids),
+             percent = if (length(person_ids)) 100 * unname(count) / length(person_ids) else NA_real_,
+             stringsAsFactors = FALSE)
 }

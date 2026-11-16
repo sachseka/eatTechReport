@@ -1,4 +1,4 @@
-table_layout_report <- function(wrapped = FALSE) {
+table_layout_report <- function(wrapped = FALSE, before_style = NULL) {
   ns <- word_ns()
   template <- tempfile(fileext = ".dotx")
   synthetic_word_template(template)
@@ -25,6 +25,11 @@ table_layout_report <- function(wrapped = FALSE) {
   }
   table <- sub('<w:tbl>', paste0('<w:tbl xmlns:w="', ns[["w"]], '">'), table, fixed = TRUE)
   xml2::xml_add_child(body, xml2::read_xml(table), .where = 0)
+  if (!is.null(before_style)) {
+    paragraph <- paste0('<w:p xmlns:w="', ns[["w"]], '"><w:pPr><w:pStyle w:val="',
+      before_style, '"/><w:keepNext/></w:pPr><w:r><w:t>Introductory paragraph</w:t></w:r></w:p>')
+    xml2::xml_add_child(body, xml2::read_xml(paragraph), .where = 0)
+  }
   xml2::write_xml(doc, document_path)
   report <- tempfile(fileext = ".docx")
   pack_word_package(parts, report)
@@ -88,4 +93,51 @@ test_that("caption wrapper tables stay unpadded and unruled around formatted dat
   caption <- xml2::xml_find_first(wrapper, "w:tr/w:tc/w:p[w:r/w:t='Table caption']", ns)
   expect_identical(xml2::xml_attr(xml2::xml_find_first(caption, "w:pPr/w:spacing", ns),
                                  "w:after", ns), "40")
+})
+
+test_that("body introductions can end before a table while captions and headings stay attached", {
+  ns <- word_ns()
+  for (wrapped in c(FALSE, TRUE)) {
+    doc <- table_layout_report(wrapped = wrapped, before_style = "FirstParagraph")
+    paragraph <- xml2::xml_find_first(doc, "//w:body/w:p[w:r/w:t='Introductory paragraph']", ns)
+    expect_identical(xml2::xml_attr(xml2::xml_find_first(paragraph, "w:pPr/w:keepNext", ns), "w:val", ns), "0")
+    expect_identical(xml2::xml_attr(xml2::xml_find_first(paragraph, "w:pPr/w:spacing", ns), "w:after", ns), "120")
+    if (wrapped) {
+      caption <- xml2::xml_find_first(doc, "//w:p[w:r/w:t='Table caption']", ns)
+      expect_identical(xml2::xml_attr(xml2::xml_find_first(caption, "w:pPr/w:keepNext", ns), "w:val", ns), "1")
+    }
+  }
+  for (style in c("TableCaption", "Heading2", "Heading", "CustomHeading")) {
+    doc <- table_layout_report(before_style = style)
+    paragraph <- xml2::xml_find_first(doc, "//w:body/w:p[w:r/w:t='Introductory paragraph']", ns)
+    expect_identical(xml2::xml_attr(xml2::xml_find_first(paragraph, "w:pPr/w:keepNext", ns), "w:val", ns), "1")
+  }
+})
+
+test_that("table spacing respects custom bindings and standalone bold labels", {
+  ns <- word_ns()
+  make_paragraph <- function(style, keep, runs) {
+    xml2::read_xml(paste0('<w:body xmlns:w="', ns[["w"]], '"><w:p><w:pPr>',
+      if (!is.null(style)) paste0('<w:pStyle w:val="', style, '"/>') else "",
+      keep, '</w:pPr>', runs, '</w:p><w:tbl/></w:body>'))
+  }
+  text <- '<w:r><w:t>Introduction</w:t></w:r>'
+  for (keep in c("", '<w:keepNext w:val="0"/>', '<w:keepNext w:val="true"/>')) {
+    doc <- make_paragraph("CustomParagraph", keep, text)
+    before <- as.character(xml2::xml_find_first(doc, "w:p/w:pPr/w:keepNext", ns))
+    space_report_table(xml2::xml_find_first(doc, "w:tbl", ns), NULL, ns)
+    expect_identical(as.character(xml2::xml_find_first(doc, "w:p/w:pPr/w:keepNext", ns)), before)
+  }
+  for (style in list(NULL, "Normal", "Standard", "BodyText", "FirstParagraph")) {
+    doc <- make_paragraph(style, '<w:keepNext/>', text)
+    space_report_table(xml2::xml_find_first(doc, "w:tbl", ns), NULL, ns)
+    expect_identical(xml2::xml_attr(xml2::xml_find_first(doc, "w:p/w:pPr/w:keepNext", ns), "w:val", ns), "0")
+  }
+  for (bold in c("", ' w:val="false"')) {
+    label <- paste0('<w:r><w:rPr><w:b', bold, '/></w:rPr><w:t>Domain label</w:t></w:r>')
+    doc <- make_paragraph("BodyText", '<w:keepNext/>', label)
+    space_report_table(xml2::xml_find_first(doc, "w:tbl", ns), NULL, ns)
+    expect_identical(xml2::xml_attr(xml2::xml_find_first(doc, "w:p/w:pPr/w:keepNext", ns), "w:val", ns),
+                     if (bold == "") "1" else "0")
+  }
 })

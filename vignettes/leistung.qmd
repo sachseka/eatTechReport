@@ -54,15 +54,20 @@ nicht erforderlich.
 | Deutsch | Zuhören | DH | DH |
 | Deutsch | Orthografie | DO | DO |
 | Deutsch | Sprachgebrauch | DS | DS |
-| Mathematik | Zahlen und Operationen | MZ | MO |
+| Mathematik | Zahl und Operation | MZ | MO |
 | Mathematik | Größen und Messen | MG | MO |
-| Mathematik | Muster und Strukturen / Funktionaler Zusammenhang | MM | MO |
+| Mathematik | Muster, Strukturen und funktionaler Zusammenhang | MS | MO |
 | Mathematik | Raum und Form | MR | MO |
-| Mathematik | Daten, Häufigkeit und Wahrscheinlichkeit | MD | MO |
+| Mathematik | Daten und Zufall | MD | MO |
 
 `MO` steht für Mathematik global (overall). Die Kennzahlen werden je
 auswertbarer Skala berechnet. Die fünf Leitideen vervielfachen daher weder
 Personen noch Kompetenzdarstellungen.
+Die Mathematik-Leitideen werden in der gezeigten Reihenfolge verwendet.
+Das aktuelle Beispielprofil heißt `v3_ma_mg_ms`. Für bestehende Eingaben
+bleibt `MM` anstelle von `MS` zulässig; das frühere Profil `v3_ma_mg_mm`
+verwendet dieses Kürzel weiterhin. `MS` und `MM` dürfen nicht gemeinsam
+als verschiedene Leitideen eingetragen werden.
 
 `config$domains` hat die Spalten `domain_id`, `label` und `scale_id`.
 Für Deutsch werden nur die tatsächlich verwendeten Bereiche eingetragen;

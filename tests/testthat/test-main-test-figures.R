@@ -11,7 +11,7 @@ test_that("mathematics figures separate the base from the two focus-domain group
   expect_identical(unname(plan$modules[[3L]]$legend_labels), c("MM-EM-A", "MM-EM-B"))
   expect_match(plan$modules[[1L]]$caption, "VERA-3-Basismoduls 2027")
   expect_match(plan$modules[[2L]]$caption, "Gr\u00f6\u00dfen und Messen")
-  expect_match(plan$modules[[3L]]$caption, "Muster und Strukturen")
+  expect_match(plan$modules[[3L]]$caption, "Muster, Strukturen und funktionaler Zusammenhang")
   expect_match(plan$modules[[2L]]$note, "MG-EM-A = Gr\u00f6\u00dfen und Messen")
   expect_identical(item_module_short_labels(main_test$modules, input$config),
                    unlist(lapply(plan$modules, `[[`, "legend_labels")))

@@ -31,7 +31,7 @@ knitr::kable(haupttest$modules)
 Diese Daten einschließlich Zeiten, Auswahl und Pilotierungsjahren sind
 **synthetisch**. Das Beispiel enthält wiederverwendete Items, mehrere Module
 derselben Domäne und Items aus einer früheren Pilotierungswelle. Für Mathematik
-steht `example_report("v3_ma_mg_mm", scope = "haupttest_struktur")` bereit;
+steht `example_report("v3_ma_mg_ms", scope = "haupttest_struktur")` bereit;
 alle Leitideen bleiben der Skala `MO` zugeordnet.
 
 Schema `0.4.0-draft` benötigt neben `population`, `pvs`, `design` und `sample`
@@ -177,7 +177,7 @@ weiterhin die globale Kompetenzskala `MO` und dieselbe Größenachse.
 #| fig-height: 3.31
 #| fig-cap: "Verteilung der Items des Mathematik-Basismoduls auf die Kompetenzstufen (synthetisches Beispiel)."
 #| fig-alt: "Einzelne schmale Balken für das globale Basismodul MO-BM; Legende rechts."
-ma <- example_report("v3_ma_mg_mm", scope = "haupttest_struktur", n_persons = 24)
+ma <- example_report("v3_ma_mg_ms", scope = "haupttest_struktur", n_persons = 24)
 plot_item_levels(ma, "MO", by = "module", module_ids = "MA_BM")
 ```
 
@@ -197,13 +197,14 @@ plot_item_levels(ma, "MO", by = "module", module_ids = c("MG_EM", "MG_EM_B"))
 ```{r}
 #| fig-width: 6.1
 #| fig-height: 3.31
-#| fig-cap: "Verteilung der Items in den Ergänzungsmodulen Muster und Strukturen (synthetisches Beispiel)."
-#| fig-alt: "Gruppierte schmale Balken für MM-EM-A und MM-EM-B; Legende rechts."
-plot_item_levels(ma, "MO", by = "module", module_ids = c("MM_EM", "MM_EM_B"))
+#| fig-cap: "Verteilung der Items in den Ergänzungsmodulen Muster, Strukturen und funktionaler Zusammenhang (synthetisches Beispiel)."
+#| fig-alt: "Gruppierte schmale Balken für MS-EM-A und MS-EM-B; Legende rechts."
+plot_item_levels(ma, "MO", by = "module", module_ids = c("MS_EM", "MS_EM_B"))
 ```
 
-*Anmerkungen.* MM-EM-A und MM-EM-B = Muster und Strukturen / Funktionaler
-Zusammenhang Ergänzungsmodule A und B.
+*Anmerkungen.* MS-EM-A und MS-EM-B = Muster, Strukturen und funktionaler
+Zusammenhang, Ergänzungsmodule A und B. Bestehende Eingaben mit dem Profil
+`v3_ma_mg_mm` behalten die bisherigen `MM`-Kennungen.
 
 Die Corporate-Farben beginnen in jeder Abbildungsgruppe erneut mit Weinrot,
 Türkis und bei einer dritten Reihe Rosa. Dadurch verwendet zum Beispiel
@@ -321,7 +322,10 @@ Zu den zehn Bausteinen von `haupttest_struktur`, einschließlich
 - `literatur.qmd`: Literaturverzeichnis.
 
 Die Voreinstellung `pilotierung` bleibt bei acht Bausteinen. Auswahlbegründungen
-und weitere Textvariablen stehen zunächst in eckigen Klammern. Der Textordner
+und weitere noch offene Textvariablen stehen als beschreibende Hinweise ohne
+eckige Klammern im Text; im Simulationsmodus werden sie gelb markiert. Wiederkehrende
+Angaben lassen sich über `config$editorial = report_editorial(...)` übergeben.
+Der Textordner
 muss alle Bausteine des beim Rendern gewählten Umfangs enthalten. Vorhandene
 Redaktion wird nicht automatisch auf eine neue Kapitelstruktur umgestellt.
 Bei Arbeitsordnern mit den früheren separaten Itemkennwerte- und

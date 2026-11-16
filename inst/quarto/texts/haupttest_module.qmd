@@ -37,6 +37,7 @@ for (figure in item_figures$modules) {
 ```{r}
 #| label: haupttest_module_aufgabenfolge
 #| results: asis
+cat(eatTechReport:::main_test_task_count_text(results$main_test, config), "\n\n", sep = "")
 task_matrices <- eatTechReport:::main_test_task_matrices(results$main_test, config = config)
 module_types <- results$main_test$modules$module_type
 matrix_caption <- if (sum(module_types == "base") == 1L &&
@@ -53,9 +54,9 @@ for (i in seq_along(task_matrices)) {
   cat("Table: ", matrix_caption, continuation, ". {#", table_id, "}\n\n", sep = "")
   cat(eatTechReport:::main_test_task_matrix_markdown(part))
   notes <- paste0(value(names(part$table)[-1L]), " = ", value(part$labels))
-  cat("\n\n*Anmerkungen.* ", paste(notes, collapse = "; "),
+  cat("\n\n::: {custom-style=\"ReportTableNote\"}\n\n*Anmerkungen.* ", paste(notes, collapse = "; "),
       ". Die Reihenfolge der Aufgaben in der Tabelle entspricht der Bearbeitungsreihenfolge ",
-      "in den Modulen.\n\n", sep = "")
+      "in den Modulen.\n\n:::\n\n", sep = "")
 }
 ```
 

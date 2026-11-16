@@ -28,7 +28,8 @@
 #'
 #'   Report text displays supplied values as numbers, for example `0,30`.
 #'   With synthetic data the number is highlighted in yellow. Missing optional
-#'   conventions retain editorial placeholders in square brackets.
+#'   conventions display an open editorial label without square brackets,
+#'   also highlighted in synthetic mode.
 #'   Existing inputs without `config$conventions` remain valid.
 #' @seealso [example_report()], [validate_report_input()], [render_report()]
 #' @examples
@@ -135,6 +136,6 @@ report_convention_value <- function(config, group, name, placeholder, digits = 2
   }
   validate_report_conventions(config$conventions)
   value <- config$conventions[[group]][[name]]
-  if (is.null(value)) return(report_markdown_text(paste0("[", placeholder, "]")))
+  if (is.null(value)) return(report_text_value(placeholder, config))
   report_text_value(study_number(value, digits), config)
 }

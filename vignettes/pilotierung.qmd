@@ -90,7 +90,8 @@ Die Heftdesign-Matrix zeigt je Zeile ein Testheft und je Blockspalte die
 zugehörige Blockbezeichnung. Ihre Anzahl und Reihenfolge stammen aus den
 tatsächlich angegebenen Blöcken; Pausen und Instruktionen erhöhen die
 Blocknummer nicht. Normierungsblöcke sind dunkel hinterlegt. Pausen erscheinen
-als schmale leere Spalten an der jeweiligen Blockgrenze. Unterschiedliche
+als schmale Spalten mit der Überschrift **Pause** und leeren Datenzellen an der
+jeweiligen Blockgrenze. Unterschiedliche
 Pausengrenzen bleiben getrennt erkennbar. Die Zellen enthalten keine
 Minutenangaben; die summierten Block-, Pausen- und Instruktionszeiten je Heft werden in den
 *Anmerkungen* unter der Tabelle erläutert, auch bei unterschiedlichen Heftzeiten.
@@ -155,6 +156,18 @@ knitr::kable(ergebnis$sample$by_scale)
 `participant_percent` beschreibt den Anteil eines Landes an sämtlichen
 Teilnehmenden, `analysis_percent` seinen Anteil an der Auswertungspopulation.
 Beide Prozentangaben haben damit unterschiedliche, ausdrücklich benannte Nenner.
+Die Länderübersicht im Word-Bericht zeigt die angefragten und teilnehmenden
+Klassen, die teilnehmenden Personen und deren **Anteil an der
+Pilotierungsstichprobe (%)**. Diese Prozentspalte verwendet `participant_percent`:
+Der Nenner sind alle tatsächlich teilnehmenden Personen, einschließlich später
+ausgeschlossener Fälle. So passen die dargestellte Personenzahl und der
+Prozentanteil zusammen. Die Zahl der ausgewerteten Personen steht im Fließtext;
+eine weitere gleichartige Tabellenspalte entfällt.
+
+Die Tabellenanmerkung nennt gegebenenfalls die Zahl der Personen, die nicht in
+die Auswertung eingehen. Ein studienspezifischer Begründungssatz kann über
+`config$editorial$exclusion_reasons` ergänzt werden. Diese Angabe dokumentiert
+die vorgelagerte Entscheidung und entfernt keine Fälle aus den Eingaben.
 
 ## Hintergrundmerkmale und fehlende Angaben
 
@@ -208,7 +221,47 @@ Familiensprache wird zusätzlich nach Land zusammengefasst. Der Nenner ist dann
 die Auswertungspopulation des jeweiligen Landes. Bei einem Land ohne solche
 Personen ist der Prozentwert nicht definiert und wird als fehlend ausgewiesen.
 Das ist von einer vorhandenen Population mit null Personen in einer Kategorie
-zu unterscheiden.
+zu unterscheiden. Im Word-Bericht stehen die Familiensprachkategorien einschließlich
+**keine Angabe** gemeinsam in einer Tabelle; es gibt keine Aufteilung in separate
+Tabellen für gültige und fehlende Angaben. Geschlecht, Familiensprache und
+veränderte Testbedingungen werden zusätzlich im Fließtext beschrieben.
+
+## Umgang mit veränderten Testbedingungen dokumentieren
+
+`report_editorial()` bietet den optionalen Schalter
+`changed_conditions_included`. Ohne Angabe bleibt die Auswertungsregel im
+Berichtstext offen. `TRUE` ergänzt den Satz, dass Schülerinnen und Schüler mit
+veränderten Testbedingungen regulär in die Auswertung einbezogen wurden.
+Die Hintergrundkennwerte beziehen sich weiterhin auf `data$population`.
+Wenn in dieser Population keine Angabe `"ja"` vorkommt, formuliert der Bericht
+die Regel stattdessen als „Veränderte Testbedingungen waren kein Ausschlussgrund.“
+
+```{r}
+mit_auswertungsregel <- demo
+mit_auswertungsregel$config$editorial <- report_editorial(
+  changed_conditions_included = TRUE,
+  exclusion_reasons = "Für die ausgeschlossenen Personen lagen keine auswertbaren Testdaten vor."
+)
+validate_report_input(mit_auswertungsregel)
+```
+
+`FALSE` ergänzt stattdessen den Ausschlusssatz. Damit dieser Text den Daten
+entspricht, prüft das Paket, dass keine Person mit der Angabe `"ja"` bei
+`changed_conditions` in `data$population` enthalten ist. Die Fallauswahl muss
+also bereits vor der Berichtserzeugung erfolgt sein. Beide Schalterstellungen
+setzen ein erhobenes Merkmal mit genau den Kategorien `"ja"` und `"nein"` voraus.
+
+Bei `FALSE` muss `changed_conditions$values` außerdem **alle Teilnehmenden**
+aus `sample$persons` abdecken; fehlende Angaben werden ausdrücklich als `NA`
+geliefert. Der betreffende Absatz berichtet dann die Anteile unter sämtlichen
+Teilnehmenden und benennt diesen Nenner. Andernfalls würde der bereits erfolgte
+Ausschluss zu einem irreführenden Anteil von null führen. Die gesonderten
+Kennwerte stehen in `ergebnis$sample$changed_conditions_participants`; bei
+fehlendem Schalter oder `TRUE` ist dieser Eintrag `NULL`.
+
+Alter, Geschlecht, Familiensprache und die unverändert verfügbaren Kennwerte
+unter `ergebnis$sample$characteristics` beschreiben in allen Fällen die
+Auswertungspopulation. Der Schalter verändert weder Personen- noch PV-Daten.
 
 ## Gültige Antworten je Item und Ankerfußnote
 

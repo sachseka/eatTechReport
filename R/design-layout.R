@@ -18,11 +18,13 @@ format_report_design_tables <- function(doc, ns = word_ns()) {
     }
     pauses <- which(vapply(headers, function(cell) "EatDesignPauseHeader" %in% style_values(cell), logical(1)))
     # Two-block designs remain compact. A six-block modular design uses the
-    # available text width; the pause stays 0.25 cm regardless of column count.
+    # available text width. The pause is narrower than the block columns, but
+    # wide enough for its visible 11 pt heading without breaking the word.
     regular <- n - length(pauses)
-    width_cm <- min(15.5, regular * 2.2 + length(pauses) * 0.25)
-    widths_cm <- rep((width_cm - length(pauses) * 0.25) / regular, n)
-    widths_cm[pauses] <- 0.25
+    pause_width_cm <- 1.1
+    width_cm <- min(15.5, regular * 2.2 + length(pauses) * pause_width_cm)
+    widths_cm <- rep((width_cm - length(pauses) * pause_width_cm) / regular, n)
+    widths_cm[pauses] <- pause_width_cm
     widths <- round(widths_cm / 2.54 * 1440)
     props <- layout_child(table, "tblPr", ns, first = TRUE)
     layout_set_attributes(layout_child(props, "tblW", ns),
@@ -50,8 +52,8 @@ format_report_design_tables <- function(doc, ns = word_ns()) {
         layout_set_attributes(layout_child(cell_props, "shd", ns),
                               c("w:val" = "clear", "w:color" = "auto", "w:fill" = fill), ns)
         if (j %in% pauses) {
-          # A pause is an empty separation, not a labelled or shaded block.
-          xml2::xml_remove(xml2::xml_find_all(cell, ".//w:t", ns))
+          # Only the heading carries text; the pause itself stays a white gap.
+          if (i > 1L) xml2::xml_remove(xml2::xml_find_all(cell, ".//w:t", ns))
           margins <- layout_child(cell_props, "tcMar", ns)
           for (side in c("left", "right", "start", "end")) {
             layout_set_attributes(layout_child(margins, side, ns),

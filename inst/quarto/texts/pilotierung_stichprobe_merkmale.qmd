@@ -18,35 +18,11 @@ if (is.null(age)) {
 }
 ```
 
-Die folgenden Tabellen zeigen die Zusammensetzung der Stichprobe nach
-Geschlecht und Familiensprache sowie den Anteil der Schülerinnen und Schüler,
-die unter veränderten Testbedingungen teilnahmen.
-
 ```{r}
 #| label: pilotierung_stichprobe_kategorien
 #| results: asis
-category_names <- c(gender = "Geschlecht", family_language = "Familiensprache",
-                     changed_conditions = "Veränderte Testbedingungen")
-for (variable in names(category_names)) {
-  values <- characteristics[[variable]]
-  if (is.null(values)) {
-    cat(eatTechReport:::report_markdown_text(category_names[[variable]]),
-        " wurde für diesen Durchgang nicht erhoben.\n\n", sep = "")
-  } else {
-    table_id <- paste0("tbl-stichprobe-", gsub("_", "-", variable, fixed = TRUE))
-    cat("@", table_id, " zeigt die Zusammensetzung der Auswertungspopulation nach ",
-        value(values$label[1]), ".\n\n", sep = "")
-    cat("Table: Zusammensetzung der Stichprobe: ", value(values$label[1]),
-        ". {#", table_id, "}\n\n", sep = "")
-    display <- data.frame(
-      "Ausprägung" = values$category,
-      "Personen (N)" = values$n,
-      "Anteil (%)" = eatTechReport:::study_number(values$percent),
-      check.names = FALSE
-    )
-    cat(eatTechReport:::study_table_markdown(display, c("l", "r", "r"), config = config))
-  }
-}
+cat(paste(eatTechReport:::study_characteristic_sentences(results$sample, config),
+          collapse = "\n\n"), "\n\n", sep = "")
 ```
 
 ```{r}
@@ -65,7 +41,7 @@ if (!is.null(language)) {
         if (length(language_tables) > 1L) paste0(" (Teil ", value(i), ")") else "",
         ". {#", table_id, "}\n\n", sep = "")
     widths <- if (ncol(language_table) > 4L) {
-      c(22, 18, rep(60 / (ncol(language_table) - 2), ncol(language_table) - 2))
+      c(22, 10, rep(68 / (ncol(language_table) - 2), ncol(language_table) - 2))
     } else NULL
     cat(eatTechReport:::study_table_markdown(language_table,
           c("l", rep("r", ncol(language_table) - 1L)), widths = widths,
@@ -74,7 +50,12 @@ if (!is.null(language)) {
 }
 ```
 
-*Anmerkung.* Fehlende Angaben sind als eigene Kategorie ausgewiesen und in den
+::: {custom-style="ReportTableNote"}
+
+*Anmerkungen.* *N* = Anzahl der ausgewerteten Schülerinnen und Schüler.
+Fehlende Angaben sind als eigene Kategorie ausgewiesen und in den
 Prozentangaben enthalten. Für Länder ohne ausgewertete Schülerinnen und Schüler
 werden keine Prozentanteile angegeben (–). Rundungsbedingt können die Anteile
 in der Summe geringfügig von 100,0 % abweichen.
+
+:::

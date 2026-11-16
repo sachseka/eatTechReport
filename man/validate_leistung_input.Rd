@@ -22,7 +22,8 @@ are dropped or imputed.
 }
 \details{
 German domain and scale codes are \code{DL}, \code{DH}, \code{DO}, and \code{DS}.
-Mathematics domains \code{MZ}, \code{MG}, \code{MM}, \code{MR}, and \code{MD} all map to \code{MO}.
+Mathematics domains \code{MZ}, \code{MG}, \code{MS}, \code{MR}, and \code{MD} all map to \code{MO}.
+The legacy code \code{MM} may replace \code{MS}; supplying both is not supported.
 Each person-scale pair must have exactly the configured PV identifiers.
 \code{data$population} has exactly the columns \code{person_id} and \code{scale_id};
 \code{data$pvs} has exactly \code{person_id}, \code{scale_id}, \code{pv_id} and numeric \code{value}.
