@@ -80,12 +80,60 @@ report_transformation_markdown <- function(results, config) {
 # These are bibliographic facts, not excerpts from the private report prose.
 # The local editorial bibliography requests the sources cited in chapters 1/2;
 # the bundled original text only cites the recommendation on school feedback.
+report_software_year <- function(config, software) {
+  choices <- c("testcenter", "kodierbox", "eatpreptba", "tam")
+  if (!is.character(software) || length(software) != 1L || !software %in% choices) {
+    stop("Unbekannte Softwarequelle.", call. = FALSE)
+  }
+  year <- report_editorial_value(config, paste0(software, "_year"))
+  # Both IQB applications have the same corporate author. Disambiguate only
+  # actual, supplied equal publication years; never invent a study version.
+  if (software %in% c("testcenter", "kodierbox")) {
+    testcenter_year <- config$editorial$testcenter_year
+    kodierbox_year <- config$editorial$kodierbox_year
+    if (!is.null(testcenter_year) && !is.null(kodierbox_year) &&
+        identical(as.character(testcenter_year), as.character(kodierbox_year))) {
+      year <- paste0(year, if (software == "kodierbox") "a" else "b")
+    }
+  }
+  year
+}
+
+report_software_citation <- function(config, software) {
+  year <- report_software_year(config, software)
+  author <- switch(software, testcenter = "IQB", kodierbox = "IQB",
+                   eatpreptba = "Franikowski et al.", tam = "Robitzsch et al.")
+  paste0(author, ", ", year)
+}
+
+report_software_bibliography <- function(config) {
+  # Publication metadata verified against the official projects. Supplied
+  # years and versions refer to the upstream analysis, not this R session.
+  year <- function(software) report_software_year(config, software)
+  version <- function(software) report_editorial_value(config, paste0(software, "_version"))
+  c(
+    paste0("Institut zur Qualit\u00e4tsentwicklung im Bildungswesen (IQB). (", year("testcenter"),
+      "). *IQB-Testcenter* (Version ", version("testcenter"), ") [Computer software]. ",
+      "GitHub. [Software-Repository](https://github.com/iqb-berlin/testcenter)."),
+    paste0("Institut zur Qualit\u00e4tsentwicklung im Bildungswesen (IQB). (", year("kodierbox"),
+      "). *IQB-Kodierbox* (Version ", version("kodierbox"), ") [Computer software]. ",
+      "GitHub. [Software-Repository](https://github.com/iqb-berlin/coding-box)."),
+    paste0("Franikowski, P., Sachse, K. A., Sch\u00e4fer, J. & Schumann, K. (", year("eatpreptba"),
+      "). *eatPrepTBA: Prepare IQB Technology Based Assessment (TBA)* ",
+      "(Version ", version("eatpreptba"), ") [R-Paket]. ",
+      "[Software und Zitation](https://iqb-research.github.io/eatPrepTBA/authors.html)."),
+    paste0("Robitzsch, A., Kiefer, T. & Wu, M. (", year("tam"),
+      "). *TAM: Test Analysis Modules* (Version ", version("tam"), ") [R-Paket]. ",
+      "[Software und Zitation](https://doi.org/10.32614/CRAN.package.TAM).")
+  )
+}
+
 report_completion_bibliography <- function(config, include_background = FALSE) {
   entries <- c(kmk2012 = paste0(
     "KMK (2012). *Vereinbarung zur Weiterentwicklung von VERA.* ",
     "Beschluss der Kultusministerkonferenz vom 08.03.2012."))
   if (include_background) {
-    entries <- c(entries,
+    entries <- c(entries, report_software_bibliography(config),
       cohen1960 = paste0("Cohen, J. (1960). A coefficient of agreement for nominal scales. ",
                          "*Educational and Psychological Measurement, 20*(1), 37\u201346."),
       loyd1980 = paste0("Loyd, B. H. & Hoover, H. D. (1980). Vertical equating using the Rasch model. ",
@@ -104,11 +152,9 @@ report_completion_bibliography <- function(config, include_background = FALSE) {
         "2011 \u00fcberarbeiteter Entwurf, Version vom 13. Februar 2013."))
     } else {
       entries <- c(entries,
-        reiss2008 = paste0("Reiss, K. & Winkelmann, H. (2008). Step by step. Ein Kompetenzstufenmodell ",
-          "f\u00fcr das Fach Mathematik. *Grundschule, 40*(10), 18\u201321."),
-        reiss2009 = paste0("Reiss, K. & Winkelmann, H. (2009). Kompetenzstufenmodelle f\u00fcr das Fach ",
-          "Mathematik im Primarbereich. In *Bildungsstandards Deutsch und Mathematik. ",
-          "Leistungsmessung in der Grundschule.* Beltz."),
+        kmk2022 = paste0("KMK (2022). *Bildungsstandards f\u00fcr das Fach Mathematik. Primarbereich.* ",
+          "Beschluss der Kultusministerkonferenz vom 15.10.2004 in der Fassung vom 23.06.2022. ",
+          "[Bildungsstandards](https://www.kmk.org/fileadmin/Dateien/veroeffentlichungen_beschluesse/2022/2022_06_23-Bista-Primarbereich-Mathe.pdf)."),
         # Primary sources: University of Minnesota publisher archive (1984),
         # https://conservancy.umn.edu/bitstreams/632e9a81-983f-4a8f-89c3-80105dbe74b9/download
         # and Wiley https://doi.org/10.1111/j.1745-3984.1993.tb00423.x (1993).

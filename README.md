@@ -62,7 +62,9 @@ verwenden. Die folgenden Beispiele arbeiten mit dem installierten Paket.
 `seed` steuert die reproduzierbare Simulation; Haupttest- und Pilotierungsjahr
 sind separate Angaben. Alle Beispielangaben sind synthetisch, einschließlich
 Testdesign, Stichprobe, Antwortzahlen und illustrativer Cuts.
-Für Mathematik steht das Profil `v3_ma_mg_mm` mit der globalen Skala `MO` bereit.
+Für Mathematik steht das Profil `v3_ma_mg_ms` mit der globalen Skala `MO` und
+den Schwerpunkten `MG` und `MS` bereit. Das frühere Profil `v3_ma_mg_mm`
+bleibt für bestehende Eingaben mit dem Kürzel `MM` verfügbar.
 
 `example_report()` erzeugt standardmäßig `scope = "pilotierung"` mit Schema
 `0.3.0-draft`. Für die Kompetenzdarstellung allein bleiben
@@ -131,7 +133,35 @@ von den Kompetenzstufengrenzen in `config$scales` getrennt. Die
 [Konventionen-Anleitung](vignettes/konventionen.qmd) erläutert Wertebereiche,
 Vergleichsoperatoren und die optionalen Angaben zur Verlinkung.
 
-Dieser Umfang benötigt zusätzlich `data$main_test_results` mit den Tabellen
+Wiederkehrende redaktionelle Angaben lassen sich ebenfalls direkt aus R
+übergeben:
+
+```r
+demo_gross$config$editorial <- report_editorial(
+  study_period = "Mai und Juni 2026",
+  coding_training_sessions = 2L,
+  changed_conditions_included = TRUE
+)
+validate_report_input(demo_gross)
+```
+
+`config$editorial` dokumentiert unter anderem Erhebungszeitraum, Schulungen,
+Reliabilitätskennwerte, Softwareversionen und Auswertungsentscheidungen.
+Es verändert weder die Daten noch die Auswertungspopulation. Testzeiten und
+die Beschreibung der Blockfolge werden aus den Designangaben abgeleitet;
+der Satz zur Blockfolge lässt sich mit `include_booklet_structure = FALSE`
+ausblenden oder über `booklet_structure` redigieren. Die öffentlichen
+Textbausteine verwenden die passenden Design- und Stichprobenangaben;
+weitere Felder stehen für ergänzende lokale Kapitel bereit.
+
+Für die Kodierreliabilität kann `reliability_by_scale` eine R-Tabelle mit
+`scale_id`, `agreement_percent`, `cohen_kappa` und `reliability_description`
+enthalten. Deutsch beschreibt jede Skala separat; fehlende Skalenwerte werden
+nicht durch ein Gesamtergebnis ersetzt. In Mathematik hat eine gelieferte
+`MO`-Zeile Vorrang vor den einzelnen globalen Reliabilitätsfeldern. Der
+[Einstieg](vignettes/einstieg.qmd) zeigt ein Beispiel für Lesen und Zuhören.
+
+Der vollständige Bericht benötigt zusätzlich `data$main_test_results` mit den Tabellen
 `item_statistics` (`item_id`, `p_correct`, `logit`) und `transformations`
 (`scale_id`, `target`, `intercept`, `slope`, `source_label`) sowie den
 Beschreibungstexten `definitions$p_correct`, `definitions$logit` und
@@ -156,7 +186,8 @@ Die freigegebene Corporate-Vorlage wird mit dem Paket ausgeliefert und automatis
 verwendet (`corporate_template = NULL`). Im Quellpaket liegt sie unter
 `inst/templates/eatTechReport.docx`. Demo und reale Daten verwenden dieselbe
 Gestaltung mit Arial ab 11 pt und 1,5-fachem Zeilenabstand im Fließtext.
-Abbildungsanmerkungen verwenden Arial 10 pt und einfachen Zeilenabstand.
+Tabellen- und Abbildungsanmerkungen sowie Fußnotentexte verwenden Arial 10 pt
+und einfachen Zeilenabstand.
 Bei Bedarf kann
 `corporate_template` auf eine andere freigegebene DOTX- oder DOCX-Datei verweisen.
 
@@ -166,7 +197,7 @@ Erläuterungen stehen als *Anmerkungen* außerhalb der Grafiken.
 Die Kompetenzverteilung zeigt *N*, *M*, *SD* und die Stufenanteile;
 zusätzliche Tabellen mit denselben PV-Kennwerten entfallen im Word-Bericht.
 Die Heftdesign-Matrix zeigt Blockbezeichnungen ohne Minutenangaben in den
-Zellen, schmale leere Pausenspalten und ausdrücklich angegebene
+Zellen, schmale Spalten mit der Überschrift „Pause“ und ausdrücklich angegebene
 Normierungsblöcke (`data$design$blocks$is_norming`). Zeiten stehen in der
 Anmerkung. Die Aufgabenmatrix verwendet kurze Modulüberschriften und
 Corporate-Schattierungen.
@@ -192,14 +223,16 @@ bericht$manifest$fields_updated
 ```
 
 Alternativ können Autoren und gemeinsame Affiliation direkt an `example_report()` übergeben werden.
-Ohne Angaben erscheinen Platzhalter in eckigen Klammern auf dem Deckblatt.
+Ohne Angaben erscheinen beschreibende Platzhalter auf dem Deckblatt.
 
 Der Umfang `bericht` enthält alle vorgesehenen Kapitel bis zur Literatur.
 Im Modus „Simulierte Daten“ (`config$report$data_origin = "synthetic"`)
 werden daten- und konfigurationsabhängige Angaben im Word-Text gelb hinterlegt,
 einschließlich Tabellenwerten und Deckblattangaben. Bei realen Eingaben
 (`"observed"`) entfällt diese Markierung. Noch auszufüllende Textstellen
-stehen weiterhin in eckigen Klammern.
+erscheinen ebenfalls ohne eckige Klammern und sind im Simulationsmodus gelb
+markiert. Sie werden vor einem realen Bericht redigiert oder über die
+entsprechenden Eingabefelder befüllt.
 Die fachliche Prüfung und Redaktion der Texte bleiben Teil der Vorbereitung
 eines realen Berichts. Bestehende Ausgaben werden standardmäßig nicht überschrieben.
 
@@ -241,8 +274,10 @@ Arbeitsstand ab; fachliche Vorjahresvergleiche und Randmarkierungen folgen spät
   vollständige PV-Sätze und mindestens zwei Personen je Skala.
 - Die Kompetenzdarstellung berücksichtigt alle angegebenen Personen,
   ungewichtet und ohne Untergruppen.
-- Deutsch verwendet `DL`, `DH`, `DO`, `DS`. Die Mathematik-Leitideen `MZ`, `MG`,
-  `MM`, `MR`, `MD` verweisen auf die gemeinsame Skala `MO`.
+- Deutsch verwendet `DL`, `DH`, `DO`, `DS`. Die Mathematik-Leitideen stehen in
+  der Reihenfolge `MZ`, `MG`, `MS`, `MR`, `MD` und verweisen auf die gemeinsame
+  Skala `MO`. Bestehende Eingaben dürfen `MM` anstelle von `MS` verwenden;
+  beide Kürzel zugleich sind nicht zulässig.
 - Kennzahlen werden zunächst je PV berechnet und danach zusammengefasst.
   Die PVs werden nicht vorab je Person gemittelt.
 - Die vorgesehenen Stufen heißen Ia, Ib, II, III, IV. Reale Grenzwerte benötigen

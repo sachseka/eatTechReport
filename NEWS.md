@@ -1,5 +1,18 @@
 # eatTechReport 0.0.1
 
+* Add validated editorial inputs for study-specific text, coding summaries and
+  software citations. Show open editorial values without brackets and mark
+  them yellow in synthetic reports.
+* Derive booklet structure, test duration and distinct main-test task counts
+  from the supplied data. Place valid-response counts with the test design.
+* Consolidate family-language tables and clarify participation percentages.
+  Document exclusions in table notes and support an explicit statement about
+  changed test conditions without filtering any input cases.
+* Apply 10 pt single spacing to table notes and footnotes as well as figure
+  notes. Label the narrow pause column in booklet designs.
+* Add the mathematics example profile `v3_ma_mg_ms` with revised domain names
+  and order; retain the legacy `v3_ma_mg_mm` profile and `MM` input code.
+
 * Add optional, validated reporting conventions for discrimination, Infit and
   residual-correlation-based linking. Supplied thresholds are highlighted in
   synthetic reports without surrounding brackets; they never trigger

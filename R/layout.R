@@ -51,7 +51,7 @@ apply_report_layout <- function(directory) {
   }
   # Conditional table styles can carry their own font and small point sizes.
   for (props in xml2::xml_find_all(styles, "//w:rPr", ns)) layout_run_properties(props, ns)
-  # Figure notes are the deliberate 10 pt exception to the report minimum.
+  # Notes are the deliberate 10 pt exception to the body-text minimum.
   # Word's built-in hyperlink styles also control newly generated field links.
   format_report_note_link_styles(styles, ns)
   xml2::write_xml(styles, styles_file)

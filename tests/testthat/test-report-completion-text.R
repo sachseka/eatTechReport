@@ -54,10 +54,51 @@ test_that("bibliographies cover configured background sources without foreign do
   expect_false(any(grepl("2013b", report_completion_bibliography(fixture$config, TRUE), fixed = TRUE)))
   math <- paste(report_completion_bibliography(completion_text_fixture("v3_ma_mg_mm")$config,
                                                TRUE), collapse = "\n")
-  expect_match(math, "Reiss, K. & Winkelmann, H. (2008)", fixed = TRUE)
+  expect_match(math, "KMK (2022)", fixed = TRUE)
+  expect_false(grepl("Reiss", math, fixed = TRUE))
   expect_match(math, "Yen, W. M. (1984)", fixed = TRUE)
   expect_match(math, "Yen, W. M. (1993)", fixed = TRUE)
   expect_false(grepl("IQB (2013a)", math, fixed = TRUE))
+})
+
+test_that("software citations use declared study metadata consistently", {
+  config <- completion_text_fixture()$config
+  config$report$data_origin <- "observed"
+  config$editorial <- list(testcenter_year = 2026L, testcenter_version = "19.1.0",
+    kodierbox_year = 2026L, kodierbox_version = "1.17.4",
+    eatpreptba_year = 2026L, eatpreptba_version = "0.9.8.9049",
+    tam_year = 2025L, tam_version = "4.3-25")
+  before <- config
+  expect_identical(report_software_citation(config, "testcenter"), "IQB, 2026b")
+  expect_identical(report_software_citation(config, "kodierbox"), "IQB, 2026a")
+  expect_identical(report_software_citation(config, "eatpreptba"), "Franikowski et al., 2026")
+  expect_identical(report_software_citation(config, "tam"), "Robitzsch et al., 2025")
+  references <- report_software_bibliography(config)
+  expect_match(references[1], "(2026b)", fixed = TRUE)
+  expect_match(references[2], "(2026a)", fixed = TRUE)
+  expect_match(references[3], "Schumann, K.", fixed = TRUE)
+  expect_match(references[4], "4\\.3\\-25", fixed = TRUE)
+  expect_match(references[4], "10.32614/CRAN.package.TAM", fixed = TRUE)
+  expect_identical(config, before)
+  config$editorial$testcenter_year <- 2024L
+  expect_identical(report_software_citation(config, "testcenter"), "IQB, 2024")
+  expect_identical(report_software_citation(config, "kodierbox"), "IQB, 2026")
+  expect_error(report_software_citation(config, "unknown"), "Unbekannte Softwarequelle")
+  expect_error(report_software_citation(config, c("tam", "testcenter")), "Unbekannte Softwarequelle")
+  expect_error(report_software_citation(config, factor("tam")), "Unbekannte Softwarequelle")
+})
+
+test_that("software metadata remain open without supplied study versions", {
+  config <- completion_text_fixture()$config
+  missing <- report_software_bibliography(config)
+  expect_match(missing[4], "Version von TAM", fixed = TRUE)
+  expect_false(grepl("4\\.3\\-25", missing[4], fixed = TRUE))
+  config$editorial <- list(tam_year = 2025L, tam_version = "4.3-25")
+  simulated <- report_software_bibliography(config)[4]
+  expect_match(simulated, '[2025]{custom-style="EatSimulatedValue"}', fixed = TRUE)
+  expect_match(simulated, '[4\\.3\\-25]{custom-style="EatSimulatedValue"}', fixed = TRUE)
+  config$report$data_origin <- "observed"
+  expect_false(grepl("EatSimulatedValue", report_software_bibliography(config)[4], fixed = TRUE))
 })
 
 test_that("all final chapter blocks knit for German and global mathematics", {

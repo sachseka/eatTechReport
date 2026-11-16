@@ -72,7 +72,8 @@ test_that("main-test Quarto blocks render separate captions and escape user labe
   expect_false(grepl("tbl-haupttest-module|## Aufbau der Testmodule", rendered))
   expect_match(rendered, "mehreren Pilotierungen", fixed = TRUE)
   expect_match(rendered, "nicht zu einer Gesamtzahl addiert", fixed = TRUE)
-  expect_match(rendered, "[Kriterien und Begr\u00fcndung", fixed = TRUE)
+  expect_match(rendered, "Kriterien und Begr\u00fcndung", fixed = TRUE)
+  expect_false(grepl("[Kriterien", rendered, fixed = TRUE))
   expect_false(grepl("\\b(NA|NaN|Inf)\\b| Min", rendered))
   fixture <- main_test_text_fixture()
   fixture$modules$module_type[] <- "domain"

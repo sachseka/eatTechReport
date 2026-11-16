@@ -19,13 +19,16 @@ execute:
 #| label: bericht_eingaben
 #| include: false
 input <- readRDS("archive/inputs.rds")
-config <- input$config
+config <- eatTechReport:::report_presentation_config(input$config)
 results <- readRDS("archive/summaries.rds")
 value <- function(x, markdown = FALSE) {
   eatTechReport:::report_text_value(x, config, markdown = markdown)
 }
 convention <- function(group, name, placeholder, digits = 2L) {
   eatTechReport:::report_convention_value(config, group, name, placeholder, digits)
+}
+editorial <- function(name, placeholder = NULL, digits = NULL) {
+  eatTechReport:::report_editorial_value(config, name, placeholder, digits)
 }
 knitr::knit_hooks$set(inline = eatTechReport:::report_inline_value_hook(
   config, knitr::knit_hooks$get("inline")))

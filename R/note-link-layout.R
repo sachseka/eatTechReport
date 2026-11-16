@@ -1,12 +1,24 @@
-# Figure notes use an explicit style rather than matching words such as
-# "Anmerkung": table notes and ordinary prose retain the body typography.
+# Figure and table notes use explicit styles rather than matching words such as
+# "Anmerkung". Word footnote/endnote text shares their compact typography.
+ensure_report_note_styles <- function(styles, ns) {
+  ids <- xml2::xml_attr(xml2::xml_find_all(styles, "w:style", ns), "w:styleId", ns)
+  for (id in setdiff(c("ReportFigureNote", "ReportTableNote"), ids)) {
+    node <- xml2::xml_add_child(styles, "w:style")
+    xml2::xml_set_attrs(node, c("w:type" = "paragraph", "w:customStyle" = "1", "w:styleId" = id))
+    xml2::xml_set_attr(xml2::xml_add_child(node, "w:name"), "w:val", id)
+  }
+  invisible(styles)
+}
+
 report_note_style_ids <- function(styles, ns) {
   nodes <- xml2::xml_find_all(styles, "w:style", ns)
   ids <- xml2::xml_attr(nodes, "w:styleId", ns)
   names <- xml2::xml_attr(xml2::xml_find_first(nodes, "w:name", ns), "w:val", ns)
   normalise <- function(x) tolower(gsub("[ _-]", "", x))
-  selected <- normalise(ids) %in% "reportfigurenote" |
-    normalise(names) %in% "reportfigurenote"
+  labels <- c("reportfigurenote", "reporttablenote", "tablenote",
+              "footnotetext", "funotentext", "fu\u00dfnotentext",
+              "endnotetext", "endnotentext")
+  selected <- normalise(ids) %in% labels | normalise(names) %in% labels
   # Derived and linked styles must not restore the larger body text size.
   parents <- lapply(nodes, function(node) {
     xml2::xml_attr(xml2::xml_find_all(node, "w:basedOn|w:link", ns), "w:val", ns)
@@ -74,6 +86,7 @@ report_figure_note_properties <- function(props, ns) {
 }
 
 format_report_note_link_styles <- function(styles, ns) {
+  ensure_report_note_styles(styles, ns)
   note_ids <- report_note_style_ids(styles, ns)
   for (node in xml2::xml_find_all(styles, "w:style", ns)) {
     if (!xml2::xml_attr(node, "w:styleId", ns) %in% note_ids) next
@@ -108,12 +121,19 @@ format_report_note_link_styles <- function(styles, ns) {
 format_report_notes_and_links <- function(part, styles, ns) {
   format_report_bibliography(part, styles, ns)
   note_ids <- report_note_style_ids(styles, ns)
-  for (paragraph in xml2::xml_find_all(part, "//w:p[w:pPr/w:pStyle]", ns)) {
+  # Footnotes can also contain unstyled continuation paragraphs. Do not touch
+  # the separator lines or the superscript footnote references in body text.
+  actual_note <- paste0("(ancestor::w:footnote|ancestor::w:endnote)",
+    "[not(@w:type='separator' or @w:type='continuationSeparator')]")
+  paragraphs <- xml2::xml_find_all(part, paste0("//w:p[w:pPr/w:pStyle] | //w:p[",
+    actual_note, "][.//w:t or .//w:footnoteRef or .//w:endnoteRef]"), ns)
+  for (paragraph in paragraphs) {
     id <- xml2::xml_attr(xml2::xml_find_first(paragraph, "w:pPr/w:pStyle", ns), "w:val", ns)
-    if (!id %in% note_ids) next
+    if (!id %in% note_ids && !length(xml2::xml_find_all(paragraph, actual_note, ns))) next
     props <- layout_child(paragraph, "pPr", ns, first = TRUE)
     report_figure_note_properties(props, ns)
     for (run in xml2::xml_find_all(paragraph, ".//w:r", ns)) {
+      if (length(xml2::xml_find_all(run, "w:footnoteRef|w:endnoteRef", ns))) next
       layout_run_properties(layout_child(run, "rPr", ns, first = TRUE), ns, size = 20)
     }
     marker <- xml2::xml_find_first(props, "w:rPr", ns)

@@ -43,6 +43,7 @@ reference:
       - example_report
       - example_leistung_input
       - report_conventions
+      - report_editorial
       - validate_report_input
       - validate_leistung_input
   - title: Kennzahlen und Grafiken

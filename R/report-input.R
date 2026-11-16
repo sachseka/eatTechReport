@@ -44,6 +44,8 @@ performance_component <- function(input) {
 #'   [report_conventions()]. These thresholds populate report text; they do not
 #'   select items or change supplied results. Older inputs without this block
 #'   remain valid.
+#'   Optional `config$editorial`, created with [report_editorial()], supplies
+#'   study-specific text values and explicit statements about procedures.
 #'   Scope `haupttest_struktur` uses schema `0.4.0-draft` and additionally requires
 #'   `data$main_test`: selected items, modules, ordered item membership and
 #'   documented pilot-wave membership. It extends the draft with main-test
@@ -104,6 +106,12 @@ validate_report_input <- function(input) {
 #'   state-level participation, characteristics and valid-response summaries
 #'   separated by pilot and anchor roles. Uncollected characteristics are NULL;
 #'   percentages for empty populations and undefined sample SDs are NA.
+#'   `sample$changed_conditions_participants` is NULL unless editorial input
+#'   explicitly documents exclusion for changed conditions; then it contains
+#'   the corresponding participation-based frequencies. Ordinary background
+#'   characteristics always use the supplied analysis population.
+#'   Mathematical domains in derived summaries follow the canonical order
+#'   `MZ`, `MG`, `MS` (or legacy `MM`), `MR`, `MD`.
 #'   Scope `haupttest_struktur` additionally returns `main_test` with distinct
 #'   overall/domain counts, module counts, ordered tasks and pilot-wave counts.
 #'   Wave counts can overlap; module durations are not added to a test duration.
@@ -123,12 +131,13 @@ validate_report_input <- function(input) {
 summarise_report_input <- function(input) {
   validate_report_input(input)
   result <- summarise_leistung_input(input)
+  presentation_config <- report_presentation_config(input$config)
   if (input$config$scope %in% c("pilotierung", "haupttest_struktur", "bericht")) {
-    result$design <- summarise_design_data(input$data$design, input$config)
+    result$design <- summarise_design_data(input$data$design, presentation_config)
     result$sample <- summarise_sample_data(input$data$sample, input)
   }
   if (input$config$scope %in% c("haupttest_struktur", "bericht")) {
-    result$main_test <- summarise_main_test_data(input$data$main_test, input$config)
+    result$main_test <- summarise_main_test_data(input$data$main_test, presentation_config)
   }
   if (identical(input$config$scope, "bericht")) {
     result$main_test_results <- summarise_main_test_results(

@@ -34,6 +34,7 @@ test_that("norming flags follow cells while repeated blocks retain their input o
   text <- study_design_table_markdown(table)
   expect_match(text, '[DL Anker]{custom-style="EatDesignNorming"}', fixed = TRUE)
   expect_match(text, 'custom-style="EatDesignPauseHeader"', fixed = TRUE)
+  expect_match(text, '[Pause]{custom-style="EatDesignPauseHeader"}', fixed = TRUE)
   expect_false(grepl("27|21|\\bmin\\b", text))
 })
 
@@ -96,7 +97,7 @@ test_that("design QMD supplies a caption and cross-reference for every compact m
       expect_match(text, paste0("{#", id, "}"), fixed = TRUE)
     }
     expect_match(text, '*Anmerkungen.*', fixed = TRUE)
-    expect_match(text, 'custom-style="TableNote"', fixed = TRUE)
+    expect_match(text, 'custom-style="ReportTableNote"', fixed = TRUE)
     expect_false(grepl("Gesamtdauer \\(min\\)|Vorgesehener Einsatz|Position [0-9]", text))
   }
 })
@@ -121,10 +122,12 @@ test_that("country language tables distinguish zero shares from absent denominat
     stringsAsFactors = FALSE
   )
   parts <- study_language_tables(data)
-  expect_length(parts, 2L)
-  expect_equal(parts[[1]]$`Personen (N)`, c(10L, 0L))
+  expect_length(parts, 1L)
+  expect_equal(parts[[1]]$N, c(10L, 0L))
+  expect_match(study_table_markdown(parts[[1]]), "*N*", fixed = TRUE)
   expect_identical(parts[[1]]$`mehrsprachig (%)`, c("0,0", "\u2014"))
-  expect_identical(parts[[2]]$`keine Angabe (%)`, c("10,0", "\u2014"))
+  expect_identical(parts[[1]]$`keine Angabe (%)`, c("10,0", "\u2014"))
+  expect_length(study_language_tables(data, 3L), 2L)
   expect_length(study_language_tables(NULL), 0L)
   expect_error(study_language_tables(data, NA_real_), "positive ganze Zahl")
 })

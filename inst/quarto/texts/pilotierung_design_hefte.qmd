@@ -5,6 +5,13 @@ nur Teilmengen des gesamten Itempools bearbeiteten. Insgesamt kamen
 `r results$design$totals$n_booklets` Testhefte zum Einsatz.
 
 ```{r}
+#| label: pilotierung_design_aufbau
+#| results: asis
+cat(eatTechReport:::report_design_structure_text(results$design, config), "\n\n",
+    eatTechReport:::report_design_timing_text(results$design, config), "\n\n", sep = "")
+```
+
+```{r}
 #| label: pilotierung_design_hefttabellen
 #| results: asis
 design_parts <- eatTechReport:::study_design_tables(results$design)
@@ -24,12 +31,12 @@ for (i in seq_along(design_parts)) {
         ". {#", id, "}\n\n", sep = "")
     cat(eatTechReport:::study_design_table_markdown(part$parts[[j]]))
   }
-  cat("\n\n::: {custom-style=\"TableNote\"}\n\n*Anmerkungen.* ",
+  cat("\n\n::: {custom-style=\"ReportTableNote\"}\n\n*Anmerkungen.* ",
       "Die Spalten geben die Reihenfolge der Testblöcke wieder. ",
       "Dunkel hinterlegte Zellen kennzeichnen ausdrücklich als Normierungsblöcke angegebene Blöcke. ",
       "Ein Gedankenstrich bezeichnet einen nicht belegten Block. ", sep = "")
   if (any(part$slots$kind == "pause")) {
-    cat("Die schmale Leerspalte trennt die Blöcke vor und nach der Pause. ")
+    cat("Die mit „Pause“ beschriftete Spalte trennt die Blöcke vor und nach der Pause. ")
   }
   if (config$report$subject == "ma") cat("BM = Basismodul; EM = Ergänzungsmodul. ")
   cat(eatTechReport:::study_design_timing_note(part, config),

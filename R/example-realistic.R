@@ -69,7 +69,7 @@ example_realistic_design <- function(config) {
       }
       rules[[d]] <- data.frame(design_id = domain, label = config$domains$label[d],
         assignment_unit = "person",
-        assignment_description = "Die Heftversionen wurden innerhalb der Klassen verteilt.")
+        assignment_description = "Die Heftversionen wurden randomisiert innerhalb der Klassen verteilt.")
     }
   } else {
     for (domain in config$domains$domain_id) {
@@ -95,7 +95,7 @@ example_realistic_design <- function(config) {
     }
     rules[[1L]] <- data.frame(design_id = "MA", label = "Mathematik",
       assignment_unit = "person",
-      assignment_description = "Die Heftversionen wurden innerhalb der Klassen verteilt.")
+      assignment_description = "Die Heftversionen wurden randomisiert innerhalb der Klassen verteilt.")
   }
   result <- lapply(list(items = items, blocks = blocks, block_items = links,
     booklets = booklets, booklet_slots = slots, design_rules = rules), function(parts) {

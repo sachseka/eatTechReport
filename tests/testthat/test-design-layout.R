@@ -2,7 +2,7 @@ design_layout_fixture <- function() {
   cell <- function(label, style) paste0('<w:tc><w:tcPr><w:tcW w:w="1000" w:type="dxa"/>',
     '<w:shd w:fill="FFFF00"/></w:tcPr><w:p><w:r><w:rPr><w:rStyle w:val="',
     style, '"/></w:rPr><w:t>', label, '</w:t></w:r></w:p></w:tc>')
-  headers <- c("Testheft", "Block 1", " ", "Block 2")
+  headers <- c("Testheft", "Block 1", "Pause", "Block 2")
   header_styles <- c("EatDesignHeader", "EatDesignHeader", "EatDesignPauseHeader", "EatDesignHeader")
   contents <- c("H1", "A", " ", "Link B")
   styles <- c("EatDesignBooklet", "EatDesignBlock", "EatDesignPause", "EatDesignNorming")
@@ -14,7 +14,7 @@ design_layout_fixture <- function() {
     '</w:body></w:document>'))
 }
 
-test_that("owned design matrices shade norming cells and keep a narrow blank pause", {
+test_that("owned design matrices shade norming cells and label the narrow pause", {
   doc <- design_layout_fixture()
   ns <- word_ns()
   unrelated <- as.character(xml2::xml_find_all(doc, "//w:tbl", ns)[[2L]])
@@ -23,13 +23,14 @@ test_that("owned design matrices shade norming cells and keep a narrow blank pau
   expect_identical(as.character(tables[[2L]]), unrelated)
   table <- tables[[1L]]
   widths <- as.integer(xml2::xml_attr(xml2::xml_find_all(table, "w:tblGrid/w:gridCol", ns), "w:w", ns))
-  expect_equal(widths[3L], round(0.25 / 2.54 * 1440))
-  expect_true(all(widths[-3L] > 8 * widths[3L]))
+  expect_equal(widths[3L], round(1.1 / 2.54 * 1440))
+  expect_true(all(widths[-3L] > 1.5 * widths[3L]))
   expect_equal(sum(widths), as.integer(xml2::xml_attr(xml2::xml_find_first(table, "w:tblPr/w:tblW", ns), "w:w", ns)))
   rows <- xml2::xml_find_all(table, "w:tr", ns)
-  for (row in rows) {
+  for (i in seq_along(rows)) {
+    row <- rows[[i]]
     cells <- xml2::xml_find_all(row, "w:tc", ns)
-    expect_length(xml2::xml_find_all(cells[[3L]], ".//w:t", ns), 0L)
+    expect_identical(xml2::xml_text(cells[[3L]]), if (i == 1L) "Pause" else "")
     expect_identical(xml2::xml_attr(xml2::xml_find_first(cells[[3L]], "w:tcPr/w:shd", ns), "w:fill", ns), "FFFFFF")
     expect_identical(xml2::xml_attr(xml2::xml_find_first(cells[[3L]], "w:tcPr/w:tcMar/w:left", ns), "w:w", ns), "0")
   }

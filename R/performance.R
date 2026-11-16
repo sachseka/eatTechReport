@@ -4,7 +4,9 @@
 #' metric. All values are simulated; no item-response model is fitted.
 #'
 #' @param profile Example profile: `"v3_de_lesen_zuhoeren"` for German reading
-#'   and listening, or `"v3_ma_mg_mm"` for globally scaled mathematics.
+#'   and listening, or `"v3_ma_mg_ms"` for globally scaled mathematics.
+#'   The earlier profile `"v3_ma_mg_mm"` remains available with the legacy `MM`
+#'   domain code; new inputs use `MS`.
 #' @param seed Nonnegative integer random seed. This is not a reporting year.
 #' @param n_persons Number of persons per scale, at least two.
 #' @param n_pv Number of plausible values per person and scale, at least one.
@@ -36,10 +38,10 @@ example_leistung_input <- function(profile = "v3_de_lesen_zuhoeren",
                                   main_year = 2027L,
                                   pilot_year = 2026L,
                                   authors = NULL, affiliation = NULL) {
-  profiles <- c("v3_de_lesen_zuhoeren", "v3_ma_mg_mm")
+  profiles <- c("v3_de_lesen_zuhoeren", "v3_ma_mg_mm", "v3_ma_mg_ms")
   if (!is.character(profile) || length(profile) != 1L ||
       is.na(profile) || !profile %in% profiles) {
-    stop("profile muss eines der beiden dokumentierten Beispielprofile sein.",
+    stop("profile muss eines der dokumentierten Beispielprofile sein.",
          call. = FALSE)
   }
   whole_number <- function(x, minimum) {
@@ -75,14 +77,15 @@ example_leistung_input <- function(profile = "v3_de_lesen_zuhoeren",
     scale_labels <- c(DL = "Lesen", DH = "Zuh\u00f6ren")
     focus_domains <- character()
   } else {
+    structure_id <- if (profile == "v3_ma_mg_ms") "MS" else "MM"
     domains <- data.frame(
-      domain_id = c("MZ", "MR", "MM", "MG", "MD"),
-      label = c("Zahlen und Operationen", "Raum und Form", "Muster und Strukturen / Funktionaler Zusammenhang",
-                "Gr\u00f6\u00dfen und Messen", "Daten, H\u00e4ufigkeit und Wahrscheinlichkeit"),
+      domain_id = c("MZ", "MG", structure_id, "MR", "MD"),
+      label = c("Zahl und Operation", "Gr\u00f6\u00dfen und Messen",
+                "Muster, Strukturen und funktionaler Zusammenhang", "Raum und Form", "Daten und Zufall"),
       scale_id = rep("MO", 5L), stringsAsFactors = FALSE
     )
     scale_labels <- c(MO = "Mathematik (Globalmodell)")
-    focus_domains <- c("MG", "MM")
+    focus_domains <- c("MG", structure_id)
   }
 
   pv_ids <- sprintf("pv%02d", seq_len(n_pv))
@@ -99,8 +102,8 @@ example_leistung_input <- function(profile = "v3_de_lesen_zuhoeren",
     scope = "pilotierung_leistung",
     report = list(study = "vera3", subject = subject, main_year = as.integer(main_year),
                   pilot_year = as.integer(pilot_year), data_origin = "synthetic",
-                  authors = if (is.null(authors)) c("[Autorin/Autor 1]", "[Autorin/Autor 2]") else authors,
-                  affiliation = if (is.null(affiliation)) "[Affiliation]" else affiliation),
+                  authors = if (is.null(authors)) c("Autorin/Autor 1", "Autorin/Autor 2") else authors,
+                  affiliation = if (is.null(affiliation)) "Affiliation" else affiliation),
     domains = domains,
     focus_domains = focus_domains,
     performance = list(population = "all", weighted = FALSE, subgroups = FALSE),
@@ -144,7 +147,8 @@ example_leistung_input <- function(profile = "v3_de_lesen_zuhoeren",
 #'   use [validate_report_input()] to validate all supplied report sections.
 #' @return Invisibly `TRUE` for valid inputs; otherwise an error.
 #' @details German domain and scale codes are `DL`, `DH`, `DO`, and `DS`.
-#'   Mathematics domains `MZ`, `MG`, `MM`, `MR`, and `MD` all map to `MO`.
+#'   Mathematics domains `MZ`, `MG`, `MS`, `MR`, and `MD` all map to `MO`.
+#'   The legacy code `MM` may replace `MS`; supplying both is not supported.
 #'   Each person-scale pair must have exactly the configured PV identifiers.
 #'   `data$population` has exactly the columns `person_id` and `scale_id`;
 #'   `data$pvs` has exactly `person_id`, `scale_id`, `pv_id` and numeric `value`.
@@ -185,10 +189,12 @@ validate_leistung_input <- function(input) {
   exact_names(input, c("config", "data"), "input")
   config <- input$config
   data <- input$data
-  optional_config <- intersect("conventions", names(config))
+  optional_config <- intersect(c("conventions", "editorial"), names(config))
   exact_names(config, c("schema_version", "scope", "report", "domains", "focus_domains",
                          "performance", "scales", optional_config), "config")
   validate_report_conventions(config$conventions)
+  validate_report_editorial(config$editorial)
+  validate_editorial_reliability(config$editorial$reliability_by_scale, config)
   if (!identical(config$schema_version, "0.2.0-draft") ||
       !identical(config$scope, "pilotierung_leistung")) {
     fail("Erwartet werden schema_version = '0.2.0-draft' und scope = 'pilotierung_leistung'.")
@@ -248,7 +254,8 @@ validate_leistung_input <- function(input) {
   if (!setequal(config$domains$scale_id, scale_ids)) fail("Domaenen und konfigurierte Skalen passen nicht zusammen.")
   if (config$report$subject == "ma") {
     if (!identical(scale_ids, "MO") ||
-        !setequal(config$domains$domain_id, c("MZ", "MR", "MM", "MG", "MD"))) {
+        !(setequal(config$domains$domain_id, c("MZ", "MG", "MS", "MR", "MD")) ||
+          setequal(config$domains$domain_id, c("MZ", "MG", "MM", "MR", "MD")))) {
       fail("Mathematik braucht die fuenf Leitideen und ausschliesslich die Skala 'MO'.")
     }
     strings(config$focus_domains, "focus_domains", unique = TRUE)

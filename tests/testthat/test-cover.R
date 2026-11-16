@@ -41,8 +41,8 @@ test_that("report authors and affiliation are explicit inputs independent of pac
   expect_identical(input$config$report$authors, "Einzelne Person")
   expect_identical(input$config$report$affiliation, "Eigenes Institut")
   defaults <- example_report(n_persons = 2L, n_pv = 1L)$config$report
-  expect_true(all(grepl("^\\[.+\\]$", defaults$authors)))
-  expect_identical(defaults$affiliation, "[Affiliation]")
+  expect_identical(defaults$authors, c("Autorin/Autor 1", "Autorin/Autor 2"))
+  expect_identical(defaults$affiliation, "Affiliation")
 })
 
 test_that("older inputs use visible placeholders and supplied cover fields are validated", {
@@ -51,7 +51,7 @@ test_that("older inputs use visible placeholders and supplied cover fields are v
   input$config$report$affiliation <- NULL
   expect_true(validate_report_input(input))
   expect_identical(report_cover_data(input$config$report),
-                    list(authors = "[Autorinnen und Autoren]", affiliation = "[Affiliation]"))
+                    list(authors = "Autorinnen und Autoren", affiliation = "Affiliation"))
   for (field in c("authors", "affiliation")) {
     for (value in list(character(), "", "   ", NA_character_, c("Valid", NA_character_),
                        "Embedded\nnewline", 12, list("Valid"))) {
@@ -62,7 +62,7 @@ test_that("older inputs use visible placeholders and supplied cover fields are v
   }
   input$config$report$affiliation <- "An institute without supplied authors"
   expect_true(validate_report_input(input))
-  expect_identical(report_cover_data(input$config$report)$authors, "[Autorinnen und Autoren]")
+  expect_identical(report_cover_data(input$config$report)$authors, "Autorinnen und Autoren")
 })
 
 test_that("cover names retain order, Unicode, brackets and XML metacharacters literally", {

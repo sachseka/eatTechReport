@@ -58,8 +58,9 @@ edit_report_texts <- function(path, overwrite = FALSE,
 #' Word text is highlighted in yellow, including table values and cover inputs.
 #' Inline R output is marked automatically; editable as-is chunks use `value()`
 #' for their dynamic text. Inputs marked `"observed"` receive no such highlight.
-#' Figure notes use the `ReportFigureNote` paragraph style (Arial 10 pt, single
-#' spacing); ordinary body text retains its 11 pt minimum and 1.5 spacing.
+#' Figure and table notes use `ReportFigureNote` and `ReportTableNote`
+#' (Arial 10 pt, single spacing). Footnote text uses the same typography;
+#' ordinary body text retains its 11 pt minimum and 1.5 spacing.
 #' Hyperlinks and cross-references use the corporate burgundy colour.
 #'
 #' Successful renders store the report, derived reference and a baseline
@@ -363,8 +364,8 @@ report_text_files <- function(text_dir = NULL,
 
 study_text_names <- function() {
   paste0(c("pilotierung_design_pool", "pilotierung_design_hefte",
-           "pilotierung_stichprobe_ruecklauf", "pilotierung_stichprobe_merkmale",
-           "pilotierung_stichprobe_bearbeitungen"), ".qmd")
+           "pilotierung_stichprobe_bearbeitungen", "pilotierung_stichprobe_ruecklauf",
+           "pilotierung_stichprobe_merkmale"), ".qmd")
 }
 
 report_completion_text_names <- function() {
@@ -723,10 +724,39 @@ space_report_table <- function(table, styles, ns, points = 6) {
       "preceding-sibling::*[1][self::w:tbl] | following-sibling::*[1][self::w:tbl]", ns)) == 2L
     has_content <- nzchar(trimws(xml2::xml_text(paragraph))) ||
       length(xml2::xml_find_all(paragraph, ".//w:br | .//w:drawing | .//w:object | .//w:fldChar", ns)) > 0L
+    style_id <- xml2::xml_attr(xml2::xml_find_first(props, "w:pStyle", ns), "w:val", ns)
+    style_name <- character()
+    if (!is.null(styles) && !is.na(style_id)) {
+      nodes <- xml2::xml_find_all(styles, "w:style", ns)
+      selected <- xml2::xml_attr(nodes, "w:styleId", ns) %in% style_id
+      style_name <- xml2::xml_attr(xml2::xml_find_first(nodes[selected], "w:name", ns), "w:val", ns)
+    }
+    role <- layout_style_role(c(style_id, style_name))
     if (side == "before" && has_content) {
       keep <- xml2::xml_find_first(props, "w:keepNext", ns)
-      if (inherits(keep, "xml_missing")) keep <- xml2::xml_add_child(props, "w:keepNext")
-      xml2::xml_set_attr(keep, "w:val", "1")
+      keys <- tolower(gsub("[ _-]", "", c(style_id, style_name)))
+      body_style <- is.na(style_id) || any(keys %in% c("firstparagraph", "bodytext",
+        "normal", "standard", "textkrper", "textk\u00f6rper"))
+      bold_label <- FALSE
+      if (!length(xml2::xml_find_all(paragraph, "ancestor::w:tbl", ns))) {
+        text_runs <- xml2::xml_find_all(paragraph, ".//w:r[w:t[normalize-space(.) != '']]", ns)
+        bold_label <- length(text_runs) > 0L && all(vapply(text_runs, function(run) {
+          node <- xml2::xml_find_first(run, "w:rPr/w:b", ns)
+          !inherits(node, "xml_missing") &&
+            !xml2::xml_attr(node, "w:val", ns) %in% c("0", "false", "off")
+        }, logical(1)))
+      }
+      # Release ordinary introductions from tall caption wrappers, but retain
+      # the established handling of headings and all-bold domain labels.
+      # An unfamiliar custom style may encode an intentional binding: leave
+      # that choice intact instead of treating every unknown style as prose.
+      target <- if (role == "caption" || grepl("^heading[1-9]$", role) || bold_label) "1" else
+        if (body_style) "0" else if (!inherits(keep, "xml_missing") &&
+          is.na(xml2::xml_attr(keep, "w:val", ns))) "1" else NULL
+      if (!is.null(target)) {
+        if (inherits(keep, "xml_missing")) keep <- xml2::xml_add_child(props, "w:keepNext")
+        xml2::xml_set_attr(keep, "w:val", target)
+      }
     }
     if (between_tables && !has_content) {
       xml2::xml_set_attrs(spacing, c("w:before" = "0", "w:after" = "0",
@@ -734,8 +764,7 @@ space_report_table <- function(table, styles, ns, points = 6) {
     } else {
       attribute <- if (side == "before") "after" else "before"
       existing <- report_paragraph_spacing(paragraph, styles, attribute, ns)
-      style_id <- xml2::xml_attr(xml2::xml_find_first(props, "w:pStyle", ns), "w:val", ns)
-      is_caption <- side == "before" && !is.na(style_id) && grepl("caption", style_id, ignore.case = TRUE)
+      is_caption <- side == "before" && role == "caption"
       gap <- if (is_caption) 40 else max(points * 20, existing)
       xml2::xml_set_attr(spacing, paste0("w:", attribute), as.character(gap))
       xml2::xml_set_attr(spacing, paste0("w:", attribute, "Autospacing"), "0")

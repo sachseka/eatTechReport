@@ -74,8 +74,9 @@ With \code{config$report$data_origin = "synthetic"}, data- and configuration-der
 Word text is highlighted in yellow, including table values and cover inputs.
 Inline R output is marked automatically; editable as-is chunks use \code{value()}
 for their dynamic text. Inputs marked \code{"observed"} receive no such highlight.
-Figure notes use the \code{ReportFigureNote} paragraph style (Arial 10 pt, single
-spacing); ordinary body text retains its 11 pt minimum and 1.5 spacing.
+Figure and table notes use \code{ReportFigureNote} and \code{ReportTableNote}
+(Arial 10 pt, single spacing). Footnote text uses the same typography;
+ordinary body text retains its 11 pt minimum and 1.5 spacing.
 Hyperlinks and cross-references use the corporate burgundy colour.
 
 Successful renders store the report, derived reference and a baseline

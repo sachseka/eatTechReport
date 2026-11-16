@@ -17,7 +17,9 @@ example_leistung_input(
 }
 \arguments{
 \item{profile}{Example profile: \code{"v3_de_lesen_zuhoeren"} for German reading
-and listening, or \code{"v3_ma_mg_mm"} for globally scaled mathematics.}
+and listening, or \code{"v3_ma_mg_ms"} for globally scaled mathematics.
+The earlier profile \code{"v3_ma_mg_mm"} remains available with the legacy \code{MM}
+domain code; new inputs use \code{MS}.}
 
 \item{seed}{Nonnegative integer random seed. This is not a reporting year.}
 

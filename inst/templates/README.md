@@ -8,8 +8,9 @@ has also been removed without recompressing the image.
 
 The reference is supplied with the package so reports do not depend on a local
 template file. The rendering code also enforces Arial, a minimum body-text size
-of 11 pt and 1.5 line spacing. Figure notes use the dedicated `ReportFigureNote`
-style with 10 pt Arial and single spacing. Hyperlinks and cross-references use
+of 11 pt and 1.5 line spacing. Figure and table notes use the dedicated
+`ReportFigureNote` and `ReportTableNote` styles with 10 pt Arial and single
+spacing, as does footnote text. Hyperlinks and cross-references use
 the corporate burgundy colour. Bibliography entries use `ReportBibliography`
 with an 8 pt paragraph gap between sources and retain 1.5 line spacing within
 each entry.

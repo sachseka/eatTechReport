@@ -29,6 +29,8 @@ All scopes optionally accept \code{config$conventions}, created with
 \code{\link[=report_conventions]{report_conventions()}}. These thresholds populate report text; they do not
 select items or change supplied results. Older inputs without this block
 remain valid.
+Optional \code{config$editorial}, created with \code{\link[=report_editorial]{report_editorial()}}, supplies
+study-specific text values and explicit statements about procedures.
 Scope \code{haupttest_struktur} uses schema \verb{0.4.0-draft} and additionally requires
 \code{data$main_test}: selected items, modules, ordered item membership and
 documented pilot-wave membership. It extends the draft with main-test

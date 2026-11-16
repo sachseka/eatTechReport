@@ -126,7 +126,7 @@ numerischen Cuts müssen für reale Berichte fachlich freigegeben sein.
 
 ```{r}
 ma <- example_report(
-  profile = "v3_ma_mg_mm",
+  profile = "v3_ma_mg_ms",
   seed = 42,
   n_persons = 200
 )
@@ -134,8 +134,11 @@ ma <- example_report(
 knitr::kable(ma$config$domains)
 ```
 
-Die fünf Leitideen verweisen alle auf `MO`. Die Modulschwerpunkte `MG` und `MM`
+Die fünf Leitideen stehen in der Reihenfolge `MZ`, `MG`, `MS`, `MR`, `MD` und
+verweisen alle auf `MO`. Die Modulschwerpunkte `MG` und `MS`
 erzeugen keine zusätzlichen psychometrischen Skalen oder Untergruppen.
+Das frühere Profil `v3_ma_mg_mm` bleibt mit dem Kürzel `MM` für bestehende
+Eingaben erhalten; neue Beispiele verwenden `MS`.
 
 ```{r}
 #| fig-width: 8
@@ -145,6 +148,41 @@ plot_performance(ma, scale_id = "MO")
 ```
 
 ## Weiterarbeiten
+
+Wiederkehrende Textangaben können über `config$editorial` geliefert werden:
+
+```{r}
+demo$config$editorial <- report_editorial(
+  study_period = "Mai und Juni 2026",
+  coding_training_sessions = 2L,
+  changed_conditions_included = TRUE,
+  reliability_by_scale = data.frame(
+    scale_id = c("DL", "DH"),
+    agreement_percent = c(94.0, 95.0),
+    cohen_kappa = c(0.86, 0.88),
+    reliability_description = c("hohe Beurteilerübereinstimmungen",
+                                "hohe Beurteilerübereinstimmungen")
+  )
+)
+validate_report_input(demo)
+```
+
+Die Angaben dokumentieren die vorgelagerte Durchführung und Auswertung.
+Sie filtern keine Personen und berechnen keine Reliabilitätswerte.
+Die Werte in `reliability_by_scale` sind hier rein illustrativ.
+`agreement_percent` bezeichnet den vorgelagert berechneten Median der
+itembezogenen prozentualen Übereinstimmungen, keinen gepoolten Anteil aller
+Antworten. Die optionale Tabelle hat genau die vier gezeigten Spalten und höchstens eine Zeile je
+konfigurierter Skala. Deutsch berichtet die Kodierkennwerte je Skala separat;
+fehlende Zeilen bleiben offen und werden nicht durch ein Gesamtergebnis
+ersetzt. Für Mathematik kann eine Zeile mit `scale_id = "MO"` geliefert werden;
+sie hat Vorrang vor den globalen Feldern `agreement_percent`, `cohen_kappa`
+und `reliability_description`.
+
+Öffentliche Bausteine verwenden die relevanten Design- und Stichprobenfelder;
+die weiteren Felder lassen sich in ergänzenden lokalen Quarto-Kapiteln
+einsetzen. Im Simulationsmodus erscheinen Textvariablen einschließlich
+noch offener Angaben gelb und ohne eckige Klammern.
 
 Mit `example_report(scope = "haupttest_struktur")` lassen sich zusätzlich die
 [Haupttest-Auswahl und Module](haupttest.html) darstellen, einschließlich

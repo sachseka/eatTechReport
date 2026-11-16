@@ -88,9 +88,16 @@ beispielsweise `0,30` und `1,15`. Bei
 `config$report$data_origin = "synthetic"` wird die eingesetzte Zahl gelb
 hinterlegt. Im Modus `"observed"` entfällt diese Hervorhebung.
 
-Fehlt der optionale Konventionsblock, bleiben die entsprechenden redaktionellen
-Platzhalter sichtbar, beispielsweise `[Zielschwelle]`. Ein fehlender Wert wird
-nicht durch eine vermeintliche fachliche Vorgabe ersetzt.
+Fehlt der optionale Konventionsblock, bleiben beschreibende redaktionelle
+Hinweise sichtbar, beispielsweise `Zielschwelle`, ohne eckige Klammern.
+Auch diese offenen Angaben sind im Simulationsmodus gelb markiert.
+Ein fehlender Wert wird nicht durch eine vermeintliche fachliche Vorgabe ersetzt.
+
+Durchgangsspezifische Textangaben wie Erhebungszeitraum, Schulungstermine oder
+Softwareversionen werden getrennt davon mit `report_editorial()` als
+`config$editorial` übergeben. Die Konventionen beschreiben die fachlichen
+Schwellen; redaktionelle Angaben beschreiben Durchführung und Auswertung.
+Beide Schnittstellen dokumentieren gelieferte Festlegungen und Ergebnisse.
 
 Die Werte werden zusammen mit den übrigen Eingaben im Berichtsarchiv
 gespeichert. Die [Textredaktion](textredaktion.html) beschreibt die Bearbeitung

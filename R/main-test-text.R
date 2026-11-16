@@ -1,5 +1,32 @@
 # Presentation tables for the selected main-test inventory. The summary owns
 # all counts; these helpers only add labels and format displayed values.
+main_test_task_count_text <- function(main_test, config) {
+  if (!identical(config$report$subject, "ma")) return("")
+  config <- report_presentation_config(config)
+  modules <- main_test$modules
+  tasks <- main_test$tasks
+  mark <- function(x) report_text_value(x, config)
+  count <- function(ids) length(unique(tasks$task_id[tasks$module_id %in% ids]))
+  task_count <- function(n) paste0(mark(n), if (n == 1L) " Aufgabe" else " Aufgaben")
+  base <- modules$module_id[modules$module_type == "base"]
+  parts <- character()
+  if (length(base)) parts <- paste0("f\u00fcr ", if (length(base) == 1L) "das Basismodul " else "die Basismodule ",
+                                    task_count(count(base)))
+  for (domain in config$domains$domain_id) {
+    selected <- tasks[tasks$module_id %in% modules$module_id[modules$module_type == "supplement"] &
+                        tasks$domain_id == domain, , drop = FALSE]
+    if (!nrow(selected)) next
+    label <- config$domains$label[match(domain, config$domains$domain_id)]
+    parts <- c(parts, paste0(if (length(unique(selected$module_id)) == 1L)
+      "f\u00fcr das Erg\u00e4nzungsmodul zur Leitidee \u201e" else "f\u00fcr die Erg\u00e4nzungsmodule zur Leitidee \u201e",
+      mark(label), "\u201c ", task_count(length(unique(selected$task_id)))))
+  }
+  if (!length(parts)) return("")
+  paste0("Insgesamt wurden ", paste(parts, collapse = ", "),
+         " f\u00fcr die Erstellung des Testmaterials f\u00fcr VERA-3 ", mark(config$report$main_year),
+         " herangezogen.")
+}
+
 main_test_tables <- function(main_test, config) {
   pool <- main_test$pool
   domain_labels <- config$domains$label[match(pool$domain_id,

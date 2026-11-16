@@ -49,15 +49,21 @@ test_that("report typography replaces inherited and direct small text without lo
   expect_identical(xml2::xml_attr(xml2::xml_find_first(doc, "//w:tblBorders/w:bottom", ns), "w:sz", ns), "12")
   for (file in list.files(file.path(directory, "word"), full.names = TRUE)) {
     part <- xml2::read_xml(file)
-    sizes <- as.numeric(xml2::xml_attr(xml2::xml_find_all(part, "//w:sz|//w:szCs", ns), "w:val", ns))
-    expect_true(all(sizes >= 22), info = basename(file))
+    sizes <- xml2::xml_find_all(part, "//w:sz|//w:szCs", ns)
+    is_note <- vapply(sizes, function(size) {
+      length(xml2::xml_find_all(size, "ancestor::w:footnote|ancestor::w:style[@w:styleId='Footnote' or @w:styleId='ReportFigureNote' or @w:styleId='ReportTableNote']", ns)) > 0L
+    }, logical(1))
+    values <- as.numeric(xml2::xml_attr(sizes, "w:val", ns))
+    expect_true(all(values[!is_note] >= 22), info = basename(file))
+    expect_true(all(values[is_note] == 20), info = basename(file))
     fonts <- xml2::xml_find_all(part, "//w:rFonts", ns)
     expect_true(all(xml2::xml_attr(fonts, "w:ascii", ns) == "Arial"), info = basename(file))
     expect_true(all(is.na(xml2::xml_attr(fonts, "w:asciiTheme", ns))), info = basename(file))
     expect_true(all(is.na(xml2::xml_attr(fonts, "w:hAnsiTheme", ns))), info = basename(file))
     paragraphs <- xml2::xml_find_all(part, "//w:p[.//w:t or .//w:instrText]", ns)
     spacing <- xml2::xml_find_first(paragraphs, "w:pPr/w:spacing", ns)
-    expect_true(all(xml2::xml_attr(spacing, "w:line", ns) == "360"), info = basename(file))
+    expect_true(all(xml2::xml_attr(spacing, "w:line", ns) ==
+      if (basename(file) == "footnotes.xml") "240" else "360"), info = basename(file))
     expect_true(all(xml2::xml_attr(spacing, "w:lineRule", ns) == "auto"), info = basename(file))
     widow_control <- xml2::xml_find_first(paragraphs, "w:pPr/w:widowControl", ns)
     expect_true(all(xml2::xml_attr(widow_control, "w:val", ns) == "1"), info = basename(file))
